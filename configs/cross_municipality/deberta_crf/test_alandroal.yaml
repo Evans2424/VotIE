@@ -1,28 +1,29 @@
 # Cross-Municipality Experiment: Test on Alandroal
 # Train on 5 municipalities, test on Alandroal (held-out)
+# LOMO (Leave-One-Municipality-Out) split
 
 model:
-  name: "deberta_crf_cross_muni_alandroal"
-  model_name: "microsoft/deberta-v3-base"
+  name: "deberta_crf"
+  model_name: "microsoft/mdeberta-v3-base"
   architecture: "crf"
   dropout: 0.1
   num_labels: null  # will be set automatically
 
 data:
-  data_dir: "data/publication_datasets/ner_datasets/pt/cross_municipality/test_alandroal"
-  train_files: ["train.jsonl"]
+  data_dir: "data/votie_lomo/M01_alandroal"
+  train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"
 
 training:
   batch_size: 16
-  epochs: 7
-  learning_rate: 5e-5
+  epochs: 10
+  learning_rate: 2e-5
   warmup_proportion: 0.1
   weight_decay: 0.01
   patience: 3
   device: 0  # CUDA device ID
-  apply_bio_validation: false
+  apply_bio_validation: true
 
 optimization:
   optimizer: "adamw"

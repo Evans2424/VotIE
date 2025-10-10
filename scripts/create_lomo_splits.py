@@ -8,9 +8,10 @@ municipalities form the train/dev sets.
 
 Input: data/votie_events/{train,dev,test}.jsonl (combined)
 Output: data/votie_lomo/M0X_name/
-  - events/{train,dev,test}.jsonl
-  - spans/{train,dev,test}.json
-  - conll/{train,dev,test}.conll
+  - train.jsonl (BIO format)
+  - dev.jsonl (BIO format)
+  - test.jsonl (BIO format)
+  - statistics.json
 """
 
 import json
@@ -151,22 +152,6 @@ def create_lomo_split(all_examples: List[Dict], target_municipality: str) -> Tup
 # FORMAT CONVERSION
 # ============================================================================
 
-def convert_to_spans(examples: List[Dict]) -> List[Dict]:
-    """Convert events to spans format."""
-    span_examples = []
-    for ex in examples:
-        span_examples.append({
-            "id": ex["id"],
-            "text": ex["text"],
-            "municipality": ex["municipality"],
-            "document_id": ex["document_id"],
-            "segment_id": ex["segment_id"],
-            "tokens": ex["tokens"],
-            "spans": ex["spans"]
-        })
-    return span_examples
-
-
 def spans_to_bio_tags(tokens: List[str], spans: List[Dict]) -> List[str]:
     """Convert spans to BIO tags."""
     bio_tags = ['O'] * len(tokens)
@@ -193,28 +178,27 @@ def spans_to_bio_tags(tokens: List[str], spans: List[Dict]) -> List[str]:
     return bio_tags
 
 
-def convert_to_conll(examples: List[Dict]) -> List[str]:
-    """Convert examples to CoNLL format lines."""
-    all_lines = []
-
+def convert_to_bio_jsonl(examples: List[Dict]) -> List[Dict]:
+    """Convert examples to BIO JSONL format."""
+    bio_examples = []
+    
     for example in examples:
         tokens = example["tokens"]
         spans = example["spans"]
         bio_tags = spans_to_bio_tags(tokens, spans)
-
-        # Add metadata comments
-        all_lines.append(f"# segment_id: {example['id']}")
-        all_lines.append(f"# municipality: {example['municipality']}")
-        all_lines.append(f"# text: {example['text'][:80]}{'...' if len(example['text']) > 80 else ''}")
-        all_lines.append("")
-
-        # Add token-tag pairs
-        for token, tag in zip(tokens, bio_tags):
-            all_lines.append(f"{token}\t{tag}")
-
-        all_lines.append("")  # Blank line between segments
-
-    return all_lines
+        
+        bio_example = {
+            "id": example["id"],
+            "text": example["text"],
+            "tokens": tokens,
+            "labels": bio_tags,
+            "municipality": example["municipality"],
+            "document_id": example["document_id"],
+            "segment_id": example["segment_id"]
+        }
+        bio_examples.append(bio_example)
+    
+    return bio_examples
 
 
 # ============================================================================
@@ -223,41 +207,23 @@ def convert_to_conll(examples: List[Dict]) -> List[str]:
 
 def save_lomo_split(municipality_id: str, train_ex: List[Dict],
                     dev_ex: List[Dict], test_ex: List[Dict], output_dir: Path):
-    """Save LOMO split in all three formats."""
+    """Save LOMO split in BIO JSONL format (compatible with training script)."""
     municipality_name = MUNICIPALITIES[municipality_id]
     lomo_dir = output_dir / f"{municipality_id}_{municipality_name}"
 
     logger.info(f"Saving LOMO split for {municipality_id} to {lomo_dir}")
 
-    # Save events format
-    events_dir = lomo_dir / "events"
-    events_dir.mkdir(parents=True, exist_ok=True)
+    # Create directory
+    lomo_dir.mkdir(parents=True, exist_ok=True)
 
+    # Save BIO JSONL format (main format for training)
     for split_name, examples in [("train", train_ex), ("dev", dev_ex), ("test", test_ex)]:
-        with open(events_dir / f"{split_name}.jsonl", 'w', encoding='utf-8') as f:
-            for ex in examples:
+        bio_examples = convert_to_bio_jsonl(examples)
+        with open(lomo_dir / f"{split_name}.jsonl", 'w', encoding='utf-8') as f:
+            for ex in bio_examples:
                 f.write(json.dumps(ex, ensure_ascii=False) + '\n')
 
-    # Save spans format
-    spans_dir = lomo_dir / "spans"
-    spans_dir.mkdir(parents=True, exist_ok=True)
-
-    for split_name, examples in [("train", train_ex), ("dev", dev_ex), ("test", test_ex)]:
-        span_examples = convert_to_spans(examples)
-        with open(spans_dir / f"{split_name}.json", 'w', encoding='utf-8') as f:
-            json.dump(span_examples, f, ensure_ascii=False, indent=2)
-
-    # Save CoNLL format
-    conll_dir = lomo_dir / "conll"
-    conll_dir.mkdir(parents=True, exist_ok=True)
-
-    for split_name, examples in [("train", train_ex), ("dev", dev_ex), ("test", test_ex)]:
-        conll_lines = convert_to_conll(examples)
-        with open(conll_dir / f"{split_name}.conll", 'w', encoding='utf-8') as f:
-            for line in conll_lines:
-                f.write(line + '\n')
-
-    logger.info(f"  Saved all formats to {lomo_dir}")
+    logger.info(f"  Saved BIO JSONL format to {lomo_dir}")
 
 
 def save_lomo_statistics(municipality_id: str, train_ex: List[Dict],
@@ -435,9 +401,9 @@ def main():
     logger.info("  votie_lomo/")
     for muni_id in sorted(MUNICIPALITIES.keys()):
         logger.info(f"    {muni_id}_{MUNICIPALITIES[muni_id]}/")
-        logger.info(f"      events/  (train.jsonl, dev.jsonl, test.jsonl)")
-        logger.info(f"      spans/   (train.json, dev.json, test.json)")
-        logger.info(f"      conll/   (train.conll, dev.conll, test.conll)")
+        logger.info(f"      train.jsonl  (BIO format)")
+        logger.info(f"      dev.jsonl    (BIO format)")
+        logger.info(f"      test.jsonl   (BIO format)")
         logger.info(f"      statistics.json")
     logger.info("=" * 80)
 

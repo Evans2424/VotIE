@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 """
-Production-Ready NER Trainer for Scientific Publication
+Production-Ready VotIE Trainer
 
-A trainer implementation for Named Entity Recognition tasks, designed for reproducible research and production deployment. Features comprehensive
-error handling, memory management, and follows PyTorch best practices.
+A trainer implementation for sequence labeling tasks, designed for reproducible research. Features comprehensive error handling and logging.
 
 Key Features:
-    - Publication-compliant training methodology (Portuguese BERT paper)
+    - Paper-compliant training methodology
     - Comprehensive error handling (OOM, device failures, checkpoints)
     - Robust memory management and resource cleanup
     - Logging and monitoring
     - Type-safe parameter validation
-    - Extensible callback system
-    - Mixed precision training support
-    - Distributed training compatibility
 
 Example:
     Basic usage for NER training:
@@ -35,7 +31,7 @@ Example:
         learning_rate=2e-5
     )
     
-    # Train with automatic error recovery
+    # Train
     results = trainer.train()
     
     # Evaluate on test set
@@ -43,11 +39,10 @@ Example:
     ```
 
 Technical Implementation:
-    - Differential learning rates (BERT: 2e-5, Classifier/CRF: 1e-3)
     - AdamW optimizer with linear warmup scheduling
     - Gradient clipping for stability (max_grad_norm=1.0)
     - Early stopping with patience-based monitoring
-    - Entity-level evaluation using seqeval metrics
+    - Entity-level evaluation using seqeval metrics and event-level evaluation following proposed methodology on paper.
     - Automatic checkpoint management and cleanup
     - HuggingFace-compatible model saving format
 """
@@ -57,12 +52,14 @@ import json
 import logging
 import math
 import os
+import random
 import shutil
 import time
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.cuda.amp import GradScaler, autocast
@@ -87,6 +84,31 @@ from src.evaluation.metrics import NEREvaluator
 def setup_all_auth():
     """Setup authentication for external services."""
     return {"status": "disabled"}
+
+
+def set_seed(seed: int) -> None:
+    """
+    Set seed for reproducibility across all random number generators.
+    
+    This ensures deterministic behavior for:
+    - Python's random module
+    - NumPy random number generation
+    - PyTorch CPU operations
+    - PyTorch CUDA operations
+    - cuDNN backend operations
+    
+    Args:
+        seed: Random seed value
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    # Make cuDNN deterministic
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    logger.info(f"🎲 Random seed set to {seed} for reproducibility")
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -113,8 +135,7 @@ class NERTrainer:
         eval_dataset: Evaluation/validation dataset (NERDataset instance)
         output_dir: Directory for saving models and logs
         id_to_label: Mapping from label IDs to label strings (e.g., {0: "O", 1: "B-PER"})
-        learning_rate: Base learning rate for transformer layers (default: 2e-5)
-        classifier_learning_rate: Learning rate for classifier layers (default: 1e-3)
+        learning_rate: Learning rate for all model parameters (default: 2e-5)
         num_train_epochs: Maximum number of training epochs (default: 10)
         train_batch_size: Training batch size (default: 16)
         eval_batch_size: Evaluation batch size (default: 32)
@@ -164,7 +185,6 @@ class NERTrainer:
         output_dir: Union[str, Path],
         id_to_label: Dict[int, str],
         learning_rate: float = 2e-5,
-        classifier_learning_rate: float = 1e-3,
         num_train_epochs: int = 10,
         train_batch_size: int = 16,
         eval_batch_size: int = 32,
@@ -189,7 +209,7 @@ class NERTrainer:
         # Validate inputs with comprehensive error messages
         self._validate_initialization_parameters(
             model, train_dataset, eval_dataset, output_dir, id_to_label,
-            learning_rate, classifier_learning_rate, num_train_epochs,
+            learning_rate, num_train_epochs,
             train_batch_size, eval_batch_size, warmup_proportion,
             max_grad_norm, patience, save_steps, eval_steps, 
             logging_steps, seed, device
@@ -215,7 +235,6 @@ class NERTrainer:
         
         # Training hyperparameters with validation
         self.learning_rate = learning_rate
-        self.classifier_learning_rate = classifier_learning_rate
         self.num_train_epochs = num_train_epochs
         self.train_batch_size = train_batch_size
         self.eval_batch_size = eval_batch_size
@@ -226,6 +245,9 @@ class NERTrainer:
         self.eval_steps = eval_steps
         self.logging_steps = logging_steps
         self.seed = seed
+        
+        # Set seed for reproducibility
+        set_seed(self.seed)
         
         # Extended configuration
         self.enable_mixed_precision = enable_mixed_precision
@@ -294,7 +316,6 @@ class NERTrainer:
         output_dir: Union[str, Path],
         id_to_label: Dict[int, str],
         learning_rate: float,
-        classifier_learning_rate: float,
         num_train_epochs: int,
         train_batch_size: int,
         eval_batch_size: int,
@@ -347,9 +368,6 @@ class NERTrainer:
         # Numeric parameter validation
         if not 0 < learning_rate < 1:
             raise ValueError(f"learning_rate must be in (0, 1), got {learning_rate}")
-            
-        if not 0 < classifier_learning_rate < 1:
-            raise ValueError(f"classifier_learning_rate must be in (0, 1), got {classifier_learning_rate}")
             
         if not 1 <= num_train_epochs <= 1000:
             raise ValueError(f"num_train_epochs must be in [1, 1000], got {num_train_epochs}")
@@ -451,7 +469,7 @@ class NERTrainer:
         logger.info("📋 Training Configuration:")
         logger.info(f"   Epochs: {self.num_train_epochs}")
         logger.info(f"   Batch sizes: train={self.train_batch_size}, eval={self.eval_batch_size}")
-        logger.info(f"   Learning rates: base={self.learning_rate}, classifier={self.classifier_learning_rate}")
+        logger.info(f"   Learning rate: {self.learning_rate}")
         logger.info(f"   Warmup proportion: {self.warmup_proportion}")
         logger.info(f"   Gradient clipping: {self.max_grad_norm}")
         logger.info(f"   Patience: {self.patience}")
@@ -459,45 +477,25 @@ class NERTrainer:
         logger.info(f"   Output directory: {self.output_dir}")
 
     def _setup_optimizer(self) -> AdamW:
-        """Setup optimizer with differential learning rates."""
-        # Separate parameters for different learning rates
-        bert_params = []
-        classifier_params = []
-        
-        for name, param in self.model.named_parameters():
-            if not param.requires_grad:
-                continue
-            
-            # Base model parameters (BERT, XLM-R, DeBERTa) get lower learning rate
-            if any(model_name in name.lower() for model_name in ['bert', 'xlmr', 'deberta', 'roberta']):
-                bert_params.append(param)
-            else:
-                # Classifier and CRF parameters get higher learning rate
-                classifier_params.append(param)
+        """Setup optimizer with single learning rate for all parameters."""
+        # Collect all trainable parameters
+        trainable_params = [p for p in self.model.parameters() if p.requires_grad]
         
         optimizer_grouped_parameters = [
             {
-                'params': bert_params,
+                'params': trainable_params,
                 'weight_decay': 0.01,
                 'lr': self.learning_rate
-            },
-            {
-                'params': classifier_params,
-                'weight_decay': 0.01,
-                'lr': self.classifier_learning_rate
             }
         ]
         
         optimizer = AdamW(optimizer_grouped_parameters, eps=1e-8)
         
-        logger.info(f"Optimizer setup - Base LR: {self.learning_rate}, Classifier LR: {self.classifier_learning_rate}")
+        logger.info(f"Optimizer setup - Learning Rate: {self.learning_rate} (uniform for all parameters)")
         
         return optimizer
     
 
-    
-
-    
     def _setup_scheduler(self, num_training_steps: int) -> LambdaLR:
         """Setup learning rate scheduler with warmup."""
         num_warmup_steps = int(num_training_steps * self.warmup_proportion)
@@ -670,8 +668,6 @@ class NERTrainer:
             'per_type_metrics': entity_metrics.get('per_type_metrics', {}),
             'num_examples': len(all_predictions)
         }
-        
-
         
         return eval_results
     
@@ -1043,8 +1039,8 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
         else:
             logger.warning("No best model checkpoint found, saving current model state")
         
-        # Save final model in HuggingFace format (now contains best model)
-        final_model_dir = self.output_dir / "best_model"
+        # Save final model in HuggingFace format directly in output_dir (no subdirectory)
+        final_model_dir = self.output_dir
         
         if self.no_save_models:
             logger.info("Skipping final model save (no_save_models=True)")
@@ -1077,7 +1073,6 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
                 'base_model': self.base_model,
                 'num_labels': len(self.id_to_label),
                 'learning_rate': self.learning_rate,
-                'classifier_learning_rate': self.classifier_learning_rate,
                 'train_batch_size': self.train_batch_size,
                 'eval_batch_size': self.eval_batch_size,
                 'warmup_proportion': self.warmup_proportion,

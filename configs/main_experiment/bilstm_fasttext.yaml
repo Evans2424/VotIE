@@ -3,11 +3,11 @@
 model:
   name: "bilstm_fasttext"
   embedding_dim: 300       # FastText embedding dimension
-  hidden_dim: 256          # LSTM hidden state dimension
-  num_layers: 2            # Number of LSTM layers
-  dropout: 0.3             # Dropout rate
+  hidden_dim: 128          # LSTM hidden state dimension
+  num_layers: 1            # Number of LSTM layers
+  dropout: 0.5             # Dropout rate
   use_crf: true            # Use CRF layer on top of BiLSTM
-  use_char_cnn: true       # Use character-level CNN
+  use_char_cnn: false       # Use character-level CNN
 
 data:
   data_dir: "data/votie_bio"
@@ -21,11 +21,13 @@ data:
 
 training:
   batch_size: 32
-  max_epochs: 10
-  learning_rate: 0.001
-  patience: 5              # Early stopping patience
-  device: 3         
+  max_epochs: 20
+  learning_rate: 0.0005
+  weight_decay: 1e-4       # L2 regularization strength  
+  patience: 2              # Early stopping patience
+  device: 0        
   apply_bio_validation: true  # Apply BIO tag validation
+  seed: 42  # Random seed for reproducibility
 
 embeddings:
   # Path to FastText embeddings (cc.pt.300.bin for Portuguese)

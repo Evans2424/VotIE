@@ -1,0 +1,11 @@
+{
+  "vocab_size": 17059,
+  "embedding_dim": 300,
+  "hidden_dim": 256,
+  "num_labels": 17,
+  "num_layers": 2,
+  "use_crf": true,
+  "use_char_cnn": true,
+  "char_vocab_size": 110,
+  "model_type": "bilstm_fasttext"
+}

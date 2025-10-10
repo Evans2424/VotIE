@@ -6,12 +6,12 @@ Generate cross-municipality experiment configs for all models.
 from pathlib import Path
 
 MUNICIPALITIES = {
-    "campomaior": "Campomaior",
-    "guimaraes": "Guimarães",
-    "porto": "Porto",
-    "fundao": "Fundão",
-    "alandroal": "Alandroal",
-    "covilha": "Covilhã"
+    "alandroal": {"display": "Alandroal", "id": "M01"},
+    "campomaior": {"display": "Campomaior", "id": "M02"},
+    "covilha": {"display": "Covilhã", "id": "M03"},
+    "fundao": {"display": "Fundão", "id": "M04"},
+    "guimaraes": {"display": "Guimarães", "id": "M05"},
+    "porto": {"display": "Porto", "id": "M06"}
 }
 
 MODELS = {
@@ -27,23 +27,24 @@ MODELS = {
 
 CONFIG_TEMPLATE = """# Cross-Municipality Experiment: Test on {muni_display}
 # Train on 5 municipalities, test on {muni_display} (held-out)
+# LOMO (Leave-One-Municipality-Out) split
 
 model:
-  name: "{model_key}_cross_muni_{muni_key}"
+  name: "{model_key}"
   model_name: "{model_name}"
   architecture: "{architecture}"
   dropout: 0.1
   num_labels: null  # will be set automatically
 
 data:
-  data_dir: "data/publication_datasets/ner_datasets/pt/cross_municipality/test_{muni_key}"
-  train_files: ["train.jsonl"]
+  data_dir: "data/votie_lomo/{muni_id}_{muni_key}"
+  train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"
 
 training:
   batch_size: 16
-  epochs: 7
+  epochs: 10
   learning_rate: 2e-5
   warmup_proportion: 0.1
   weight_decay: 0.01
@@ -80,10 +81,11 @@ def generate_configs():
 
         print(f"Model: {model_key}")
 
-        for muni_key, muni_display in MUNICIPALITIES.items():
+        for muni_key, muni_info in MUNICIPALITIES.items():
             config_content = CONFIG_TEMPLATE.format(
                 muni_key=muni_key,
-                muni_display=muni_display,
+                muni_display=muni_info['display'],
+                muni_id=muni_info['id'],
                 model_key=model_key,
                 model_name=model_info['model_name'],
                 architecture=model_info['architecture']

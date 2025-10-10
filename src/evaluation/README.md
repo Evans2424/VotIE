@@ -6,7 +6,7 @@ This directory contains comprehensive evaluation metrics for Named Entity Recogn
 
 The evaluation code is organized into three specialized modules, each handling a different granularity level:
 
-### 1. `token_metrics.py` - Token-Level Evaluation
+### 1. `entity_metrics.py` - Entity-Level Evaluation
 
 **Purpose**: Evaluates NER performance at the token level using the standard seqeval library.
 
@@ -18,9 +18,9 @@ The evaluation code is organized into three specialized modules, each handling a
 
 **Usage**:
 ```python
-from src.evaluation.token_metrics import TokenLevelEvaluator
+from src.evaluation.entity_metrics import EntityLevelEvaluator
 
-evaluator = TokenLevelEvaluator()
+evaluator = EntityLevelEvaluator()
 metrics = evaluator.compute_metrics(pred_labels, true_labels)
 
 print(f"Token-level F1: {metrics['token_f1']:.3f}")

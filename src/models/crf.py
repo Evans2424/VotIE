@@ -35,7 +35,7 @@ from sklearn_crfsuite import CRF, metrics
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.absolute()))
 from src.data.dataset import validate_bio_sequence
-from src.evaluation.token_metrics import TokenLevelEvaluator
+from src.evaluation.entity_metrics import EntityLevelEvaluator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -571,16 +571,16 @@ class TraditionalCRFModel:
         # Extract true labels
         true_labels = [example['labels'] for example in test_data]
 
-        # Use token-level evaluation
-        evaluator = TokenLevelEvaluator()
+        # Use entity-level evaluation
+        evaluator = EntityLevelEvaluator()
         entity_metrics = evaluator.compute_metrics(predictions, true_labels)
 
         # Map to consistent field names for compatibility
         results = {
-            'entity_f1_strict': entity_metrics.get('token_f1', 0.0),
-            'entity_precision': entity_metrics.get('token_precision', 0.0),
-            'entity_recall': entity_metrics.get('token_recall', 0.0),
-            'accuracy': entity_metrics.get('token_accuracy', 0.0),
+            'entity_f1_strict': entity_metrics.get('entity_f1', 0.0),
+            'entity_precision': entity_metrics.get('entity_precision', 0.0),
+            'entity_recall': entity_metrics.get('entity_recall', 0.0),
+            'accuracy': entity_metrics.get('entity_accuracy', 0.0),
             'num_examples': len(test_data)
         }
 
@@ -660,6 +660,26 @@ class TraditionalCRFModel:
         metadata_path = save_path / "metadata.json"
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+        # Save config.json for compatibility with prediction pipeline
+        label_to_id = {label: idx for idx, label in enumerate(self.label_list)}
+        id_to_label = {idx: label for idx, label in enumerate(self.label_list)}
+        
+        config = {
+            'model_type': 'crf',
+            'architecture': 'TraditionalCRF',
+            'num_labels': len(self.label_list),
+            'label2id': label_to_id,
+            'id2label': id_to_label,
+            'algorithm': self.algorithm,
+            'c1': self.c1,
+            'c2': self.c2,
+            'max_iterations': self.max_iterations
+        }
+
+        config_path = save_path / "config.json"
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Model saved to {save_path}")
 

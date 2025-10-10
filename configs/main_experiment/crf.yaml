@@ -19,3 +19,4 @@ training:
   # Model selection is done via dev set evaluation
   verbose: true
   save_model: true
+  seed: 42  # Random seed for reproducibility

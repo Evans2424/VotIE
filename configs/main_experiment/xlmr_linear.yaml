@@ -20,13 +20,14 @@ data:
 
 training:
   batch_size: 16
-  epochs: 7
+  epochs: 10
   learning_rate: 2e-5
   warmup_proportion: 0.1
   weight_decay: 0.01
   patience: 3
-  device: 1  # CUDA device ID (e.g., 0, 1, 2) or -1 for CPU
+  device: 0  # CUDA device ID (e.g., 0, 1, 2) or -1 for CPU
   apply_bio_validation: true  # Apply BIO tag validation during evaluation
+  seed: 42  # Random seed for reproducibility
 
 optimization:
   optimizer: "adamw"

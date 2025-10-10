@@ -81,7 +81,7 @@ class ModelDetector:
                 # Transformer models - look for run directories
                 self._detect_transformer_models(model_type, model_dir)
             elif model_type == 'bilstm_fasttext':
-                # BiLSTM models - look for best_model or run directories
+                # BiLSTM models - look for model files directly or legacy best_model/run directories
                 self._detect_bilstm_models(model_type, model_dir)
             elif model_type == 'crf':
                 # CRF models - look for run directories
@@ -108,7 +108,18 @@ class ModelDetector:
 
     def _detect_bilstm_models(self, model_type: str, model_dir: Path):
         """Detect BiLSTM models."""
-        # Check for best_model directory
+        # Check for model files directly in model directory (new format)
+        if (model_dir / 'pytorch_model.bin').exists():
+            self.models.append({
+                'model_type': model_type,
+                'model_family': 'traditional',
+                'model_path': model_dir,
+                'run_name': model_dir.name,
+                'checkpoint_type': 'best'
+            })
+            logger.info(f"Found BiLSTM model: {model_dir.name}")
+        
+        # Also check for legacy best_model directory format
         best_model_dir = model_dir / 'best_model'
         if best_model_dir.exists() and (best_model_dir / 'pytorch_model.bin').exists():
             self.models.append({
@@ -118,7 +129,7 @@ class ModelDetector:
                 'run_name': 'best_model',
                 'checkpoint_type': 'best'
             })
-            logger.info(f"Found BiLSTM model: best_model")
+            logger.info(f"Found BiLSTM model: best_model (legacy format)")
 
         # Also check run directories
         for run_dir in sorted(model_dir.glob('run_*')):

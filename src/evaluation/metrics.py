@@ -4,7 +4,7 @@ Unified NER Evaluation Interface.
 
 This module provides a unified evaluation interface that delegates to specialized
 evaluation modules:
-- token_metrics: Token-level evaluation using seqeval
+- entity_metrics: Entity-level evaluation using seqeval
 - span_metrics: Span-level evaluation with exact match and macro F1
 - event_metrics: Event-level evaluation for structured voting events
 
@@ -18,7 +18,7 @@ from typing import List, Dict, Any, Optional
 logger = logging.getLogger(__name__)
 
 # Import specialized evaluators
-from .token_metrics import TokenLevelEvaluator
+from .entity_metrics import EntityLevelEvaluator
 from .span_metrics import SpanLevelEvaluator
 from .event_metrics import EventLevelEvaluator
 
@@ -39,12 +39,12 @@ class NEREvaluator:
             id_to_label: Optional mapping from label IDs to strings
         """
         self.id_to_label = id_to_label or {}
-        self.token_evaluator = TokenLevelEvaluator(id_to_label)
+        self.entity_evaluator = EntityLevelEvaluator(id_to_label)
         self.span_evaluator = SpanLevelEvaluator()
 
     def convert_ids_to_labels(self, predictions: List[List[int]]) -> List[List[str]]:
         """Convert predicted label IDs to label strings."""
-        return self.token_evaluator.convert_ids_to_labels(predictions)
+        return self.entity_evaluator.convert_ids_to_labels(predictions)
 
     def compute_metrics(
         self,
@@ -65,8 +65,8 @@ class NEREvaluator:
         Returns:
             Dictionary with comprehensive evaluation metrics
         """
-        # Token-level metrics (always included)
-        token_results = self.token_evaluator.compute_metrics(pred_labels, true_labels)
+        # Entity-level metrics (always included)
+        entity_results = self.entity_evaluator.compute_metrics(pred_labels, true_labels)
 
         # Span-level metrics (optional)
         if include_span_metrics:
@@ -75,12 +75,23 @@ class NEREvaluator:
             )
             
             # Combine results
-            combined_results = {**token_results, **span_results}
-            combined_results["evaluation_method"] = "token_and_span_level"
+            combined_results = {**entity_results, **span_results}
+            combined_results["evaluation_method"] = "entity_and_span_level"
         else:
-            combined_results = token_results
+            combined_results = entity_results
 
-        return combined_results
+        # Map keys to match trainer expectations
+        # The trainer expects: entity_f1_strict, precision, recall, accuracy
+        # Entity evaluator returns: entity_f1, entity_precision, entity_recall, entity_accuracy
+        return {
+            'entity_f1_strict': combined_results.get('entity_f1', 0.0),
+            'precision': combined_results.get('entity_precision', 0.0),
+            'recall': combined_results.get('entity_recall', 0.0),
+            'accuracy': combined_results.get('entity_accuracy', 0.0),
+            'entity_accuracy': combined_results.get('entity_accuracy', 0.0),
+            'evaluation_method': combined_results.get('evaluation_method', 'seqeval'),
+            'per_type_metrics': combined_results.get('per_type_metrics', {})
+        }
 
 
 # Legacy support for existing code
@@ -91,13 +102,13 @@ def compute_seqeval_metrics(
     """
     Legacy function for backward compatibility.
     
-    Uses token-level evaluation only.
+    Uses entity-level evaluation only.
     """
-    evaluator = TokenLevelEvaluator()
+    evaluator = EntityLevelEvaluator()
     results = evaluator.compute_metrics(pred_labels, true_labels)
     return {
-        "precision": results["token_precision"],
-        "recall": results["token_recall"],
-        "f1": results["token_f1"],
-        "accuracy": results["token_accuracy"]
+        "precision": results["entity_precision"],
+        "recall": results["entity_recall"],
+        "f1": results["entity_f1"],
+        "accuracy": results["entity_accuracy"]
     }

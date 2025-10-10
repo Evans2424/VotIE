@@ -21,7 +21,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 
 from .models.bilstm_crf import BiLSTMFastTextNER, FastTextEmbedding, CharacterVocab
-from src.evaluation.token_metrics import TokenLevelEvaluator
+from src.evaluation.entity_metrics import EntityLevelEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -170,11 +170,13 @@ class BiLSTMTrainer:
         use_crf: bool = True,
         use_char_cnn: bool = True,
         learning_rate: float = 0.001,
+        weight_decay: float = 1e-4,
         batch_size: int = 32,
         max_epochs: int = 50,
         patience: int = 7,
         device: str = "auto",
-        apply_bio_validation: bool = True
+        apply_bio_validation: bool = True,
+        seed: int = 42
     ):
         """
         Initialize BiLSTM trainer.
@@ -189,11 +191,13 @@ class BiLSTMTrainer:
             use_crf: Whether to use CRF layer
             use_char_cnn: Whether to use character CNN
             learning_rate: Learning rate
+            weight_decay: L2 regularization strength (weight decay)
             batch_size: Batch size
             max_epochs: Maximum training epochs
             patience: Early stopping patience
             device: Device to use
             apply_bio_validation: Whether to apply BIO tag validation during inference
+            seed: Random seed for reproducibility
         """
         self.config = config
         self.output_dir = Path(output_dir)
@@ -208,11 +212,16 @@ class BiLSTMTrainer:
         self.use_char_cnn = use_char_cnn
 
         # Training parameters (use config values if available)
-        self.learning_rate = config.get('learning_rate', learning_rate)
-        self.batch_size = config.get('batch_size', batch_size)
-        self.max_epochs = config.get('epochs', max_epochs)
-        self.patience = config.get('patience', patience)
+        self.learning_rate = float(config.get('learning_rate', learning_rate))
+        self.weight_decay = float(config.get('weight_decay', weight_decay))
+        self.batch_size = int(config.get('batch_size', batch_size))
+        self.max_epochs = int(config.get('epochs', max_epochs))
+        self.patience = int(config.get('patience', patience))
         self.apply_bio_validation = apply_bio_validation
+        self.seed = seed
+        
+        # Set seed for reproducibility
+        self._set_seed()
 
         # Device setup with graceful fallback to CPU
         if device == "auto":
@@ -241,6 +250,24 @@ class BiLSTMTrainer:
         self.idx2label = {}
 
         logger.info(f"Initialized BiLSTM trainer with device: {self.device}")
+
+    def _set_seed(self):
+        """Set random seeds for reproducibility."""
+        import random
+        import numpy as np
+        import torch
+        
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
+        torch.cuda.manual_seed(self.seed)
+        torch.cuda.manual_seed_all(self.seed)
+        
+        # Ensure deterministic behavior
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        
+        logger.info(f"Set random seed to {self.seed} for reproducibility")
 
     def load_data_from_jsonl(self, file_path: Union[str, Path]) -> Tuple[List[List[str]], List[List[str]]]:
         """
@@ -373,16 +400,14 @@ class BiLSTMTrainer:
         self,
         train_file: Union[str, Path],
         val_file: Optional[Union[str, Path]] = None,
-        test_file: Optional[Union[str, Path]] = None,
         language: str = "pt"
     ) -> Dict[str, Any]:
         """
         Train the BiLSTM model.
 
         Args:
-            train_file: Training data file
+            train_file: Training data file  
             val_file: Validation data file (optional)
-            test_file: Test data file (optional)
             language: Language code
 
         Returns:
@@ -411,7 +436,15 @@ class BiLSTMTrainer:
         )
 
         # Setup optimizer and scheduler
-        self.optimizer = Adam(self.model.parameters(), lr=self.learning_rate)
+        logger.info(f"Training configuration:")
+        logger.info(f"  Learning rate: {self.learning_rate}")
+        logger.info(f"  Weight decay (L2): {self.weight_decay}")
+        logger.info(f"  Dropout: {self.dropout}")
+        logger.info(f"  Batch size: {self.batch_size}")
+        logger.info(f"  Max epochs: {self.max_epochs}")
+        logger.info(f"  Patience: {self.patience}")
+        
+        self.optimizer = Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         self.scheduler = ReduceLROnPlateau(
             self.optimizer, mode='max', factor=0.5, patience=3
         )
@@ -462,20 +495,6 @@ class BiLSTMTrainer:
 
         training_time = time.time() - start_time
 
-        # Evaluate on test set if provided
-        test_results = None
-        if test_file:
-            logger.info("Evaluating on test set...")
-            # Load best model for evaluation
-            if val_loader:  # Only load best if we saved it during validation
-                best_model_path = self.output_dir / "best_model"
-                if best_model_path.exists():
-                    logger.info("Loading best model for test evaluation...")
-                    self.model = BiLSTMFastTextNER.from_pretrained(best_model_path)
-                    self.model.to(self.device)
-            
-            test_results = self.evaluate(test_file)
-
         # Save final results
         results = {
             'best_eval_score': best_val_f1,
@@ -489,12 +508,17 @@ class BiLSTMTrainer:
                 'num_labels': len(self.label2idx),
                 'use_crf': self.use_crf,
                 'use_char_cnn': self.use_char_cnn
+            },
+            'training_params': {
+                'learning_rate': self.learning_rate,
+                'weight_decay': self.weight_decay,
+                'dropout': self.dropout,
+                'batch_size': self.batch_size,
+                'patience': self.patience
             }
         }
 
-        # Add test results if available
-        if test_results:
-            results['test_results'] = test_results
+
 
         # Save training results
         self._save_training_results(results)
@@ -590,7 +614,7 @@ class BiLSTMTrainer:
         true_labels = [[self.idx2label[l] for l in label] for label in all_labels]
 
         # Apply BIO validation to ensure valid tag sequences
-        from core.data.dataset import validate_bio_sequence
+        from src.data.dataset import validate_bio_sequence
         validated_pred_labels = []
         for i, pred_seq in enumerate(pred_labels):
             validated_seq = validate_bio_sequence(
@@ -600,10 +624,10 @@ class BiLSTMTrainer:
             )
             validated_pred_labels.append(validated_seq)
 
-        # Use the token-level evaluator
-        evaluator = TokenLevelEvaluator()
+        # Use the entity-level evaluator
+        evaluator = EntityLevelEvaluator()
         metrics = evaluator.compute_metrics(validated_pred_labels, true_labels)
-        f1_score = metrics.get('token_f1', 0.0)
+        f1_score = metrics.get('entity_f1', 0.0)
 
         return avg_loss, f1_score
 
@@ -667,7 +691,7 @@ class BiLSTMTrainer:
         true_labels = [[self.idx2label[l] for l in label] for label in all_labels]
 
         # Apply BIO validation to ensure valid tag sequences
-        from core.data.dataset import validate_bio_sequence
+        from src.data.dataset import validate_bio_sequence
         validated_pred_labels = []
         for i, pred_seq in enumerate(pred_labels):
             validated_seq = validate_bio_sequence(
@@ -677,18 +701,18 @@ class BiLSTMTrainer:
             )
             validated_pred_labels.append(validated_seq)
 
-        # Use the token-level evaluator to get detailed metrics
-        evaluator = TokenLevelEvaluator()
+        # Use the entity-level evaluator to get detailed metrics
+        evaluator = EntityLevelEvaluator()
         metrics = evaluator.compute_metrics(validated_pred_labels, true_labels)
 
         # Create results in the same format as other models
         results = {
             'eval_loss': total_loss / num_batches,
-            'entity_f1_strict': metrics.get('token_f1', 0.0),
-            'entity_precision': metrics.get('token_precision', 0.0),
-            'entity_recall': metrics.get('token_recall', 0.0),
-            'entity_accuracy': metrics.get('token_accuracy', 0.0),
-            'evaluation_method': 'seqeval_token_level',
+            'entity_f1_strict': metrics.get('entity_f1', 0.0),
+            'entity_precision': metrics.get('entity_precision', 0.0),
+            'entity_recall': metrics.get('entity_recall', 0.0),
+            'entity_accuracy': metrics.get('entity_accuracy', 0.0),
+            'evaluation_method': 'seqeval_entity_level',
             'per_type_metrics': metrics.get('per_type_metrics', {}),
             'num_examples': len(test_sentences)
         }
@@ -701,20 +725,20 @@ class BiLSTMTrainer:
 
     def _save_checkpoint(self, name: str) -> None:
         """Save model checkpoint."""
-        checkpoint_dir = self.output_dir / name
-        checkpoint_dir.mkdir(exist_ok=True)
+        # Save directly in output_dir like transformers, not in subdirectory
+        self.output_dir.mkdir(exist_ok=True)
 
         # Save model
-        self.model.save_pretrained(checkpoint_dir)
+        self.model.save_pretrained(self.output_dir)
 
         # Save label mapping
-        with open(checkpoint_dir / "label_mapping.json", 'w') as f:
+        with open(self.output_dir / "label_mapping.json", 'w') as f:
             json.dump({
                 'label2idx': self.label2idx,
                 'idx2label': self.idx2label
             }, f, indent=2)
 
-        logger.info(f"Checkpoint saved to {checkpoint_dir}")
+        logger.info(f"Checkpoint saved to {self.output_dir}")
 
     def _save_training_results(self, results: Dict[str, Any]) -> None:
         """Save training results."""
@@ -730,7 +754,6 @@ def train_bilstm_fasttext(
     config: Dict[str, Any],
     train_file: Union[str, Path],
     val_file: Optional[Union[str, Path]] = None,
-    test_file: Optional[Union[str, Path]] = None,
     output_dir: Optional[Union[str, Path]] = None,
     **kwargs
 ) -> Dict[str, Any]:
@@ -741,7 +764,6 @@ def train_bilstm_fasttext(
         config: Training configuration
         train_file: Training data file
         val_file: Validation data file
-        test_file: Test data file
         output_dir: Output directory
         **kwargs: Additional trainer arguments
 
@@ -749,7 +771,7 @@ def train_bilstm_fasttext(
         Training results with detailed evaluation metrics
     """
     if output_dir is None:
-        output_dir = Path("results") / "bilstm_fasttext"
+        output_dir = Path("models") / "bilstm_fasttext"
 
     # Create trainer
     trainer = BiLSTMTrainer(
@@ -762,7 +784,6 @@ def train_bilstm_fasttext(
     results = trainer.train(
         train_file=train_file,
         val_file=val_file,
-        test_file=test_file,
         language=config.get('language', 'pt')
     )
 

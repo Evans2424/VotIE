@@ -1,0 +1,66 @@
+{
+  "target_municipality": "M02",
+  "municipality_name": "campomaior",
+  "train": {
+    "num_examples": 2111,
+    "total_tokens": 589191,
+    "avg_tokens_per_example": 279.10516342965417,
+    "entity_counts": {
+      "SUBJECT": 1832,
+      "VOTING": 1998,
+      "COUNTING-UNANIMITY": 1109,
+      "VOTER-FAVOR": 1169,
+      "VOTER-ABSTENTION": 838,
+      "COUNTING-MAJORITY": 229,
+      "VOTER-AGAINST": 153,
+      "VOTER-ABSENT": 70
+    },
+    "municipality_distribution": {
+      "M05": 474,
+      "M01": 414,
+      "M04": 195,
+      "M06": 414,
+      "M03": 614
+    }
+  },
+  "dev": {
+    "num_examples": 372,
+    "total_tokens": 97547,
+    "avg_tokens_per_example": 262.2231182795699,
+    "entity_counts": {
+      "SUBJECT": 321,
+      "VOTING": 353,
+      "COUNTING-UNANIMITY": 196,
+      "VOTER-FAVOR": 235,
+      "VOTER-ABSENT": 23,
+      "VOTER-AGAINST": 15,
+      "VOTER-ABSTENTION": 166,
+      "COUNTING-MAJORITY": 33
+    },
+    "municipality_distribution": {
+      "M05": 80,
+      "M04": 40,
+      "M03": 105,
+      "M01": 89,
+      "M06": 58
+    }
+  },
+  "test": {
+    "num_examples": 396,
+    "total_tokens": 109129,
+    "avg_tokens_per_example": 275.57828282828285,
+    "entity_counts": {
+      "SUBJECT": 325,
+      "VOTER-FAVOR": 246,
+      "VOTING": 321,
+      "VOTER-ABSENT": 5,
+      "COUNTING-MAJORITY": 26,
+      "VOTER-ABSTENTION": 41,
+      "COUNTING-UNANIMITY": 241,
+      "VOTER-AGAINST": 10
+    },
+    "municipality_distribution": {
+      "M02": 396
+    }
+  }
+}

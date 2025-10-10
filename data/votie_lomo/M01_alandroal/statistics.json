@@ -1,0 +1,66 @@
+{
+  "target_municipality": "M01",
+  "municipality_name": "alandroal",
+  "train": {
+    "num_examples": 2020,
+    "total_tokens": 631609,
+    "avg_tokens_per_example": 312.6777227722772,
+    "entity_counts": {
+      "SUBJECT": 1765,
+      "VOTING": 1933,
+      "COUNTING-MAJORITY": 214,
+      "VOTER-ABSTENTION": 862,
+      "VOTER-FAVOR": 1020,
+      "COUNTING-UNANIMITY": 1003,
+      "VOTER-ABSENT": 72,
+      "VOTER-AGAINST": 151
+    },
+    "municipality_distribution": {
+      "M06": 411,
+      "M02": 335,
+      "M05": 470,
+      "M04": 197,
+      "M03": 607
+    }
+  },
+  "dev": {
+    "num_examples": 356,
+    "total_tokens": 122742,
+    "avg_tokens_per_example": 344.7808988764045,
+    "entity_counts": {
+      "VOTER-FAVOR": 184,
+      "VOTING": 335,
+      "COUNTING-UNANIMITY": 176,
+      "SUBJECT": 306,
+      "COUNTING-MAJORITY": 34,
+      "VOTER-ABSTENTION": 147,
+      "VOTER-ABSENT": 16,
+      "VOTER-AGAINST": 24
+    },
+    "municipality_distribution": {
+      "M04": 38,
+      "M05": 84,
+      "M02": 61,
+      "M03": 112,
+      "M06": 61
+    }
+  },
+  "test": {
+    "num_examples": 503,
+    "total_tokens": 41516,
+    "avg_tokens_per_example": 82.53677932405567,
+    "entity_counts": {
+      "VOTER-FAVOR": 446,
+      "VOTING": 404,
+      "COUNTING-UNANIMITY": 367,
+      "SUBJECT": 407,
+      "VOTER-ABSENT": 10,
+      "COUNTING-MAJORITY": 40,
+      "VOTER-ABSTENTION": 36,
+      "VOTER-AGAINST": 3
+    },
+    "municipality_distribution": {
+      "M01": 503
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "conversion_info": {
+    "timestamp": "2025-10-09T19:02:44.019777",
+    "source_directory": "citilink",
+    "output_directory": "data/votie_events",
+    "random_seed": 42
+  },
+  "source_statistics": {
+    "entities_by_label": {
+      "VOTER-FAVOR": 1650,
+      "VOTING": 2672,
+      "COUNTING-MAJORITY": 288,
+      "VOTER-ABSTENTION": 1045,
+      "SUBJECT": 2478,
+      "COUNTING-UNANIMITY": 1546,
+      "VOTER-ABSENT": 98,
+      "VOTER-AGAINST": 178
+    },
+    "entities_filtered": {
+      "subject": 5888,
+      "votante": 97,
+      "votação": 94,
+      "contabilização global": 94,
+      "null": 6,
+      "não votante": 1
+    },
+    "relations": {
+      "positioning": 3073,
+      "outcome": 1952,
+      "voting_object": 2714
+    },
+    "municipalities": {
+      "M01": 503,
+      "M02": 396,
+      "M03": 719,
+      "M04": 235,
+      "M05": 554,
+      "M06": 472
+    },
+    "total_segments_processed": 2879,
+    "total_segments_with_voting": 2489
+  },
+  "converted_statistics": {
+    "entities": {
+      "VOTER-FAVOR": 1650,
+      "VOTING": 2672,
+      "COUNTING-MAJORITY": 288,
+      "VOTER-ABSTENTION": 1045,
+      "SUBJECT": 2478,
+      "COUNTING-UNANIMITY": 1546,
+      "VOTER-ABSENT": 98,
+      "VOTER-AGAINST": 178
+    },
+    "total_entities": 9955
+  },
+  "splits": {
+    "train": {
+      "num_examples": 2015,
+      "total_tokens": 543053,
+      "avg_tokens_per_example": 269.50521091811413,
+      "entity_counts": {
+        "VOTER-FAVOR": 1150,
+        "VOTING": 1882,
+        "COUNTING-UNANIMITY": 1076,
+        "SUBJECT": 1731,
+        "VOTER-ABSTENTION": 741,
+        "COUNTING-MAJORITY": 202,
+        "VOTER-AGAINST": 117,
+        "VOTER-ABSENT": 62
+      },
+      "municipality_distribution": {
+        "M01": 354,
+        "M03": 513,
+        "M05": 393,
+        "M04": 159,
+        "M06": 327,
+        "M02": 269
+      }
+    },
+    "dev": {
+      "num_examples": 431,
+      "total_tokens": 118404,
+      "avg_tokens_per_example": 274.7192575406032,
+      "entity_counts": {
+        "SUBJECT": 374,
+        "VOTING": 388,
+        "COUNTING-UNANIMITY": 248,
+        "VOTER-FAVOR": 245,
+        "COUNTING-MAJORITY": 34,
+        "VOTER-ABSTENTION": 166,
+        "VOTER-ABSENT": 14,
+        "VOTER-AGAINST": 21
+      },
+      "municipality_distribution": {
+        "M05": 87,
+        "M03": 97,
+        "M02": 62,
+        "M06": 66,
+        "M01": 86,
+        "M04": 33
+      }
+    },
+    "test": {
+      "num_examples": 433,
+      "total_tokens": 134410,
+      "avg_tokens_per_example": 310.4157043879908,
+      "entity_counts": {
+        "SUBJECT": 373,
+        "VOTER-FAVOR": 255,
+        "VOTING": 402,
+        "COUNTING-UNANIMITY": 222,
+        "VOTER-ABSTENTION": 138,
+        "COUNTING-MAJORITY": 52,
+        "VOTER-AGAINST": 40,
+        "VOTER-ABSENT": 22
+      },
+      "municipality_distribution": {
+        "M03": 109,
+        "M06": 79,
+        "M04": 43,
+        "M05": 74,
+        "M01": 63,
+        "M02": 65
+      }
+    }
+  },
+  "split_ratios": {
+    "train": 0.7,
+    "dev": 0.15,
+    "test": 0.15
+  }
+}

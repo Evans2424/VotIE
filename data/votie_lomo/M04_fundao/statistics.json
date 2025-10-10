@@ -1,0 +1,66 @@
+{
+  "target_municipality": "M04",
+  "municipality_name": "fundao",
+  "train": {
+    "num_examples": 2248,
+    "total_tokens": 547952,
+    "avg_tokens_per_example": 243.7508896797153,
+    "entity_counts": {
+      "VOTER-FAVOR": 1214,
+      "VOTING": 2057,
+      "COUNTING-UNANIMITY": 1138,
+      "SUBJECT": 1900,
+      "VOTER-ABSENT": 76,
+      "VOTER-ABSTENTION": 833,
+      "COUNTING-MAJORITY": 225,
+      "VOTER-AGAINST": 156
+    },
+    "municipality_distribution": {
+      "M02": 330,
+      "M05": 470,
+      "M01": 447,
+      "M03": 607,
+      "M06": 394
+    }
+  },
+  "dev": {
+    "num_examples": 396,
+    "total_tokens": 91792,
+    "avg_tokens_per_example": 231.7979797979798,
+    "entity_counts": {
+      "VOTER-FAVOR": 203,
+      "VOTING": 380,
+      "SUBJECT": 344,
+      "VOTER-ABSENT": 19,
+      "VOTER-ABSTENTION": 172,
+      "COUNTING-UNANIMITY": 203,
+      "COUNTING-MAJORITY": 36,
+      "VOTER-AGAINST": 13
+    },
+    "municipality_distribution": {
+      "M03": 112,
+      "M05": 84,
+      "M06": 78,
+      "M01": 56,
+      "M02": 66
+    }
+  },
+  "test": {
+    "num_examples": 235,
+    "total_tokens": 156123,
+    "avg_tokens_per_example": 664.3531914893617,
+    "entity_counts": {
+      "VOTER-FAVOR": 233,
+      "VOTING": 235,
+      "COUNTING-MAJORITY": 27,
+      "SUBJECT": 234,
+      "VOTER-ABSTENTION": 40,
+      "COUNTING-UNANIMITY": 205,
+      "VOTER-AGAINST": 9,
+      "VOTER-ABSENT": 3
+    },
+    "municipality_distribution": {
+      "M04": 235
+    }
+  }
+}

@@ -1,0 +1,7 @@
+private
+venv
+.DS_Store
+CLAUDE.md
+__pycache__
+models/*/pytorch_model.bin
+models/*/model.safetensors

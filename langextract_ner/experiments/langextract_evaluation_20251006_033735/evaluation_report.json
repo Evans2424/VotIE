@@ -1,0 +1,484 @@
+{
+  "metadata": {
+    "model": "gemini-2.5-flash",
+    "language": "pt",
+    "timestamp": "2025-10-06T05:03:28.213802",
+    "total_documents": 433,
+    "evaluation_method": "langextract_ner",
+    "evaluation_schemes": [
+      "seqeval_iob2",
+      "strict",
+      "exact",
+      "partial",
+      "type"
+    ],
+    "extraction_time_seconds": 5113.27,
+    "avg_time_per_document_seconds": 11.81
+  },
+  "overall_metrics": {
+    "precision": 0.5187335092348285,
+    "recall": 0.6408083441981747,
+    "entity_f1_strict": 0.573344998541849,
+    "total_predicted_entities": 1944,
+    "total_ground_truth_entities": 1534
+  },
+  "per_type_metrics": {
+    "VOTER-FAVOR": {
+      "precision": 0.5833333333333334,
+      "recall": 0.7807692307692308,
+      "f1": 0.667763157894737
+    },
+    "VOTER-AGAINST": {
+      "precision": 0.20512820512820512,
+      "recall": 0.2222222222222222,
+      "f1": 0.21333333333333332
+    },
+    "VOTER-ABSTENTION": {
+      "precision": 0.6329113924050633,
+      "recall": 0.625,
+      "f1": 0.6289308176100629
+    },
+    "VOTER-ABSENT": {
+      "precision": 0.07142857142857142,
+      "recall": 0.08333333333333333,
+      "f1": 0.07692307692307691
+    },
+    "SUBJECT": {
+      "precision": 0.1542649727767695,
+      "recall": 0.22849462365591397,
+      "f1": 0.18418201516793065
+    },
+    "VOTING": {
+      "precision": 0.6767676767676768,
+      "recall": 0.8395989974937343,
+      "f1": 0.7494407158836688
+    },
+    "COUNTING-MAJORITY": {
+      "precision": 0.7727272727272727,
+      "recall": 0.723404255319149,
+      "f1": 0.7472527472527473
+    },
+    "COUNTING-UNANIMITY": {
+      "precision": 0.8821138211382114,
+      "recall": 0.875,
+      "f1": 0.8785425101214575
+    }
+  },
+  "nervaluate_metrics": {
+    "strict": {
+      "overall": {
+        "precision": 0.49897119341563784,
+        "recall": 0.6323337679269883,
+        "f1": 0.5577918343875791,
+        "correct": 970,
+        "incorrect": 308,
+        "partial": 0,
+        "missed": 256,
+        "spurious": 666
+      },
+      "entities": {
+        "VOTER-FAVOR": {
+          "precision": 0.4931506849315068,
+          "recall": 0.6923076923076923,
+          "f1": 0.576,
+          "correct": 180,
+          "incorrect": 39,
+          "partial": 0,
+          "missed": 41,
+          "spurious": 146
+        },
+        "VOTER-AGAINST": {
+          "precision": 0.2,
+          "recall": 0.2222222222222222,
+          "f1": 0.2105263157894737,
+          "correct": 8,
+          "incorrect": 18,
+          "partial": 0,
+          "missed": 10,
+          "spurious": 14
+        },
+        "VOTER-ABSTENTION": {
+          "precision": 0.6211180124223602,
+          "recall": 0.625,
+          "f1": 0.6230529595015576,
+          "correct": 100,
+          "incorrect": 45,
+          "partial": 0,
+          "missed": 15,
+          "spurious": 16
+        },
+        "VOTER-ABSENT": {
+          "precision": 0.07142857142857142,
+          "recall": 0.08333333333333333,
+          "f1": 0.07692307692307691,
+          "correct": 1,
+          "incorrect": 9,
+          "partial": 0,
+          "missed": 2,
+          "spurious": 4
+        },
+        "SUBJECT": {
+          "precision": 0.15370705244122965,
+          "recall": 0.22849462365591397,
+          "f1": 0.1837837837837838,
+          "correct": 85,
+          "incorrect": 152,
+          "partial": 0,
+          "missed": 135,
+          "spurious": 316
+        },
+        "VOTING": {
+          "precision": 0.6621359223300971,
+          "recall": 0.8546365914786967,
+          "f1": 0.7461706783369803,
+          "correct": 341,
+          "incorrect": 40,
+          "partial": 0,
+          "missed": 18,
+          "spurious": 134
+        },
+        "COUNTING-MAJORITY": {
+          "precision": 0.7727272727272727,
+          "recall": 0.723404255319149,
+          "f1": 0.7472527472527473,
+          "correct": 34,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 13,
+          "spurious": 10
+        },
+        "COUNTING-UNANIMITY": {
+          "precision": 0.876984126984127,
+          "recall": 0.8911290322580645,
+          "f1": 0.8839999999999999,
+          "correct": 221,
+          "incorrect": 2,
+          "partial": 0,
+          "missed": 25,
+          "spurious": 29
+        }
+      }
+    },
+    "exact": {
+      "overall": {
+        "precision": 0.49897119341563784,
+        "recall": 0.6323337679269883,
+        "f1": 0.5577918343875791,
+        "correct": 970,
+        "incorrect": 308,
+        "partial": 0,
+        "missed": 256,
+        "spurious": 666
+      },
+      "entities": {
+        "VOTER-FAVOR": {
+          "precision": 0.4931506849315068,
+          "recall": 0.6923076923076923,
+          "f1": 0.576,
+          "correct": 180,
+          "incorrect": 39,
+          "partial": 0,
+          "missed": 41,
+          "spurious": 146
+        },
+        "VOTER-AGAINST": {
+          "precision": 0.2,
+          "recall": 0.2222222222222222,
+          "f1": 0.2105263157894737,
+          "correct": 8,
+          "incorrect": 18,
+          "partial": 0,
+          "missed": 10,
+          "spurious": 14
+        },
+        "VOTER-ABSTENTION": {
+          "precision": 0.6211180124223602,
+          "recall": 0.625,
+          "f1": 0.6230529595015576,
+          "correct": 100,
+          "incorrect": 45,
+          "partial": 0,
+          "missed": 15,
+          "spurious": 16
+        },
+        "VOTER-ABSENT": {
+          "precision": 0.07142857142857142,
+          "recall": 0.08333333333333333,
+          "f1": 0.07692307692307691,
+          "correct": 1,
+          "incorrect": 9,
+          "partial": 0,
+          "missed": 2,
+          "spurious": 4
+        },
+        "SUBJECT": {
+          "precision": 0.15370705244122965,
+          "recall": 0.22849462365591397,
+          "f1": 0.1837837837837838,
+          "correct": 85,
+          "incorrect": 152,
+          "partial": 0,
+          "missed": 135,
+          "spurious": 316
+        },
+        "VOTING": {
+          "precision": 0.6621359223300971,
+          "recall": 0.8546365914786967,
+          "f1": 0.7461706783369803,
+          "correct": 341,
+          "incorrect": 40,
+          "partial": 0,
+          "missed": 18,
+          "spurious": 134
+        },
+        "COUNTING-MAJORITY": {
+          "precision": 0.7727272727272727,
+          "recall": 0.723404255319149,
+          "f1": 0.7472527472527473,
+          "correct": 34,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 13,
+          "spurious": 10
+        },
+        "COUNTING-UNANIMITY": {
+          "precision": 0.876984126984127,
+          "recall": 0.8911290322580645,
+          "f1": 0.8839999999999999,
+          "correct": 221,
+          "incorrect": 2,
+          "partial": 0,
+          "missed": 25,
+          "spurious": 29
+        }
+      }
+    },
+    "partial": {
+      "overall": {
+        "precision": 0.49897119341563784,
+        "recall": 0.6323337679269883,
+        "f1": 0.5577918343875791,
+        "correct": 970,
+        "incorrect": 0,
+        "partial": 308,
+        "missed": 256,
+        "spurious": 666
+      },
+      "entities": {
+        "VOTER-FAVOR": {
+          "precision": 0.4931506849315068,
+          "recall": 0.6923076923076923,
+          "f1": 0.576,
+          "correct": 180,
+          "incorrect": 0,
+          "partial": 39,
+          "missed": 41,
+          "spurious": 146
+        },
+        "VOTER-AGAINST": {
+          "precision": 0.2,
+          "recall": 0.2222222222222222,
+          "f1": 0.2105263157894737,
+          "correct": 8,
+          "incorrect": 0,
+          "partial": 18,
+          "missed": 10,
+          "spurious": 14
+        },
+        "VOTER-ABSTENTION": {
+          "precision": 0.6211180124223602,
+          "recall": 0.625,
+          "f1": 0.6230529595015576,
+          "correct": 100,
+          "incorrect": 0,
+          "partial": 45,
+          "missed": 15,
+          "spurious": 16
+        },
+        "VOTER-ABSENT": {
+          "precision": 0.07142857142857142,
+          "recall": 0.08333333333333333,
+          "f1": 0.07692307692307691,
+          "correct": 1,
+          "incorrect": 0,
+          "partial": 9,
+          "missed": 2,
+          "spurious": 4
+        },
+        "SUBJECT": {
+          "precision": 0.15370705244122965,
+          "recall": 0.22849462365591397,
+          "f1": 0.1837837837837838,
+          "correct": 85,
+          "incorrect": 0,
+          "partial": 152,
+          "missed": 135,
+          "spurious": 316
+        },
+        "VOTING": {
+          "precision": 0.6621359223300971,
+          "recall": 0.8546365914786967,
+          "f1": 0.7461706783369803,
+          "correct": 341,
+          "incorrect": 0,
+          "partial": 40,
+          "missed": 18,
+          "spurious": 134
+        },
+        "COUNTING-MAJORITY": {
+          "precision": 0.7727272727272727,
+          "recall": 0.723404255319149,
+          "f1": 0.7472527472527473,
+          "correct": 34,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 13,
+          "spurious": 10
+        },
+        "COUNTING-UNANIMITY": {
+          "precision": 0.876984126984127,
+          "recall": 0.8911290322580645,
+          "f1": 0.8839999999999999,
+          "correct": 221,
+          "incorrect": 0,
+          "partial": 2,
+          "missed": 25,
+          "spurious": 29
+        }
+      }
+    },
+    "type": {
+      "overall": {
+        "precision": 0.6538065843621399,
+        "recall": 0.8285528031290743,
+        "f1": 0.7308798159861989,
+        "correct": 1271,
+        "incorrect": 7,
+        "partial": 0,
+        "missed": 256,
+        "spurious": 666
+      },
+      "entities": {
+        "VOTER-FAVOR": {
+          "precision": 0.6,
+          "recall": 0.8423076923076923,
+          "f1": 0.7007999999999999,
+          "correct": 219,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 41,
+          "spurious": 146
+        },
+        "VOTER-AGAINST": {
+          "precision": 0.65,
+          "recall": 0.7222222222222222,
+          "f1": 0.6842105263157895,
+          "correct": 26,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 10,
+          "spurious": 14
+        },
+        "VOTER-ABSTENTION": {
+          "precision": 0.9006211180124224,
+          "recall": 0.90625,
+          "f1": 0.9034267912772586,
+          "correct": 145,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 15,
+          "spurious": 16
+        },
+        "VOTER-ABSENT": {
+          "precision": 0.7142857142857143,
+          "recall": 0.8333333333333334,
+          "f1": 0.7692307692307692,
+          "correct": 10,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 2,
+          "spurious": 4
+        },
+        "SUBJECT": {
+          "precision": 0.42857142857142855,
+          "recall": 0.6370967741935484,
+          "f1": 0.5124324324324324,
+          "correct": 237,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 135,
+          "spurious": 316
+        },
+        "VOTING": {
+          "precision": 0.7398058252427184,
+          "recall": 0.9548872180451128,
+          "f1": 0.8336980306345734,
+          "correct": 381,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 18,
+          "spurious": 134
+        },
+        "COUNTING-MAJORITY": {
+          "precision": 0.7727272727272727,
+          "recall": 0.723404255319149,
+          "f1": 0.7472527472527473,
+          "correct": 34,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 13,
+          "spurious": 10
+        },
+        "COUNTING-UNANIMITY": {
+          "precision": 0.8849206349206349,
+          "recall": 0.8991935483870968,
+          "f1": 0.8919999999999999,
+          "correct": 223,
+          "incorrect": 0,
+          "partial": 0,
+          "missed": 25,
+          "spurious": 29
+        }
+      }
+    },
+    "summary": {
+      "strict_f1": 0.5577918343875791,
+      "strict_precision": 0.49897119341563784,
+      "strict_recall": 0.6323337679269883,
+      "evaluation_schemes_used": [
+        "strict",
+        "exact",
+        "partial",
+        "type"
+      ]
+    }
+  },
+  "error_analysis": {
+    "common_false_positives": {
+      "VOTER-FAVOR": 144,
+      "SUBJECT": 450,
+      "COUNTING-UNANIMITY": 28,
+      "VOTER-ABSTENTION": 57,
+      "VOTING": 82,
+      "VOTER-AGAINST": 27,
+      "VOTER-ABSENT": 13,
+      "COUNTING-MAJORITY": 10
+    },
+    "common_false_negatives": {
+      "VOTER-FAVOR": 70,
+      "SUBJECT": 287,
+      "COUNTING-UNANIMITY": 24,
+      "VOTER-ABSTENTION": 56,
+      "VOTING": 50,
+      "VOTER-AGAINST": 24,
+      "VOTER-ABSENT": 11,
+      "COUNTING-MAJORITY": 13
+    },
+    "label_confusion_matrix": {},
+    "length_based_errors": {
+      "short": 0,
+      "medium": 0,
+      "long": 0
+    }
+  }
+}

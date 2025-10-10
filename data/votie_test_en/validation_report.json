@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-10-10T02:48:44.777175",
+  "validation_passed": true,
+  "warnings": [],
+  "errors": [],
+  "statistics_comparison": {
+    "source_entities_by_label": {
+      "VOTING": 930,
+      "VOTER-FAVOR": 249,
+      "SUBJECT": 368,
+      "COUNTING-UNANIMITY": 76,
+      "COUNTING-MAJORITY": 10,
+      "VOTER-ABSTENTION": 12,
+      "VOTER-AGAINST": 4
+    },
+    "source_entities_filtered": {
+      "Assunto": 133
+    },
+    "converted_entities": {
+      "VOTING": 930,
+      "VOTER-FAVOR": 249,
+      "SUBJECT": 368,
+      "COUNTING-UNANIMITY": 76,
+      "COUNTING-MAJORITY": 10,
+      "VOTER-ABSTENTION": 12,
+      "VOTER-AGAINST": 4
+    },
+    "total_source_entities": 1649,
+    "total_converted": 1649,
+    "total_in_test": 1649
+  }
+}

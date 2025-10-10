@@ -1,0 +1,66 @@
+{
+  "target_municipality": "M06",
+  "municipality_name": "porto",
+  "train": {
+    "num_examples": 2046,
+    "total_tokens": 554571,
+    "avg_tokens_per_example": 271.05131964809385,
+    "entity_counts": {
+      "VOTER-FAVOR": 1393,
+      "VOTING": 1887,
+      "COUNTING-UNANIMITY": 1088,
+      "SUBJECT": 1725,
+      "COUNTING-MAJORITY": 101,
+      "VOTER-AGAINST": 66,
+      "VOTER-ABSENT": 85,
+      "VOTER-ABSTENTION": 743
+    },
+    "municipality_distribution": {
+      "M02": 323,
+      "M04": 201,
+      "M05": 476,
+      "M01": 441,
+      "M03": 605
+    }
+  },
+  "dev": {
+    "num_examples": 361,
+    "total_tokens": 91940,
+    "avg_tokens_per_example": 254.6814404432133,
+    "entity_counts": {
+      "SUBJECT": 301,
+      "VOTING": 339,
+      "COUNTING-UNANIMITY": 189,
+      "VOTER-FAVOR": 235,
+      "VOTER-ABSTENTION": 114,
+      "VOTER-ABSENT": 8,
+      "COUNTING-MAJORITY": 14,
+      "VOTER-AGAINST": 16
+    },
+    "municipality_distribution": {
+      "M05": 78,
+      "M02": 73,
+      "M01": 62,
+      "M03": 114,
+      "M04": 34
+    }
+  },
+  "test": {
+    "num_examples": 472,
+    "total_tokens": 149356,
+    "avg_tokens_per_example": 316.43220338983053,
+    "entity_counts": {
+      "SUBJECT": 452,
+      "VOTING": 446,
+      "COUNTING-MAJORITY": 173,
+      "VOTER-ABSTENTION": 188,
+      "VOTER-AGAINST": 96,
+      "COUNTING-UNANIMITY": 269,
+      "VOTER-FAVOR": 22,
+      "VOTER-ABSENT": 5
+    },
+    "municipality_distribution": {
+      "M06": 472
+    }
+  }
+}

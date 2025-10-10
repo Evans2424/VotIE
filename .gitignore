@@ -6,5 +6,8 @@ __pycache__
 models/*/*/pytorch_model.bin
 models/*/*/model.safetensors
 
+# FastText embedding files (large binary files)
 models/cc.pt.300.bin.gz
+**/cc.pt.300.bin
+**/cc.en.300.bin
 logs

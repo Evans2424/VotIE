@@ -225,28 +225,42 @@ def validate_example_data(example_data: Dict[str, Any]) -> bool:
     # Validation completed successfully
     return True
 
-def load_jsonl_file(file_path: Path) -> List[Dict[str, Any]]:
-    """Load JSONL file with vote identification data."""
+def load_jsonl_file(
+    file_path: Path,
+    deslexicalization_config: Optional[Dict[str, Any]] = None,
+    log_file: Optional[Path] = None
+) -> List[Dict[str, Any]]:
+    """
+    Load JSONL file with vote identification data.
+
+    Args:
+        file_path: Path to JSONL file
+        deslexicalization_config: Optional deslexicalization configuration
+        log_file: Optional log file for deslexicalization operations
+
+    Returns:
+        List of example dictionaries
+    """
     examples = []
-        
+
     total_lines = 0
     invalid_json = 0
     invalid_examples = 0
-    
+
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line_no, line in enumerate(f, 1):
                 total_lines += 1
                 try:
                     data = json.loads(line.strip())
-                    
+
                     # Validate data before adding
                     if validate_example_data(data):
                         examples.append(data)
                     else:
                         logger.warning(f"Skipping invalid example at line {line_no}")
                         invalid_examples += 1
-                        
+
                 except json.JSONDecodeError as e:
                     logger.warning(f"Invalid JSON at line {line_no} in {file_path}: {e}")
                     invalid_json += 1
@@ -254,10 +268,15 @@ def load_jsonl_file(file_path: Path) -> List[Dict[str, Any]]:
     except FileNotFoundError:
         logger.error(f"File not found: {file_path}")
         return []
-    
+
     # Log file statistics
     logger.info(f"Loaded {len(examples)} valid examples from {file_path}")
-    
+
+    # Apply deslexicalization if configured
+    if deslexicalization_config and deslexicalization_config.get('enabled', False):
+        from src.data.deslexicalization import apply_deslexicalization
+        examples = apply_deslexicalization(examples, deslexicalization_config, log_file)
+
     return examples
 
 
@@ -905,11 +924,13 @@ def load_ner_dataset_from_jsonl(
     tokenizer_name: str,
     max_length: int = 512,
     overlap_tokens: int = 50,
-    enable_windowing: bool = True
+    enable_windowing: bool = True,
+    deslexicalization_config: Optional[Dict[str, Any]] = None,
+    experiment_name: str = "default"
 ) -> Tuple[NERDataset, NERDataset, NERDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
     """
     Load NER dataset from BIO-tagged JSONL format files with dynamic windowing.
-    
+
     Args:
         data_dir: Directory containing JSONL files with BIO tags
         train_file: Training file name (e.g., 'train.jsonl')
@@ -919,18 +940,31 @@ def load_ner_dataset_from_jsonl(
         max_length: Maximum sequence length
         overlap_tokens: Overlap between windows
         enable_windowing: If True, apply dynamic windowing
-    
+        deslexicalization_config: Optional deslexicalization configuration
+        experiment_name: Experiment name for log file path
+
     Returns:
         train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer
     """
     logger.info(f"Loading NER dataset from BIO-tagged JSONL format with dynamic windowing: {enable_windowing}")
     logger.info(f"Max length: {max_length}, Overlap: {overlap_tokens}")
-    
+
+    # Setup deslexicalization log file if enabled
+    delex_log_file = None
+    if deslexicalization_config and deslexicalization_config.get('enabled', False):
+        log_file_path = deslexicalization_config.get('log_file', 'logs/deslexicalization.jsonl')
+        delex_log_file = Path(log_file_path).parent / f"{experiment_name}_deslexicalization.jsonl"
+        logger.info(f"Deslexicalization enabled, logging to: {delex_log_file}")
+
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    
-    # Load training data
+
+    # Load training data with deslexicalization (only apply to training data)
     logger.info(f"Loading training file: {train_file}")
-    train_data = load_jsonl_file(data_dir / train_file)
+    train_data = load_jsonl_file(
+        data_dir / train_file,
+        deslexicalization_config=deslexicalization_config,
+        log_file=delex_log_file
+    )
     train_examples = jsonl_to_examples_with_dynamic_windowing(
         train_data,
         tokenizer=tokenizer,
@@ -939,8 +973,8 @@ def load_ner_dataset_from_jsonl(
         enable_windowing=enable_windowing
     )
     logger.info(f"  Loaded {len(train_examples)} examples from {train_file}")
-    
-    # Load development data
+
+    # Load development data (no deslexicalization)
     logger.info(f"Loading development file: {dev_file}")
     dev_data = load_jsonl_file(data_dir / dev_file)
     dev_examples = jsonl_to_examples_with_dynamic_windowing(
@@ -951,8 +985,8 @@ def load_ner_dataset_from_jsonl(
         enable_windowing=enable_windowing
     )
     logger.info(f"  Loaded {len(dev_examples)} examples from {dev_file}")
-    
-    # Load test data
+
+    # Load test data (no deslexicalization)
     logger.info(f"Loading test file: {test_file}")
     test_data = load_jsonl_file(data_dir / test_file)
     test_examples = jsonl_to_examples_with_dynamic_windowing(

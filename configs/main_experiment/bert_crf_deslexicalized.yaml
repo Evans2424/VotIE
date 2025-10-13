@@ -1,0 +1,67 @@
+# BERTimbau + CRF Configuration with Deslexicalization
+# This config demonstrates how to enable deslexicalization during training
+
+model:
+  name: "bert_crf"
+  model_name: "neuralmind/bert-large-portuguese-cased"  # BERTimbau base model
+  architecture: "crf"
+  dropout: 0.1
+  num_labels: null  # will be set automatically
+
+data:
+  # Dataset paths - modify these for different experiments
+  data_dir: "data/votie_bio"
+  train_file: "train.jsonl"
+  dev_file: "dev.jsonl"
+  test_file: "test.jsonl"
+
+training:
+  batch_size: 16
+  epochs: 10
+  learning_rate: 5e-5
+  warmup_proportion: 0.1
+  weight_decay: 0.01
+  patience: 3
+  device: 0 # CUDA device ID (e.g., 0, 1, 2) or -1 for CPU
+  apply_bio_validation: true  # Apply BIO tag validation during evaluation
+  seed: 42  # Random seed for reproducibility
+
+optimization:
+  optimizer: "adamw"
+  scheduler: "linear_with_warmup"
+  grad_clip: 1.0
+
+augmentation:
+  max_length: 512
+  padding: "max_length"
+  truncation: true
+
+windowing:
+  enable_windowing: true
+  overlap_tokens: 50
+
+# Deslexicalization configuration
+deslexicalization:
+  # Master switch - set to true to enable deslexicalization
+  enabled: true
+
+  # VOTER entity replacement strategy
+  # If true, replace VOTER names with fake names using Faker library
+  # If false, replace with generic [PERSON] tokens
+  use_fake_names: true
+
+  # Faker locale for generating fake names (only used if use_fake_names is true)
+  # Options: 'pt_PT' (Portuguese), 'en_US' (English), 'es_ES' (Spanish), etc.
+  faker_locale: 'pt_PT'
+
+  # Replace municipality-specific terms with @MUNICIPALITY placeholder
+  # Examples: "Porto", "Lisboa", "Câmara Municipal"
+  replace_municipalities: true
+
+  # Replace location references with @LOCAL placeholder
+  # Examples: "Praça do Município", "Rua Principal"
+  replace_locations: true
+
+  # Log file for deslexicalization operations (relative to project root)
+  # Actual log file will be: logs/{experiment_name}_deslexicalization.jsonl
+  log_file: "logs/deslexicalization.jsonl"

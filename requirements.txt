@@ -38,4 +38,7 @@ fasttext
 jsonlines
 sentencepiece
 
+# Deslexicalization
+faker>=18.0.0
+
 

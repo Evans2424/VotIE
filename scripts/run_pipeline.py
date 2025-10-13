@@ -86,6 +86,7 @@ def main():
     parser = argparse.ArgumentParser(description='Run complete ML pipeline: train → predict → evaluate')
     parser.add_argument('--config', required=True, help='Path to config YAML file')
     parser.add_argument('--name', required=True, help='Experiment name')
+    parser.add_argument('--baseline', help='Override baseline name (default: derived from config file)')
     parser.add_argument('--predict-only', action='store_true', help='Skip training, start from prediction')
     parser.add_argument('--evaluate-only', action='store_true', help='Skip training and prediction, only evaluate')
     parser.add_argument('--force', action='store_true', help='Overwrite existing files')
@@ -94,7 +95,21 @@ def main():
     
     # Load configuration
     config = load_config(args.config)
-    baseline_name = Path(args.config).stem  # e.g., "bert_crf" from "configs/main_experiment/bert_crf.yaml"
+    
+    # Determine baseline name
+    if args.baseline:
+        baseline_name = args.baseline
+    else:
+        # Try to derive from config file name, but for LOMO configs, use model name + architecture
+        config_stem = Path(args.config).stem
+        if config_stem.startswith('test_'):
+            # LOMO config - derive from model configuration
+            model_name = config['model']['name']
+            baseline_name = model_name
+        else:
+            # Regular config - use file stem
+            baseline_name = config_stem
+    
     experiment_name = args.name
     data_config = config['data']
     

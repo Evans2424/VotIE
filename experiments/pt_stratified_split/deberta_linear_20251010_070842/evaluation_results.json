@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/deberta_linear_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-10T08:05:02.665021",
+    "timestamp": "2025-10-13T02:02:01.169655",
     "num_examples": 433,
     "include_events": true
   },
@@ -71,11 +71,11 @@
     "participant_vote_precision": 0.9694817253313075,
     "participant_vote_recall": 0.9938099659548127,
     "participant_vote_f1": 0.9783031313700667,
-    "subject_precision": 0.8346883468834688,
-    "subject_recall": 0.8603351955307262,
-    "subject_f1": 0.8473177441540578,
-    "complete_event_accuracy": 0.7632311977715878,
-    "complete_matches": 274,
+    "subject_precision": 0.8356545961002786,
+    "subject_recall": 0.8356545961002786,
+    "subject_f1": 0.8356545961002786,
+    "complete_event_accuracy": 0.7688022284122563,
+    "complete_matches": 276,
     "total_events": 359,
     "evaluation_method": "event_level_structured"
   }

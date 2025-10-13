@@ -7,7 +7,7 @@ model:
   num_layers: 1            # Number of LSTM layers
   dropout: 0.5             # Dropout rate
   use_crf: true            # Use CRF layer on top of BiLSTM
-  use_char_cnn: false       # Use character-level CNN
+  use_char_cnn: true       # Use character-level CNN
 
 data:
   data_dir: "data/votie_bio"
@@ -25,7 +25,7 @@ training:
   learning_rate: 0.0005
   weight_decay: 1e-4       # L2 regularization strength  
   patience: 2              # Early stopping patience
-  device: 0        
+  device: 2        
   apply_bio_validation: true  # Apply BIO tag validation
   seed: 42  # Random seed for reproducibility
 

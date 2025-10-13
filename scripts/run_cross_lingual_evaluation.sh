@@ -6,7 +6,7 @@ set -e
 
 # Configuration
 ENGLISH_DATA="data/votie_test_en/test.jsonl"
-OUTPUT_DIR="results/cross_lingual_evaluation"
+OUTPUT_DIR="experiments/cross_lingual"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Create output directory
@@ -27,14 +27,13 @@ fi
 
 # Find all trained models from the main experiment
 MODELS=(
-    "models/bert_crf/bert_crf_20251010_064309"
-    "models/bert_linear/bert_linear_20251010_064309"
-    "models/deberta_crf/deberta_crf_20251010_064309" 
-    "models/deberta_linear/deberta_linear_20251010_064309"
-    "models/xlmr_crf/xlmr_crf_20251010_064309"
-    "models/xlmr_linear/xlmr_linear_20251010_064309"
-    "models/bilstm_fasttext/bilstm_fasttext_20251010_064309"
-    "models/crf/crf_20251010_064309"
+    "models/bert_crf/bert_crf_20251010_070842"
+    "models/bert_linear/bert_linear_20251010_070842"
+    "models/deberta_crf/deberta_crf_20251010_070842" 
+    "models/deberta_linear/deberta_linear_20251010_070842"
+    "models/xlmr_crf/xlmr_crf_20251010_070842"
+    "models/xlmr_linear/xlmr_linear_20251010_070842"
+    "models/crf/crf_full"
 )
 
 MODEL_NAMES=(
@@ -44,7 +43,6 @@ MODEL_NAMES=(
     "DeBERTa-Linear" 
     "XLM-R-CRF"
     "XLM-R-Linear"
-    "BiLSTM-FastText"
     "CRF"
 )
 
@@ -98,22 +96,22 @@ for i in "${!MODELS[@]}"; do
     echo "🔮 Generating predictions..."
     
     # Generate predictions
-    if python scripts/predict.py "$ACTUAL_MODEL_PATH" "$ENGLISH_DATA" "$MODEL_OUTPUT" cpu; then
+    if python scripts/predict.py "$ACTUAL_MODEL_PATH" "$ENGLISH_DATA" "$MODEL_OUTPUT" cuda:0; then
         echo "✅ Predictions generated: $MODEL_OUTPUT"
         
         echo "📊 Evaluating predictions..."
         
-        # Evaluate predictions
+        # Evaluate predictions  
         if python scripts/evaluate.py "$MODEL_OUTPUT" "$EVAL_OUTPUT"; then
             echo "✅ Evaluation completed: $EVAL_OUTPUT"
             
             # Extract metrics from evaluation results
             if [ -f "$EVAL_OUTPUT" ]; then
-                F1=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data.get('entity_f1_strict', 0.0):.4f}\")" 2>/dev/null || echo "0.0000")
-                PRECISION=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data.get('entity_precision', 0.0):.4f}\")" 2>/dev/null || echo "0.0000")
-                RECALL=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data.get('entity_recall', 0.0):.4f}\")" 2>/dev/null || echo "0.0000")
-                EVENT_DET=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data.get('event_detection_accuracy', 0.0):.4f}\")" 2>/dev/null || echo "0.0000")
-                COMPLETE_EVT=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data.get('complete_event_accuracy', 0.0):.4f}\")" 2>/dev/null || echo "0.0000")
+                F1=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data['entity_level_metrics']['entity_f1']:.4f}\")" 2>/dev/null || echo "0.0000")
+                PRECISION=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data['entity_level_metrics']['entity_precision']:.4f}\")" 2>/dev/null || echo "0.0000")
+                RECALL=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data['entity_level_metrics']['entity_recall']:.4f}\")" 2>/dev/null || echo "0.0000")
+                EVENT_DET=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data['event_level_metrics']['event_detection_accuracy']:.4f}\")" 2>/dev/null || echo "0.0000")
+                COMPLETE_EVT=$(python -c "import json; data=json.load(open('$EVAL_OUTPUT')); print(f\"{data['event_level_metrics']['complete_event_accuracy']:.4f}\")" 2>/dev/null || echo "0.0000")
                 
                 # Add to summary
                 echo "$MODEL_NAME,$F1,$PRECISION,$RECALL,$EVENT_DET,$COMPLETE_EVT,$ACTUAL_MODEL_PATH" >> $SUMMARY_FILE

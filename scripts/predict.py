@@ -69,18 +69,39 @@ def load_model(model_path: str, device: str = 'cuda'):
     model_type = config.get('model_type', '')
     if model_type == 'bilstm_fasttext':
         # Load BiLSTM model using its from_pretrained method
-        model = BiLSTMFastTextNER.from_pretrained(model_path)
-        model.to(device)
-        model.eval()
-        
-        # Store model path for vocabulary loading during prediction
-        model._model_path = str(model_path)
-        
-        # BiLSTM models don't use transformers tokenizer
-        tokenizer = None
-        
-        logger.info(f"✓ Loaded BiLSTM model from {model_path}")
-        return model, tokenizer, id_to_label, config
+        try:
+            from src.models.bilstm_crf import FastTextEmbedding, CharacterVocab
+            
+            model = BiLSTMFastTextNER.from_pretrained(model_path)
+            model.to(device)
+            model.eval()
+            
+            # Load embedding handler and character vocabulary ONCE for all predictions
+            embedding_handler = FastTextEmbedding.load_vocabulary(model_path)
+            
+            # Load char vocab if it exists
+            char_vocab = None
+            char_vocab_path = model_path / "char_vocab.json"
+            if char_vocab_path.exists():
+                with open(char_vocab_path, 'r') as f:
+                    char_vocab_data = json.load(f)
+                char_vocab = CharacterVocab(max_char_len=char_vocab_data.get('max_char_len', 20))
+                char_vocab.char2idx = char_vocab_data['char2idx']
+                char_vocab.idx2char = {int(k): v for k, v in char_vocab_data['idx2char'].items()}
+            
+            # Store these as attributes for prediction
+            model._embedding_handler = embedding_handler
+            model._char_vocab = char_vocab
+            model._model_path = str(model_path)
+            
+            # BiLSTM models don't use transformers tokenizer
+            tokenizer = None
+            
+            logger.info(f"✓ Loaded BiLSTM model from {model_path}")
+            return model, tokenizer, id_to_label, config
+        except Exception as e:
+            logger.error(f"Failed to load BiLSTM model: {e}")
+            raise
     
     # Check if this is a CRF model
     if model_type == 'crf':
@@ -231,72 +252,41 @@ def predict_crf(model, tokens: List[str]) -> List[int]:
     return pred_ids
 
 
-def predict_bilstm(model, tokens: List[str], device: str = 'cuda', model_path: str = None) -> List[int]:
+def predict_bilstm(model, tokens: List[str], device: str = 'cuda') -> List[int]:
     """Predict labels for BiLSTM model."""
-    import json
-    
-    # Load vocabularies
-    if model_path is None:
-        raise ValueError("model_path is required for BiLSTM prediction")
-    
-    model_path = Path(model_path)
-    
-    # Load word vocabulary
-    vocab_path = model_path / 'vocabulary.json' 
-    with open(vocab_path, 'r', encoding='utf-8') as f:
-        vocab = json.load(f)
-    word2idx = vocab['word2idx']
-    
-    # Load character vocabulary if exists
-    char_vocab_path = model_path / 'char_vocab.json'
-    char2idx = None
-    if char_vocab_path.exists():
-        with open(char_vocab_path, 'r', encoding='utf-8') as f:
-            char_vocab = json.load(f)
-        char2idx = char_vocab['char2idx']
-    
-    # Convert tokens to input_ids
-    input_ids = []
-    for token in tokens:
-        token_id = word2idx.get(token, word2idx.get('<UNK>', 0))
-        input_ids.append(token_id)
-    
-    # Create attention mask (all 1s since we don't pad)
-    attention_mask = [1] * len(input_ids)
-    
-    # Convert to tensors
-    input_ids = torch.tensor([input_ids], dtype=torch.long).to(device)
-    attention_mask = torch.tensor([attention_mask], dtype=torch.long).to(device)
-    
-    # Character encoding if available
-    char_ids = None
-    if char2idx is not None:
-        batch_char_ids = []
-        for token in tokens:
-            token_char_ids = []
-            for char in token:
-                char_id = char2idx.get(char, char2idx.get('<UNK>', 0))
-                token_char_ids.append(char_id)
-            # Pad/truncate to max char length (assume 20)
-            if len(token_char_ids) > 20:
-                token_char_ids = token_char_ids[:20]
-            else:
-                token_char_ids.extend([0] * (20 - len(token_char_ids)))
-            batch_char_ids.append(token_char_ids)
+    try:
+        # Use pre-loaded embedding handler and character vocabulary
+        embedding_handler = model._embedding_handler
+        char_vocab = model._char_vocab
         
-        char_ids = torch.tensor([batch_char_ids], dtype=torch.long).to(device)
-    
-    # Get predictions
-    with torch.no_grad():
-        if char_ids is not None:
-            # Model expects input_ids, attention_mask, char_ids
+        # Encode tokens
+        token_ids = embedding_handler.encode_sentences([tokens])[0]
+        
+        # Encode characters if char_vocab available
+        char_ids = None
+        if char_vocab is not None:
+            char_ids = char_vocab.encode_words(tokens)
+            char_ids = torch.tensor([char_ids], dtype=torch.long).to(device)
+        
+        # Create tensors
+        input_ids = torch.tensor([token_ids], dtype=torch.long).to(device)
+        attention_mask = torch.ones_like(input_ids)
+        
+        # Get predictions using model's decode method
+        model.eval()
+        with torch.no_grad():
             predictions = model.decode(input_ids, attention_mask, char_ids)
-        else:
-            # Model expects input_ids, attention_mask
-            predictions = model.decode(input_ids, attention_mask)
-    
-    # predictions is a list of lists, get the first (and only) sequence
-    return predictions[0]
+        
+        # predictions is a list of lists of label IDs
+        pred_ids = predictions[0]
+        
+        return pred_ids
+        
+    except Exception as e:
+        logger.error(f"BiLSTM prediction failed: {e}")
+        logger.exception("Full traceback:")
+        # Fallback to all 'O' labels
+        return [0] * len(tokens)
 
 
 def predict_example(model, tokenizer, id_to_label: Dict[int, str], example: Dict[str, Any], device: str = 'cuda') -> Dict[str, Any]:
@@ -305,13 +295,17 @@ def predict_example(model, tokenizer, id_to_label: Dict[int, str], example: Dict
     
     # Check model type for prediction
     if tokenizer is None:
-        # Check if this is a CRF model (has label_list attribute)
-        if hasattr(model, 'label_list') and hasattr(model, 'crf'):
-            # CRF models
+        # Check if this is a traditional CRF model (has label_list and crf attributes)
+        if hasattr(model, 'label_list') and hasattr(model, 'crf') and not hasattr(model, 'bilstm'):
+            # Traditional CRF models (sklearn-crfsuite)
             pred_label_ids = predict_crf(model, tokens)
+        elif hasattr(model, 'use_crf') or 'BiLSTM' in str(type(model).__name__):
+            # BiLSTM models - use their decode method with proper encoding
+            pred_label_ids = predict_bilstm(model, tokens, device)
         else:
-            # BiLSTM models need model path for vocabulary loading
-            pred_label_ids = predict_bilstm(model, tokens, device, getattr(model, '_model_path', None))
+            # Unknown model type
+            logger.warning(f"Unknown model type: {type(model)}, using fallback prediction")
+            pred_label_ids = [0] * len(tokens)  # All 'O' labels
     else:
         # Predict label IDs using transformer model
         pred_label_ids = predict_with_windowing(model, tokenizer, tokens, device)

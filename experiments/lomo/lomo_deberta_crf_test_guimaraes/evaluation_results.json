@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "predictions_file": "experiments/pt_stratified_split/lomo_deberta_crf_test_guimaraes/predictions.jsonl",
+    "timestamp": "2025-10-13T02:54:45.572727",
+    "num_examples": 554,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.7064102564102565,
+    "entity_recall": 0.6448215330602691,
+    "entity_f1": 0.6742122973386356,
+    "entity_accuracy": 0.9534674777725783,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.4444444444444444,
+        "recall": 0.7272727272727273,
+        "f1_score": 0.5517241379310345,
+        "support": 22
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.96,
+        "recall": 0.987012987012987,
+        "f1_score": 0.9733191035218783,
+        "support": 462
+      },
+      "SUBJECT": {
+        "precision": 0.16236162361623616,
+        "recall": 0.09053497942386832,
+        "f1_score": 0.11624834874504623,
+        "support": 486
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.6458333333333334,
+        "recall": 0.5961538461538461,
+        "f1_score": 0.62,
+        "support": 52
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.24806201550387597,
+        "recall": 1.0,
+        "f1_score": 0.39751552795031053,
+        "support": 32
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.9,
+        "recall": 1.0,
+        "f1_score": 0.9473684210526316,
+        "support": 27
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.05263157894736842,
+        "recall": 0.024,
+        "f1_score": 0.032967032967032975,
+        "support": 125
+      },
+      "VOTING": {
+        "precision": 0.9591439688715954,
+        "recall": 0.9801192842942346,
+        "f1_score": 0.9695181907571288,
+        "support": 503
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_accuracy": 1.0,
+    "true_positives": 486,
+    "false_positives": 0,
+    "true_negatives": 68,
+    "false_negatives": 0,
+    "participant_vote_precision": 0.8731982523649191,
+    "participant_vote_recall": 0.8722003990522509,
+    "participant_vote_f1": 0.8726678743647615,
+    "subject_precision": 0.05555555555555555,
+    "subject_recall": 0.05555555555555555,
+    "subject_f1": 0.05555555555555555,
+    "complete_event_accuracy": 0.00823045267489712,
+    "complete_matches": 4,
+    "total_events": 486,
+    "evaluation_method": "event_level_structured"
+  }
+}

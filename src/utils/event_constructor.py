@@ -6,7 +6,7 @@ This module constructs structured voting events from BIO-tagged predictions.
 """
 
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +15,20 @@ class EventConstructor:
     """
     Constructs structured voting events from BIO-tagged predictions.
     
-    Implements the paper's algorithm:
-    1. Identify voting segments (containing VOTING span)
-    2. Extract subject (SUBJECT spans)
-    3. Extract participants (VOTER-* spans for (mention, position) pairs)
-    4. Extract counting (COUNTING-* spans for aggregation type)
+    Event Structure:
+    {
+        'id': str,
+        'has_voting_event': bool,
+        'event': {
+            'subject': str,                              # Single string
+            'participants': [{'text': str, 'position': str}],  # List
+            'counting': {'text': str, 'type': str} or None,    # Single dict or None
+            'voting_expression': str or None                    # Single string or None
+        }
+    }
+    
+    Note: Each voting event has exactly one subject, one counting expression,
+    and one voting expression. Multiple participants are supported.
     """
     
     def __init__(self):
@@ -41,17 +50,7 @@ class EventConstructor:
             example_id: Unique identifier for this example
             
         Returns:
-            Event dictionary with structure:
-            {
-                'id': str,
-                'has_voting_event': bool,
-                'event': {
-                    'subjects': [str],
-                    'participants': [{'text': str, 'position': str}],
-                    'counting': [{'text': str, 'type': str}],
-                    'voting_expressions': [str]
-                }
-            }
+            Event dictionary with has_voting_event and structured event
         """
         # Check if this segment contains a voting event
         has_voting = self._has_voting_event(labels)
@@ -60,28 +59,23 @@ class EventConstructor:
             return {
                 'id': example_id,
                 'has_voting_event': False,
-                'event': {
-                    'subjects': [],
-                    'participants': [],
-                    'counting': [],
-                    'voting_expressions': []
-                }
+                'event': None
             }
         
         # Extract all entity spans
-        subjects = self._extract_subjects(tokens, labels)
+        subject = self._extract_subject(tokens, labels)
         participants = self._extract_participants(tokens, labels)
         counting = self._extract_counting(tokens, labels)
-        voting_expressions = self._extract_voting_expressions(tokens, labels)
+        voting_expression = self._extract_voting_expression(tokens, labels)
         
         return {
             'id': example_id,
             'has_voting_event': True,
             'event': {
-                'subjects': subjects,
+                'subject': subject,
                 'participants': participants,
                 'counting': counting,
-                'voting_expressions': voting_expressions
+                'voting_expression': voting_expression
             }
         }
     
@@ -116,25 +110,33 @@ class EventConstructor:
         """Check if labels contain a voting event (B-VOTING tag)."""
         return any(label.startswith('B-VOTING') for label in labels)
     
-    def _extract_subjects(self, tokens: List[str], labels: List[str]) -> List[str]:
+    def _extract_subject(
+        self,
+        tokens: List[str],
+        labels: List[str]
+    ) -> Optional[str]:
         """
-        Extract subject spans from BIO labels.
+        Extract subject span (single string).
+        
+        If multiple SUBJECT spans exist, takes the first one (or could concatenate).
         
         Args:
             tokens: Word tokens
             labels: BIO labels
             
         Returns:
-            List of subject text strings
+            Subject text string or None
         """
-        subjects = []
         spans = self._extract_spans_by_type(tokens, labels, 'SUBJECT')
         
-        for span_tokens in spans:
-            subject_text = ' '.join(span_tokens)
-            subjects.append(subject_text)
+        if not spans:
+            return None
         
-        return subjects
+        # Take first subject span
+        # Alternative: could concatenate with ' / ' if multiple exist
+        subject_text = ' '.join(spans[0])
+        
+        return subject_text
     
     def _extract_participants(
         self,
@@ -144,7 +146,7 @@ class EventConstructor:
         """
         Extract participant spans with positions.
         
-        Parses VOTER-* labels to extract position (FAVOR, AGAINST, ABSTENTION).
+        Parses VOTER-* labels to extract position (FAVOR, AGAINST, ABSTENTION, ABSENT).
         
         Args:
             tokens: Word tokens
@@ -191,22 +193,21 @@ class EventConstructor:
         self,
         tokens: List[str],
         labels: List[str]
-    ) -> List[Dict[str, str]]:
+    ) -> Optional[Dict[str, str]]:
         """
-        Extract counting spans with aggregation types.
+        Extract counting span with aggregation type (single dict).
         
         Parses COUNTING-* labels to extract type (UNANIMITY, MAJORITY).
+        If multiple counting expressions exist, takes the first one.
         
         Args:
             tokens: Word tokens
             labels: BIO labels
             
         Returns:
-            List of {'text': str, 'type': str} dictionaries
+            {'text': str, 'type': str} dictionary or None
         """
-        counting = []
-        
-        # Find all COUNTING-* spans
+        # Find first COUNTING-* span
         i = 0
         while i < len(labels):
             label = labels[i]
@@ -227,40 +228,42 @@ class EventConstructor:
                 
                 counting_text = ' '.join(span_tokens)
                 
-                counting.append({
+                return {
                     'text': counting_text,
                     'type': counting_type.capitalize()
-                })
-                
-                i = j
-            else:
-                i += 1
+                }
+            
+            i += 1
         
-        return counting
+        # No counting expression found
+        return None
     
-    def _extract_voting_expressions(
+    def _extract_voting_expression(
         self,
         tokens: List[str],
         labels: List[str]
-    ) -> List[str]:
+    ) -> Optional[str]:
         """
-        Extract voting expression spans.
+        Extract voting expression span (single string).
+        
+        If multiple VOTING spans exist, takes the first one.
         
         Args:
             tokens: Word tokens
             labels: BIO labels
             
         Returns:
-            List of voting expression text strings
+            Voting expression text string or None
         """
-        voting_expressions = []
         spans = self._extract_spans_by_type(tokens, labels, 'VOTING')
         
-        for span_tokens in spans:
-            voting_text = ' '.join(span_tokens)
-            voting_expressions.append(voting_text)
+        if not spans:
+            return None
         
-        return voting_expressions
+        # Take first voting expression
+        voting_text = ' '.join(spans[0])
+        
+        return voting_text
     
     def _extract_spans_by_type(
         self,
@@ -301,3 +304,22 @@ class EventConstructor:
                 i += 1
         
         return spans
+
+
+# Convenience function
+def construct_events_from_predictions(
+    examples: List[Dict[str, Any]],
+    predictions: List[List[str]]
+) -> List[Dict[str, Any]]:
+    """
+    Construct events from BIO predictions.
+    
+    Args:
+        examples: List of examples with 'tokens' and 'id'
+        predictions: List of predicted BIO label sequences
+    
+    Returns:
+        List of structured event dictionaries
+    """
+    constructor = EventConstructor()
+    return constructor.construct_events(examples, predictions)

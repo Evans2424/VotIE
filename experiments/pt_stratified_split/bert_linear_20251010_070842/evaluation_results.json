@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/bert_linear_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-10T07:46:21.345059",
+    "timestamp": "2025-10-13T02:01:39.837376",
     "num_examples": 433,
     "include_events": true
   },
@@ -71,11 +71,11 @@
     "participant_vote_precision": 0.9356729621353577,
     "participant_vote_recall": 0.9839059114825132,
     "participant_vote_f1": 0.9511039329416723,
-    "subject_precision": 0.7228915662650602,
-    "subject_recall": 0.8379888268156425,
-    "subject_f1": 0.7761966364812418,
-    "complete_event_accuracy": 0.6545961002785515,
-    "complete_matches": 235,
+    "subject_precision": 0.7715877437325905,
+    "subject_recall": 0.7715877437325905,
+    "subject_f1": 0.7715877437325905,
+    "complete_event_accuracy": 0.6657381615598886,
+    "complete_matches": 239,
     "total_events": 359,
     "evaluation_method": "event_level_structured"
   }

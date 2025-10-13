@@ -1,0 +1,89 @@
+{
+  "experiment_name": "lomo_deberta_crf_test_covilha",
+  "baseline_name": "deberta_crf",
+  "config_file": "configs/cross_municipality/deberta_crf/test_covilha.yaml",
+  "pipeline_time": 1939.46454,
+  "completed_at": "2025-10-13T01:46:15.401768",
+  "files": {
+    "model_dir": "models/deberta_crf/lomo_deberta_crf_test_covilha",
+    "experiment_dir": "experiments/pt_stratified_split/lomo_deberta_crf_test_covilha",
+    "predictions": "experiments/pt_stratified_split/lomo_deberta_crf_test_covilha/predictions.jsonl",
+    "results": "experiments/pt_stratified_split/lomo_deberta_crf_test_covilha/evaluation_results.json"
+  },
+  "final_results": {
+    "metadata": {
+      "predictions_file": "experiments/pt_stratified_split/lomo_deberta_crf_test_covilha/predictions.jsonl",
+      "timestamp": "2025-10-13T01:46:15.396429",
+      "num_examples": 719,
+      "include_events": true
+    },
+    "entity_level_metrics": {
+      "entity_precision": 0.38574302960620865,
+      "entity_recall": 0.5005594927265945,
+      "entity_f1": 0.43571428571428567,
+      "entity_accuracy": 0.9117558561972051,
+      "per_type_metrics": {
+        "COUNTING-UNANIMITY": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1_score": 0.5,
+          "support": 2
+        },
+        "SUBJECT": {
+          "precision": 0.15247776365946633,
+          "recall": 0.20905923344947736,
+          "f1_score": 0.17634092578986038,
+          "support": 574
+        },
+        "VOTER-ABSENT": {
+          "precision": 0.35,
+          "recall": 0.6086956521739131,
+          "f1_score": 0.4444444444444444,
+          "support": 23
+        },
+        "VOTER-ABSTENTION": {
+          "precision": 0.05014749262536873,
+          "recall": 0.0480225988700565,
+          "f1_score": 0.049062049062049064,
+          "support": 708
+        },
+        "VOTER-AGAINST": {
+          "precision": 0.5957446808510638,
+          "recall": 0.8484848484848485,
+          "f1_score": 0.7,
+          "support": 33
+        },
+        "VOTER-FAVOR": {
+          "precision": 0.4293272864701436,
+          "recall": 0.9826989619377162,
+          "f1_score": 0.5975802209363493,
+          "support": 578
+        },
+        "VOTING": {
+          "precision": 0.9584717607973422,
+          "recall": 0.7562254259501966,
+          "f1_score": 0.8454212454212453,
+          "support": 763
+        }
+      },
+      "evaluation_method": "seqeval_entity_level"
+    },
+    "event_level_metrics": {
+      "event_detection_accuracy": 0.8636995827538247,
+      "true_positives": 499,
+      "false_positives": 21,
+      "true_negatives": 122,
+      "false_negatives": 77,
+      "participant_vote_precision": 0.5949942129629625,
+      "participant_vote_recall": 0.5594618055555556,
+      "participant_vote_f1": 0.5711888227513218,
+      "subject_precision": 0.1909722222222222,
+      "subject_recall": 0.1909722222222222,
+      "subject_f1": 0.1909722222222222,
+      "complete_event_accuracy": 0.0642361111111111,
+      "complete_matches": 37,
+      "total_events": 576,
+      "evaluation_method": "event_level_structured"
+    }
+  }
+}

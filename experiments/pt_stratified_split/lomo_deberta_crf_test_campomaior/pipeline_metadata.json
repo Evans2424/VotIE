@@ -1,0 +1,81 @@
+{
+  "experiment_name": "lomo_deberta_crf_test_campomaior",
+  "baseline_name": "deberta_crf",
+  "config_file": "configs/cross_municipality/deberta_crf/test_campomaior.yaml",
+  "pipeline_time": 8220.400272,
+  "completed_at": "2025-10-13T02:12:44.539283",
+  "files": {
+    "model_dir": "models/deberta_crf/lomo_deberta_crf_test_campomaior",
+    "experiment_dir": "experiments/pt_stratified_split/lomo_deberta_crf_test_campomaior",
+    "predictions": "experiments/pt_stratified_split/lomo_deberta_crf_test_campomaior/predictions.jsonl",
+    "results": "experiments/pt_stratified_split/lomo_deberta_crf_test_campomaior/evaluation_results.json"
+  },
+  "final_results": {
+    "metadata": {
+      "predictions_file": "experiments/pt_stratified_split/lomo_deberta_crf_test_campomaior/predictions.jsonl",
+      "timestamp": "2025-10-13T02:12:44.535570",
+      "num_examples": 396,
+      "include_events": true
+    },
+    "entity_level_metrics": {
+      "entity_precision": 0.5617977528089888,
+      "entity_recall": 0.6584362139917695,
+      "entity_f1": 0.6062902614626753,
+      "entity_accuracy": 0.9558962328986795,
+      "per_type_metrics": {
+        "COUNTING-MAJORITY": {
+          "precision": 0.6944444444444444,
+          "recall": 0.9615384615384616,
+          "f1_score": 0.8064516129032258,
+          "support": 26
+        },
+        "COUNTING-UNANIMITY": {
+          "precision": 0.7740863787375415,
+          "recall": 0.966804979253112,
+          "f1_score": 0.8597785977859779,
+          "support": 241
+        },
+        "SUBJECT": {
+          "precision": 0.12073490813648294,
+          "recall": 0.14153846153846153,
+          "f1_score": 0.13031161473087818,
+          "support": 325
+        },
+        "VOTER-ABSENT": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 5
+        },
+        "VOTER-ABSTENTION": {
+          "precision": 0.6964285714285714,
+          "recall": 0.9512195121951219,
+          "f1_score": 0.8041237113402062,
+          "support": 41
+        },
+        "VOTER-AGAINST": {
+          "precision": 0.875,
+          "recall": 0.7,
+          "f1_score": 0.7777777777777777,
+          "support": 10
+        },
+        "VOTER-FAVOR": {
+          "precision": 0.5743243243243243,
+          "recall": 0.6910569105691057,
+          "f1_score": 0.6273062730627306,
+          "support": 246
+        },
+        "VOTING": {
+          "precision": 0.8115942028985508,
+          "recall": 0.8722741433021807,
+          "f1_score": 0.8408408408408409,
+          "support": 321
+        }
+      },
+      "evaluation_method": "seqeval_entity_level"
+    },
+    "event_level_metrics": {
+      "error": "'NoneType' object has no attribute 'get'"
+    }
+  }
+}

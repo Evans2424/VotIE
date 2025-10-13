@@ -1,0 +1,2 @@
+model,mean_f1,std_f1,min_f1,max_f1,mean_precision,mean_recall,mean_event_detection,mean_complete_event,num_municipalities
+deberta_crf,0.5651,0.1406,0.3614,0.7848,0.5797,0.5652,0.6517,0.0810,6

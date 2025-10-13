@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/xlmr_crf_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-10T07:29:08.106084",
+    "timestamp": "2025-10-13T02:02:06.425871",
     "num_examples": 433,
     "include_events": true
   },
@@ -71,11 +71,11 @@
     "participant_vote_precision": 0.975317239244816,
     "participant_vote_recall": 0.9755493655215104,
     "participant_vote_f1": 0.9753371357828182,
-    "subject_precision": 0.8522727272727273,
-    "subject_recall": 0.8379888268156425,
-    "subject_f1": 0.8450704225352113,
-    "complete_event_accuracy": 0.8022284122562674,
-    "complete_matches": 288,
+    "subject_precision": 0.8272980501392758,
+    "subject_recall": 0.8272980501392758,
+    "subject_f1": 0.8272980501392758,
+    "complete_event_accuracy": 0.807799442896936,
+    "complete_matches": 290,
     "total_events": 359,
     "evaluation_method": "event_level_structured"
   }

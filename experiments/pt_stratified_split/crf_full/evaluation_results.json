@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/crf_full/predictions.jsonl",
-    "timestamp": "2025-10-10T08:00:39.741240",
+    "timestamp": "2025-10-13T02:01:50.475604",
     "num_examples": 433,
     "include_events": true
   },
@@ -71,9 +71,9 @@
     "participant_vote_precision": 0.9142370783039305,
     "participant_vote_recall": 0.9054964688669422,
     "participant_vote_f1": 0.9083410708758898,
-    "subject_precision": 0.879245283018868,
-    "subject_recall": 0.6508379888268156,
-    "subject_f1": 0.7479935794542536,
+    "subject_precision": 0.6434540389972145,
+    "subject_recall": 0.6434540389972145,
+    "subject_f1": 0.6434540389972145,
     "complete_event_accuracy": 0.5626740947075209,
     "complete_matches": 202,
     "total_events": 359,

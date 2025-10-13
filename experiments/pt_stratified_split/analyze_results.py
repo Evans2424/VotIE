@@ -22,6 +22,11 @@ def extract_baseline_name(directory_name: str) -> str:
     Examples:
         bert_crf_20251010_070842 -> bert_crf
         crf_full -> crf
+<<<<<<< HEAD
+=======
+        bilstm_fastext -> bilstm_fastext
+        lomo_deberta_crf_test_campomaior -> lomo_deberta_crf_test_campomaior
+>>>>>>> fcb951121cc86ebae73e9daf7a89144c28b7c55a
     """
     # Remove timestamp suffix if present
     parts = directory_name.split('_')
@@ -31,6 +36,7 @@ def extract_baseline_name(directory_name: str) -> str:
         # Remove last two parts (date_time)
         baseline = '_'.join(parts[:-2])
     else:
+        # Remove '_full' suffix for legacy experiments
         baseline = directory_name.replace('_full', '')
 
     return baseline

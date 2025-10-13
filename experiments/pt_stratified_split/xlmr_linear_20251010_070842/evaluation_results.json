@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/xlmr_linear_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-10T07:36:57.018813",
+    "timestamp": "2025-10-13T02:02:11.716958",
     "num_examples": 433,
     "include_events": true
   },
@@ -71,11 +71,11 @@
     "participant_vote_precision": 0.9258565946588231,
     "participant_vote_recall": 0.9377127824203034,
     "participant_vote_f1": 0.9276540934508974,
-    "subject_precision": 0.6572052401746725,
-    "subject_recall": 0.840782122905028,
-    "subject_f1": 0.7377450980392157,
-    "complete_event_accuracy": 0.5515320334261838,
-    "complete_matches": 198,
+    "subject_precision": 0.6573816155988857,
+    "subject_recall": 0.6573816155988857,
+    "subject_f1": 0.6573816155988857,
+    "complete_event_accuracy": 0.5682451253481894,
+    "complete_matches": 204,
     "total_events": 359,
     "evaluation_method": "event_level_structured"
   }

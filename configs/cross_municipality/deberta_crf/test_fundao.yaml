@@ -22,7 +22,7 @@ training:
   warmup_proportion: 0.1
   weight_decay: 0.01
   patience: 3
-  device: 0  # CUDA device ID
+  device: 1  # CUDA device ID
   apply_bio_validation: true
 
 optimization:

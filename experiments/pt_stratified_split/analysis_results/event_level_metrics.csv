@@ -1,0 +1,9 @@
+baseline,event_detection_accuracy,complete_event_accuracy,participant_vote_precision,participant_vote_recall,participant_vote_f1,subject_precision,subject_recall,subject_f1,true_positives,false_positives,true_negatives,false_negatives,complete_matches,total_events
+deberta_crf,0.9515,0.8273,0.9750,0.9752,0.9750,0.8552,0.8552,0.8552,357,19,55,2,297,359
+xlmr_crf,0.9515,0.8078,0.9753,0.9755,0.9753,0.8273,0.8273,0.8273,358,20,54,1,290,359
+bert_crf,0.9446,0.7967,0.9776,0.9769,0.9771,0.8134,0.8134,0.8134,354,19,55,5,286,359
+deberta_linear,0.9492,0.7688,0.9695,0.9938,0.9783,0.8357,0.8357,0.8357,359,22,52,0,276,359
+bert_linear,0.9515,0.6657,0.9357,0.9839,0.9511,0.7716,0.7716,0.7716,358,20,54,1,239,359
+xlmr_linear,0.9538,0.5682,0.9259,0.9377,0.9277,0.6574,0.6574,0.6574,359,20,54,0,204,359
+crf,0.9515,0.5627,0.9142,0.9055,0.9083,0.6435,0.6435,0.6435,356,18,56,3,202,359
+bilstm_fastext,0.9353,0.4345,0.8779,0.8510,0.8600,0.5404,0.5404,0.5404,350,19,55,9,156,359

@@ -229,8 +229,12 @@ class EventLevelEvaluator:
             if not gold_event.get('has_voting_event', False):
                 continue
 
-            pred_pairs = self.extract_participant_vote_pairs(pred_event.get('event', {}))
-            gold_pairs = self.extract_participant_vote_pairs(gold_event.get('event', {}))
+            # Handle None event structures
+            pred_event_data = pred_event.get('event') or {}
+            gold_event_data = gold_event.get('event') or {}
+            
+            pred_pairs = self.extract_participant_vote_pairs(pred_event_data)
+            gold_pairs = self.extract_participant_vote_pairs(gold_event_data)
 
             metrics = self.compute_set_based_f1(pred_pairs, gold_pairs)
             all_precisions.append(metrics['precision'])
@@ -252,8 +256,8 @@ class EventLevelEvaluator:
 
     def compare_counting(self, pred_event: Dict, gold_event: Dict) -> bool:
         """
-        Compare counting information (single dictionary or None).
-        
+        Evaluate subject extraction (strict set-based matching).
+
         Args:
             pred_event: Predicted event
             gold_event: Gold event
@@ -261,24 +265,46 @@ class EventLevelEvaluator:
         Returns:
             True if counting matches exactly
         """
-        pred_counting = pred_event.get('counting')
-        gold_counting = gold_event.get('counting')
-        
-        # Both None = match
-        if pred_counting is None and gold_counting is None:
-            return True
-        
-        # One None, one not = no match
-        if pred_counting is None or gold_counting is None:
-            return False
-        
-        # Compare text and type
-        pred_text = pred_counting.get('text', '').strip().lower()
-        gold_text = gold_counting.get('text', '').strip().lower()
-        pred_type = pred_counting.get('type', '').strip().upper()
-        gold_type = gold_counting.get('type', '').strip().upper()
-        
-        return pred_text == gold_text and pred_type == gold_type
+        all_precisions = []
+        all_recalls = []
+        all_f1s = []
+
+        for pred_event, gold_event in zip(pred_events, gold_events):
+            if not gold_event.get('has_voting_event', False):
+                continue
+
+            # Handle None event structures
+            pred_event_data = pred_event.get('event') or {}
+            gold_event_data = gold_event.get('event') or {}
+            
+            # Handle subject as a single string (not a list)
+            pred_subject = pred_event_data.get('subject', None)
+            gold_subject = gold_event_data.get('subject', None)
+
+            # Normalize and create sets for strict comparison
+            # Convert single strings to sets (empty set if None)
+            pred_subjects_set = {pred_subject.strip().lower()} if pred_subject else set()
+            gold_subjects_set = {gold_subject.strip().lower()} if gold_subject else set()
+
+            # Use set-based F1 calculation
+            metrics = self.compute_set_based_f1(pred_subjects_set, gold_subjects_set)
+            all_precisions.append(metrics['precision'])
+            all_recalls.append(metrics['recall'])
+            all_f1s.append(metrics['f1'])
+
+        # Aggregate across all events
+        if len(all_f1s) == 0:
+            return {
+                "subject_precision": 0.0,
+                "subject_recall": 0.0,
+                "subject_f1": 0.0
+            }
+
+        return {
+            "subject_precision": sum(all_precisions) / len(all_precisions),
+            "subject_recall": sum(all_recalls) / len(all_recalls),
+            "subject_f1": sum(all_f1s) / len(all_f1s)
+        }
 
     def evaluate_complete_event(
         self,
@@ -312,14 +338,19 @@ class EventLevelEvaluator:
 
             total += 1
 
-            pred_ev = pred_event.get('event', {})
-            gold_ev = gold_event.get('event', {})
+            # Check all components - handle None event structures
+            pred_ev = pred_event.get('event') or {}
+            gold_ev = gold_event.get('event') or {}
 
-            # Compare subject (single string)
-            pred_subject = pred_ev.get('subject', '').strip().lower()
-            gold_subject = gold_ev.get('subject', '').strip().lower()
+            # Compare subjects (single string, not list)
+            pred_subject = pred_ev.get('subject', None)
+            gold_subject = gold_ev.get('subject', None)
             
-            if pred_subject != gold_subject:
+            # Normalize subjects for comparison
+            pred_subject_norm = pred_subject.strip().lower() if pred_subject else None
+            gold_subject_norm = gold_subject.strip().lower() if gold_subject else None
+            
+            if pred_subject_norm != gold_subject_norm:
                 continue
 
             # Compare participant-vote pairs (set)
@@ -329,8 +360,26 @@ class EventLevelEvaluator:
             if pred_pairs != gold_pairs:
                 continue
 
-            # Compare counting (single dict or None)
-            if not self.compare_counting(pred_ev, gold_ev):
+            # Compare counting (single dict or None, not list)
+            pred_counting_item = pred_ev.get('counting', None)
+            gold_counting_item = gold_ev.get('counting', None)
+            
+            # Normalize counting for comparison
+            if pred_counting_item is None and gold_counting_item is None:
+                # Both None - match
+                counting_match = True
+            elif pred_counting_item is None or gold_counting_item is None:
+                # One is None, other is not - no match
+                counting_match = False
+            else:
+                # Both are dicts - compare text and type
+                pred_text = pred_counting_item.get('text', '').strip().lower()
+                pred_type = pred_counting_item.get('type', '').strip().upper()
+                gold_text = gold_counting_item.get('text', '').strip().lower()
+                gold_type = gold_counting_item.get('type', '').strip().upper()
+                counting_match = (pred_text == gold_text and pred_type == gold_type)
+            
+            if not counting_match:
                 continue
 
             # Optionally compare voting expression

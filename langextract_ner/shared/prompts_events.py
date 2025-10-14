@@ -26,8 +26,8 @@ Output Format: Return ONLY a valid JSON object with this exact structure:
     "participants": [
       {"text": string, "position": "Favor"|"Against"|"Abstention"|"Absent"}
     ],
-    "counting": {"text": string, "type": "Majority"|"Unanimity"} or null,
-    "voting_expression": string or null
+    "counting": [{"text": string, "type": "Majority"|"Unanimity"}],
+    "voting_expressions": [string]
   }
 }
 
@@ -49,8 +49,8 @@ def load_few_shot_examples() -> List[Dict[str, Any]]:
     import os
     from pathlib import Path
 
-    # Try to load from file
-    examples_file = Path(__file__).parent.parent.parent / "selected_event_examples.json"
+    # File is in the same directory as this script
+    examples_file = Path(__file__).parent / "selected_event_examples.json"
 
     if examples_file.exists():
         with open(examples_file, 'r', encoding='utf-8') as f:
@@ -83,18 +83,23 @@ def format_example_for_prompt(example: Dict[str, Any]) -> Dict[str, str]:
     else:
         event_data = example.get('event', {})
 
-        # Convert from list format to singular format (as per user's spec)
-        subject = event_data.get('subjects', [None])[0] if event_data.get('subjects') else null
-        voting_expression = event_data.get('voting_expressions', [None])[0] if event_data.get('voting_expressions') else None
+        # Use hybrid format: subject singular, others lists
+        subject = event_data.get('subject')
+        if subject is None:
+            # Handle old format where subject might be in 'subjects' list
+            subjects_list = event_data.get('subjects', [])
+            subject = subjects_list[0] if subjects_list else None
 
-        # Convert counting from list to single object
-        counting_list = event_data.get('counting', [])
-        counting = None
-        if counting_list:
-            counting = {
-                "text": counting_list[0].get('text', ''),
-                "type": counting_list[0].get('type', '')
-            }
+        voting_expressions = event_data.get('voting_expressions', [])
+        if not voting_expressions:
+            # Handle old format where it might be singular 'voting_expression'
+            single_expr = event_data.get('voting_expression')
+            voting_expressions = [single_expr] if single_expr else []
+
+        counting = event_data.get('counting', [])
+        if counting and not isinstance(counting, list):
+            # Handle old format where counting might be a dict
+            counting = [counting]
 
         # Keep participants as-is (already a list)
         participants = event_data.get('participants', [])
@@ -105,7 +110,7 @@ def format_example_for_prompt(example: Dict[str, Any]) -> Dict[str, str]:
                 "subject": subject,
                 "participants": participants,
                 "counting": counting,
-                "voting_expression": voting_expression
+                "voting_expressions": voting_expressions
             }
         }
 

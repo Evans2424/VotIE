@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "predictions_file": "experiments/pt_stratified_split/bilstm_fastext/bilstm_fastext.jsonl",
-    "timestamp": "2025-10-13T02:01:45.166948",
+    "predictions_file": "experiments/pt_stratified_split/bilstm_fastext/predictions.jsonl",
+    "timestamp": "2025-10-14T09:30:26.720981",
     "num_examples": 433,
     "include_events": true
   },
@@ -68,15 +68,25 @@
     "false_positives": 19,
     "true_negatives": 55,
     "false_negatives": 9,
+    "subject_accuracy": 0.5376044568245125,
+    "subject_precision": 0.7942386831275721,
+    "subject_recall": 0.5391061452513967,
+    "subject_f1": 0.6422628951747088,
+    "subject_correct": 193,
+    "subject_total": 359,
     "participant_vote_precision": 0.8779015784586816,
     "participant_vote_recall": 0.8509960327509074,
     "participant_vote_f1": 0.8599589825216571,
-    "subject_precision": 0.5403899721448467,
-    "subject_recall": 0.5403899721448467,
-    "subject_f1": 0.5403899721448467,
     "complete_event_accuracy": 0.43454038997214484,
     "complete_matches": 156,
     "total_events": 359,
-    "evaluation_method": "event_level_structured"
+    "failures": {
+      "subject_mismatch": 165,
+      "participants_mismatch": 36,
+      "counting_mismatch": 2,
+      "expression_mismatch": 0
+    },
+    "evaluation_method": "event_level_structured",
+    "included_voting_expression": false
   }
 }

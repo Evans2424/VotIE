@@ -153,28 +153,50 @@ def load_model(model_path: str, device: str = 'cuda'):
 def predict_single_window(model, tokenizer, tokens: List[str], device: str = 'cuda') -> List[int]:
     """Predict labels for a single window (guaranteed to fit in max_length)."""
     dummy_labels = ['O'] * len(tokens)
-    
+
     # Tokenize (same as training)
+    # Use allow_truncation=True as a safety measure - windowing should already ensure fit
     _, input_ids, _, subtoken_mask, _ = align_tokens_with_subwords(
         tokens=tokens,
         labels=dummy_labels,
         tokenizer=tokenizer,
         max_length=512,
         example_id="predict",
-        allow_truncation=False
+        allow_truncation=True  # Safety: truncate if windowing didn't work perfectly
     )
-    
+
+    # Safety check: ensure we don't exceed max_length
+    if len(input_ids) > 512:
+        logger.warning(f"Window produced {len(input_ids)} input_ids (> 512), truncating to 512")
+        input_ids = input_ids[:512]
+        subtoken_mask = subtoken_mask[:512]
+
     # Pad to 512
     seq_length = len(input_ids)
+    if seq_length > 512:
+        # This should never happen after the check above, but just in case
+        logger.error(f"CRITICAL: seq_length {seq_length} > 512 after safety check!")
+        seq_length = 512
+        input_ids = input_ids[:512]
+        subtoken_mask = subtoken_mask[:512]
+
     input_ids += [tokenizer.pad_token_id] * (512 - seq_length)
     attention_mask = [1] * seq_length + [0] * (512 - seq_length)
     subtoken_mask += [False] * (512 - seq_length)
-    
+
+    # Final validation before creating tensors
+    if len(input_ids) != 512 or len(attention_mask) != 512 or len(subtoken_mask) != 512:
+        logger.error(f"Tensor size mismatch before creation: input_ids={len(input_ids)}, attention_mask={len(attention_mask)}, subtoken_mask={len(subtoken_mask)}")
+        # Force correct size
+        input_ids = (input_ids + [tokenizer.pad_token_id] * 512)[:512]
+        attention_mask = (attention_mask + [0] * 512)[:512]
+        subtoken_mask = (subtoken_mask + [False] * 512)[:512]
+
     # Convert to tensors
     input_ids_tensor = torch.tensor([input_ids]).to(device)
     attention_mask_tensor = torch.tensor([attention_mask]).to(device)
     subtoken_mask_tensor = torch.tensor([subtoken_mask]).to(device)
-    
+
     # Predict
     with torch.no_grad():
         predictions = model.decode(
@@ -184,7 +206,7 @@ def predict_single_window(model, tokenizer, tokens: List[str], device: str = 'cu
             apply_bio_validation=False,
             id_to_label=None
         )
-    
+
     return predictions[0]
 
 

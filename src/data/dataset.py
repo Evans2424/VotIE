@@ -622,7 +622,7 @@ def convert_examples_to_features(
 
 def create_dynamic_windows(
     tokens: List[str],
-    labels: List[str], 
+    labels: List[str],
     tokenizer: AutoTokenizer,
     max_length: int = 512,
     overlap_tokens: int = 50,
@@ -630,10 +630,10 @@ def create_dynamic_windows(
 ) -> List[Tuple[List[str], List[str]]]:
     """
     Create sliding windows dynamically using actual tokenizer at training time.
-    
+
     This replaces the complex windowing estimates done at conversion time with
     precise windowing based on actual subword tokenization.
-    
+
     Args:
         tokens: Original word tokens
         labels: BIO labels for tokens
@@ -641,72 +641,112 @@ def create_dynamic_windows(
         max_length: Maximum sequence length (including [CLS], [SEP])
         overlap_tokens: Number of original tokens to overlap between windows
         example_id: Example identifier for logging
-        
+
     Returns:
         List of (window_tokens, window_labels) tuples
     """
     if len(tokens) != len(labels):
         logger.warning(f"Token/label mismatch in {example_id}: {len(tokens)} vs {len(labels)}")
         return []
-    
+
     if not tokens:
         return []
-    
+
     # Reserve space for [CLS] and [SEP] tokens
     effective_max_length = max_length - 2
-    
-    # If sequence fits in one window, return as-is
-    if len(tokens) <= effective_max_length:
-        # Quick check: estimate if it will fit after tokenization
-        text = " ".join(tokens)
-        subwords = tokenizer.tokenize(text)
-        if len(subwords) <= effective_max_length:
-            return [(tokens, labels)]
-        # If subwords are too long, fall through to windowing
-    
-    # Create sliding windows
+
+    # Always check if sequence fits after tokenization (not just by token count)
+    text = " ".join(tokens)
+    subwords = tokenizer.tokenize(text)
+
+    if len(subwords) <= effective_max_length:
+        # Sequence fits in one window
+        return [(tokens, labels)]
+
+    # Sequence needs windowing - create sliding windows
     windows = []
     start_idx = 0
     window_id = 0
-    
+
     while start_idx < len(tokens):
-        # Calculate end index for this window
-        end_idx = min(start_idx + effective_max_length, len(tokens))
-        
-        # Extract window
+        # Start with a conservative estimate: use fewer tokens than effective_max_length
+        # because tokens can expand to multiple subwords
+        initial_window_size = min(effective_max_length // 2, len(tokens) - start_idx)
+
+        # Extract initial window
+        end_idx = start_idx + initial_window_size
         window_tokens = tokens[start_idx:end_idx]
         window_labels = labels[start_idx:end_idx]
-        
-        # Check actual tokenized length
+
+        # Check actual tokenized length and grow if possible
         window_text = " ".join(window_tokens)
         window_subwords = tokenizer.tokenize(window_text)
-        
-        # If still too long, reduce window size
-        while len(window_subwords) > effective_max_length and len(window_tokens) > 1:
+
+        # Try to grow the window to use more space
+        while len(window_subwords) < effective_max_length * 0.95 and end_idx < len(tokens):
+            # Try adding more tokens
+            candidate_end = min(end_idx + 10, len(tokens))
+            candidate_tokens = tokens[start_idx:candidate_end]
+            candidate_text = " ".join(candidate_tokens)
+            candidate_subwords = tokenizer.tokenize(candidate_text)
+
+            if len(candidate_subwords) <= effective_max_length:
+                # Still fits, use the larger window
+                window_tokens = candidate_tokens
+                window_labels = labels[start_idx:candidate_end]
+                window_subwords = candidate_subwords
+                end_idx = candidate_end
+            else:
+                # Would be too large, stop growing
+                break
+
+        # Ensure window definitely fits (safety check)
+        max_iterations = 50
+        iteration = 0
+        while len(window_subwords) > effective_max_length and len(window_tokens) > 1 and iteration < max_iterations:
             # Reduce by 10% and try again
             new_size = max(1, int(len(window_tokens) * 0.9))
             window_tokens = window_tokens[:new_size]
             window_labels = window_labels[:new_size]
             window_text = " ".join(window_tokens)
             window_subwords = tokenizer.tokenize(window_text)
-        
+            iteration += 1
+
+        if len(window_subwords) > effective_max_length:
+            logger.error(f"Could not fit window for {example_id} - window has {len(window_subwords)} subwords, max is {effective_max_length}")
+            logger.error(f"Window has {len(window_tokens)} tokens, tried {iteration} iterations")
+            # Use a minimal window as fallback
+            window_tokens = window_tokens[:1]
+            window_labels = window_labels[:1]
+
+        # Validate the final window size
+        final_check = " ".join(window_tokens)
+        final_subwords = tokenizer.tokenize(final_check)
+        if len(final_subwords) > effective_max_length:
+            logger.error(f"CRITICAL: Window still too large ({len(final_subwords)} > {effective_max_length}) for {example_id}")
+            # Skip this problematic window rather than causing downstream errors
+            if len(window_tokens) == 1:
+                # Single token is too long - skip it
+                logger.error(f"Skipping problematic single token: {window_tokens[0]!r}")
+                start_idx += 1
+                continue
+
         # Avoid cutting entities in half - look for good cut point
-        if end_idx < len(tokens) and len(window_tokens) > overlap_tokens:
+        if start_idx + len(window_tokens) < len(tokens) and len(window_tokens) > overlap_tokens:
             # Look backwards from end for a good cut point (preferably at "O" tag)
             cut_point = len(window_tokens)
             for i in range(len(window_tokens) - 1, max(0, len(window_tokens) - 20), -1):
                 if window_labels[i] == "O":
                     cut_point = i + 1
                     break
-            
-            if cut_point < len(window_tokens):
+
+            if cut_point < len(window_tokens) and cut_point > 0:
                 window_tokens = window_tokens[:cut_point]
                 window_labels = window_labels[:cut_point]
-        
+
         windows.append((window_tokens, window_labels))
 
         # Check if we've covered all tokens with the ACTUAL window
-        # (not the planned end_idx, which might not be reached due to reduction)
         if start_idx + len(window_tokens) >= len(tokens):
             break
 
@@ -714,17 +754,23 @@ def create_dynamic_windows(
         step_size = max(len(window_tokens) - overlap_tokens, 1)
         start_idx = start_idx + step_size
         window_id += 1
-        
-        # Safety check
+
+        # Safety check to prevent infinite loops
         if window_id > 100:
             logger.error(f"Too many windows for {example_id}, stopping at {window_id}")
             break
-    
+
     # Log windowing info
     if len(windows) > 1:
         total_tokens = sum(len(w[0]) for w in windows)
-        logger.debug(f"Dynamic windowing for {example_id}: {len(tokens)} -> {len(windows)} windows, {total_tokens} tokens")
-    
+        logger.info(f"Dynamic windowing for {example_id}: {len(tokens)} tokens -> {len(windows)} windows, {total_tokens} total tokens")
+        # Validate all windows
+        for i, (w_tokens, w_labels) in enumerate(windows):
+            w_text = " ".join(w_tokens)
+            w_subwords = tokenizer.tokenize(w_text)
+            if len(w_subwords) > effective_max_length:
+                logger.error(f"Window {i} exceeds max length: {len(w_subwords)} > {effective_max_length}")
+
     return windows
 
 def load_ner_dataset(

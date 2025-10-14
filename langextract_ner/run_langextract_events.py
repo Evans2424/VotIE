@@ -47,22 +47,29 @@ logging.getLogger('google.auth').setLevel(logging.WARNING)
 
 def load_events_dataset(events_file: Path) -> List[Dict[str, Any]]:
     """
-    Load dataset from votie_events JSONL file
+    Load dataset from votie_events JSON or JSONL file
 
     Args:
-        events_file: Path to events .jsonl file (train/dev/test)
+        events_file: Path to events .json or .jsonl file (train/dev/test)
 
     Returns:
         List of event dictionaries
     """
     logger.info(f"Loading events dataset from: {events_file}")
 
-    events = []
-    with open(events_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            if line.strip():
-                event = json.loads(line.strip())
-                events.append(event)
+    # Handle both .json and .jsonl formats
+    if events_file.suffix == '.json':
+        # Load as JSON array
+        with open(events_file, 'r', encoding='utf-8') as f:
+            events = json.load(f)
+    else:
+        # Load as JSONL (line-by-line)
+        events = []
+        with open(events_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    event = json.loads(line.strip())
+                    events.append(event)
 
     logger.info(f"Loaded {len(events)} events")
     return events
@@ -231,13 +238,20 @@ def main():
 
     # Setup paths
     project_root = Path(__file__).parent.parent
-    test_file = project_root / "data/votie_events/test.jsonl"
-    output_dir = Path(__file__).parent / "experiments" / f"langextract_events_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-
-    # Check if test file exists
-    if not test_file.exists():
-        logger.error(f"Test file not found: {test_file}")
+    
+    # Try both .json and .jsonl formats
+    test_file_json = project_root / "data/votie_events/test.json"
+    test_file_jsonl = project_root / "data/votie_events/test.jsonl"
+    
+    if test_file_json.exists():
+        test_file = test_file_json
+    elif test_file_jsonl.exists():
+        test_file = test_file_jsonl
+    else:
+        logger.error(f"Test file not found: tried {test_file_json} and {test_file_jsonl}")
         return
+    
+    output_dir = Path(__file__).parent / "experiments" / f"langextract_events_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
     # Load test dataset
     test_events = load_events_dataset(test_file)

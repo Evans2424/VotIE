@@ -1,5 +1,5 @@
 """
-Select 10 few-shot examples from votie_events/train.jsonl
+Select 10 few-shot examples from votie_events/train.json
 
 Criteria:
 - One example per municipality (if possible)
@@ -20,7 +20,7 @@ def count_entity_types(event: Dict[str, Any]) -> Set[str]:
 
     event_data = event.get("event", {})
 
-    if event_data.get("subjects"):
+    if event_data.get("subject"):
         types.add("SUBJECT")
 
     if event_data.get("voting_expressions"):
@@ -81,11 +81,10 @@ def select_best_examples(filepath: str, target_count: int = 10) -> List[Dict[str
     examples_by_muni = defaultdict(list)
 
     with open(filepath, 'r', encoding='utf-8') as f:
-        for line in f:
-            if line.strip():
-                example = json.loads(line)
-                muni = example.get("municipality", "Unknown")
-                examples_by_muni[muni].append(example)
+        data = json.load(f)
+        for example in data:
+            muni = example.get("municipality", "Unknown")
+            examples_by_muni[muni].append(example)
 
     print(f"Loaded examples from {len(examples_by_muni)} municipalities")
     for muni, examples in examples_by_muni.items():
@@ -166,7 +165,7 @@ def select_best_examples(filepath: str, target_count: int = 10) -> List[Dict[str
     return selected[:target_count]
 
 if __name__ == "__main__":
-    filepath = "/Users/josepedroevans/Desktop/VotIE/data/votie_events/train.jsonl"
+    filepath = "/Users/josepedroevans/Desktop/VotIE/data/votie_events/train.json"
     selected_examples = select_best_examples(filepath, target_count=10)
 
     # Save selected examples

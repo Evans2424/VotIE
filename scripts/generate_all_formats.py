@@ -66,7 +66,7 @@ def check_prerequisites() -> bool:
     logger.info("Checking prerequisites...")
 
     # Check that citilink directory exists
-    citilink_dir = Path("citilink")
+    citilink_dir = Path("private/citilink")
     if not citilink_dir.exists():
         logger.error(f"Citilink directory not found: {citilink_dir}")
         logger.error("Please ensure citilink/ directory exists with Portuguese municipality files")

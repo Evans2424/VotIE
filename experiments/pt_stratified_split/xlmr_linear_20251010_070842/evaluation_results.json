@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/xlmr_linear_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-13T02:02:11.716958",
+    "timestamp": "2025-10-14T09:30:44.862797",
     "num_examples": 433,
     "include_events": true
   },
@@ -68,15 +68,25 @@
     "false_positives": 20,
     "true_negatives": 54,
     "false_negatives": 0,
+    "subject_accuracy": 0.6573816155988857,
+    "subject_precision": 0.6647887323943662,
+    "subject_recall": 0.659217877094972,
+    "subject_f1": 0.6619915848527349,
+    "subject_correct": 236,
+    "subject_total": 359,
     "participant_vote_precision": 0.9258565946588231,
     "participant_vote_recall": 0.9377127824203034,
     "participant_vote_f1": 0.9276540934508974,
-    "subject_precision": 0.6573816155988857,
-    "subject_recall": 0.6573816155988857,
-    "subject_f1": 0.6573816155988857,
     "complete_event_accuracy": 0.5682451253481894,
     "complete_matches": 204,
     "total_events": 359,
-    "evaluation_method": "event_level_structured"
+    "failures": {
+      "subject_mismatch": 123,
+      "participants_mismatch": 24,
+      "counting_mismatch": 8,
+      "expression_mismatch": 0
+    },
+    "evaluation_method": "event_level_structured",
+    "included_voting_expression": false
   }
 }

@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "predictions_file": "experiments/pt_stratified_split/lomo_deberta_crf_test_porto/predictions.jsonl",
+    "timestamp": "2025-10-14T11:41:54.597916",
+    "num_examples": 472,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.727112676056338,
+    "entity_recall": 0.25075895567698847,
+    "entity_f1": 0.3729119638826185,
+    "entity_accuracy": 0.9341238383459654,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.9407894736842105,
+        "recall": 0.8265895953757225,
+        "f1_score": 0.88,
+        "support": 173
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9337979094076655,
+        "recall": 0.9962825278810409,
+        "f1_score": 0.9640287769784173,
+        "support": 269
+      },
+      "SUBJECT": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 452
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 5
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.06060606060606061,
+        "recall": 0.010810810810810811,
+        "f1_score": 0.01834862385321101,
+        "support": 185
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 95
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 22
+      },
+      "VOTING": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 446
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_accuracy": 0.07627118644067797,
+    "true_positives": 0,
+    "false_positives": 0,
+    "true_negatives": 36,
+    "false_negatives": 436,
+    "subject_accuracy": 0.0,
+    "subject_precision": 0.0,
+    "subject_recall": 0.0,
+    "subject_f1": 0.0,
+    "subject_correct": 0,
+    "subject_total": 436,
+    "participant_vote_precision": 0.6077981651376146,
+    "participant_vote_recall": 0.6077981651376146,
+    "participant_vote_f1": 0.6077981651376146,
+    "complete_event_accuracy": 0.0,
+    "complete_matches": 0,
+    "total_events": 436,
+    "failures": {
+      "subject_mismatch": 428,
+      "participants_mismatch": 4,
+      "counting_mismatch": 4,
+      "expression_mismatch": 0
+    },
+    "evaluation_method": "event_level_structured",
+    "included_voting_expression": false
+  }
+}

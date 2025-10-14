@@ -1,6 +1,6 @@
 {
   "conversion_info": {
-    "timestamp": "2025-10-10T02:48:44.797920",
+    "timestamp": "2025-10-14T01:12:47.202705",
     "source_directory": "private/citilink_validated_en",
     "output_directory": "data/votie_test_en",
     "language": "en",
@@ -8,21 +8,21 @@
   },
   "source_statistics": {
     "entities_by_label": {
-      "VOTING": 930,
-      "VOTER-FAVOR": 249,
-      "SUBJECT": 368,
-      "COUNTING-UNANIMITY": 76,
-      "COUNTING-MAJORITY": 10,
-      "VOTER-ABSTENTION": 12,
-      "VOTER-AGAINST": 4
+      "VOTING": 838,
+      "VOTER-FAVOR": 233,
+      "SUBJECT": 364,
+      "COUNTING-UNANIMITY": 121,
+      "COUNTING-MAJORITY": 8,
+      "VOTER-ABSTENTION": 11,
+      "VOTER-AGAINST": 5
     },
     "entities_filtered": {
-      "Assunto": 133
+      "Assunto": 122
     },
     "relations": {
-      "posicionamento": 373,
-      "objeto de votação": 378,
-      "resultado": 281
+      "posicionamento": 345,
+      "objeto de votação": 373,
+      "resultado": 319
     },
     "municipalities": {
       "M01": 4,
@@ -59,67 +59,67 @@
       "Porto_cm_070_2024-12-02": 1
     },
     "total_documents": 24,
-    "total_segments_processed": 529,
-    "total_segments_with_voting": 457
+    "total_segments_processed": 500,
+    "total_segments_with_voting": 428
   },
   "converted_statistics": {
     "entities": {
-      "VOTING": 930,
-      "VOTER-FAVOR": 249,
-      "SUBJECT": 368,
-      "COUNTING-UNANIMITY": 76,
-      "COUNTING-MAJORITY": 10,
-      "VOTER-ABSTENTION": 12,
-      "VOTER-AGAINST": 4
+      "VOTING": 838,
+      "VOTER-FAVOR": 233,
+      "SUBJECT": 364,
+      "COUNTING-UNANIMITY": 121,
+      "COUNTING-MAJORITY": 8,
+      "VOTER-ABSTENTION": 11,
+      "VOTER-AGAINST": 5
     },
-    "total_entities": 1649
+    "total_entities": 1580
   },
   "test_set": {
-    "num_examples": 529,
-    "total_tokens": 149502,
-    "avg_tokens_per_example": 282.6124763705104,
+    "num_examples": 500,
+    "total_tokens": 140138,
+    "avg_tokens_per_example": 280.276,
     "entity_counts": {
-      "VOTING": 930,
-      "VOTER-FAVOR": 249,
-      "SUBJECT": 368,
-      "COUNTING-UNANIMITY": 76,
-      "COUNTING-MAJORITY": 10,
-      "VOTER-ABSTENTION": 12,
-      "VOTER-AGAINST": 4
+      "VOTING": 838,
+      "VOTER-FAVOR": 233,
+      "SUBJECT": 364,
+      "COUNTING-UNANIMITY": 121,
+      "COUNTING-MAJORITY": 8,
+      "VOTER-ABSTENTION": 11,
+      "VOTER-AGAINST": 5
     },
     "municipality_distribution": {
-      "M01": 93,
-      "M02": 74,
-      "M03": 103,
+      "M01": 92,
+      "M02": 67,
+      "M03": 90,
       "M04": 50,
-      "M05": 102,
-      "M06": 107
+      "M05": 99,
+      "M06": 102
     },
     "document_distribution": {
-      "Alandroal_cm_011_2024-04-24": 17,
+      "Alandroal_cm_011_2024-04-24": 16,
       "Alandroal_cm_015_2024-06-19": 21,
       "Alandroal_cm_019_2024-08-07": 27,
       "Alandroal_cm_021_2024-09-11": 28,
-      "Campomaior_cm_007_2024-04-03": 12,
-      "Campomaior_cm_010_2024-05-15": 24,
-      "Campomaior_cm_018_2024-10-02": 18,
-      "Campomaior_cm_020_2024-11-06": 20,
-      "Covilha_cm_006_2024-03-28": 22,
-      "Covilha_cm_010_2024-06-17": 22,
-      "Covilha_cm_011_2024-06-21": 38,
-      "Covilha_cm_021_2024-12-12": 21,
+      "Campomaior_cm_007_2024-04-03": 10,
+      "Campomaior_cm_010_2024-05-15": 22,
+      "Campomaior_cm_018_2024-10-02": 16,
+      "Campomaior_cm_020_2024-11-06": 19,
+      "Covilha_cm_006_2024-03-28": 20,
+      "Covilha_cm_010_2024-06-17": 17,
+      "Covilha_cm_011_2024-06-21": 34,
+      "Covilha_cm_021_2024-12-12": 19,
       "Fundao_cm_006_2024-08-04": 13,
       "Fundao_cm_008_2024-13-05": 16,
       "Fundao_cm_010_2024-21-06": 14,
       "Fundao_cm_014_2024-09-30": 7,
-      "Guimaraes_cm_009_2024-05-06": 21,
-      "Guimaraes_cm_016_2024-09-30": 22,
-      "Guimaraes_cm_018_2024-10-28": 24,
+      "Guimaraes_cm_009_2024-05-06": 20,
+      "Guimaraes_cm_016_2024-09-30": 21,
+      "Guimaraes_cm_018_2024-10-28": 23,
       "Guimaraes_cm_019_2024-11-11": 35,
-      "Porto_cm_062_2024-07-08": 34,
+      "Porto_cm_062_2024-07-08": 32,
       "Porto_cm_066_2024-10-14": 28,
       "Porto_cm_067_2024-10-28": 22,
-      "Porto_cm_070_2024-12-02": 23
+      "Porto_cm_070_2024-12-02": 20
     },
     "num_unique_documents": 24
   }

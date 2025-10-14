@@ -43,9 +43,3 @@ augmentation:
 windowing:
   enable_windowing: true
   overlap_tokens: 50
-
-# Deslexicalization configuration (optional)
-# To enable deslexicalization, set enabled to true
-# See bert_crf_deslexicalized.yaml for a full example
-deslexicalization:
-  enabled: false

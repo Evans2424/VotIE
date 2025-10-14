@@ -188,7 +188,6 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     training_config = config['training']
     windowing_config = config.get('windowing', {})
     augmentation_config = config.get('augmentation', {})
-    deslexicalization_config = config.get('deslexicalization', {})
 
     # Load data
     data_dir = Path(data_config['data_dir'])
@@ -202,9 +201,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
         tokenizer_name=model_name,
         max_length=augmentation_config.get('max_length', 512),
         overlap_tokens=windowing_config.get('overlap_tokens', 50),
-        enable_windowing=windowing_config.get('enable_windowing', True),
-        deslexicalization_config=deslexicalization_config,
-        experiment_name=experiment_name
+        enable_windowing=windowing_config.get('enable_windowing', True)
     )
 
     # Create model

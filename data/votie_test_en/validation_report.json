@@ -1,32 +1,32 @@
 {
-  "timestamp": "2025-10-10T02:48:44.777175",
+  "timestamp": "2025-10-14T01:12:47.181887",
   "validation_passed": true,
   "warnings": [],
   "errors": [],
   "statistics_comparison": {
     "source_entities_by_label": {
-      "VOTING": 930,
-      "VOTER-FAVOR": 249,
-      "SUBJECT": 368,
-      "COUNTING-UNANIMITY": 76,
-      "COUNTING-MAJORITY": 10,
-      "VOTER-ABSTENTION": 12,
-      "VOTER-AGAINST": 4
+      "VOTING": 838,
+      "VOTER-FAVOR": 233,
+      "SUBJECT": 364,
+      "COUNTING-UNANIMITY": 121,
+      "COUNTING-MAJORITY": 8,
+      "VOTER-ABSTENTION": 11,
+      "VOTER-AGAINST": 5
     },
     "source_entities_filtered": {
-      "Assunto": 133
+      "Assunto": 122
     },
     "converted_entities": {
-      "VOTING": 930,
-      "VOTER-FAVOR": 249,
-      "SUBJECT": 368,
-      "COUNTING-UNANIMITY": 76,
-      "COUNTING-MAJORITY": 10,
-      "VOTER-ABSTENTION": 12,
-      "VOTER-AGAINST": 4
+      "VOTING": 838,
+      "VOTER-FAVOR": 233,
+      "SUBJECT": 364,
+      "COUNTING-UNANIMITY": 121,
+      "COUNTING-MAJORITY": 8,
+      "VOTER-ABSTENTION": 11,
+      "VOTER-AGAINST": 5
     },
-    "total_source_entities": 1649,
-    "total_converted": 1649,
-    "total_in_test": 1649
+    "total_source_entities": 1580,
+    "total_converted": 1580,
+    "total_in_test": 1580
   }
 }

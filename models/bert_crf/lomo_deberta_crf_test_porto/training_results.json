@@ -1,0 +1,129 @@
+{
+  "best_eval_score": 0.8979732050841636,
+  "total_epochs": 7,
+  "training_time": 2196.5364878177643,
+  "training_history": {
+    "train_loss": [
+      26.165813385710425,
+      7.336708367600733,
+      4.528003573052737,
+      3.004840952218795,
+      2.0914363097171393,
+      1.6967823493237397,
+      1.2265054240518687
+    ],
+    "eval_loss": [
+      10.202329688745996,
+      5.622198364009028,
+      6.703037671420885,
+      8.852893384902373,
+      8.200815353704536,
+      8.514042085927466,
+      9.808168745559195
+    ],
+    "entity_f1_strict": [
+      0.7469335054874112,
+      0.8365194462755439,
+      0.8813559322033899,
+      0.8979732050841636,
+      0.8803795323619114,
+      0.8851351351351352,
+      0.8918457864210169
+    ],
+    "learning_rates": [
+      [
+        5e-05
+      ],
+      [
+        4.4444444444444447e-05
+      ],
+      [
+        3.888888888888889e-05
+      ],
+      [
+        3.3333333333333335e-05
+      ],
+      [
+        2.777777777777778e-05
+      ],
+      [
+        2.2222222222222223e-05
+      ],
+      [
+        1.6666666666666667e-05
+      ]
+    ]
+  },
+  "total_steps": 1715,
+  "final_eval_results": {
+    "eval_loss": 9.808168745559195,
+    "entity_f1_strict": 0.8918457864210169,
+    "entity_precision": 0.8553664921465969,
+    "entity_recall": 0.9315751960085531,
+    "entity_accuracy": 0.9878192134321865,
+    "evaluation_method": "entity_and_span_level",
+    "per_type_metrics": {
+      "VOTER-ABSTENTION": {
+        "precision": 0.8914728682170543,
+        "recall": 1.0,
+        "f1": 0.9426229508196722,
+        "support": 115
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.9565217391304348,
+        "recall": 0.9166666666666666,
+        "f1": 0.9361702127659574,
+        "support": 24
+      },
+      "VOTING": {
+        "precision": 0.9485981308411215,
+        "recall": 0.9854368932038835,
+        "f1": 0.9666666666666667,
+        "support": 412
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9545454545454546,
+        "recall": 0.995260663507109,
+        "f1": 0.974477958236659,
+        "support": 211
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.9208860759493671,
+        "recall": 0.9864406779661017,
+        "f1": 0.9525368248772503,
+        "support": 295
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.7272727272727273,
+        "recall": 1.0,
+        "f1": 0.8421052631578948,
+        "support": 8
+      },
+      "COUNTING-MAJORITY": {
+        "precision": 0.8095238095238095,
+        "recall": 1.0,
+        "f1": 0.8947368421052632,
+        "support": 17
+      },
+      "SUBJECT": {
+        "precision": 0.6263157894736842,
+        "recall": 0.7414330218068536,
+        "f1": 0.6790299572039943,
+        "support": 321
+      }
+    },
+    "num_examples": 736
+  },
+  "best_model_path": "models/bert_crf/lomo_deberta_crf_test_porto",
+  "model_params": {
+    "base_model": "neuralmind/bert-large-portuguese-cased",
+    "num_labels": 17,
+    "learning_rate": 5e-05,
+    "train_batch_size": 16,
+    "eval_batch_size": 16,
+    "warmup_proportion": 0.1,
+    "max_grad_norm": 1.0,
+    "patience": 3,
+    "apply_bio_validation": true
+  }
+}

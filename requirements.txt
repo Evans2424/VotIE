@@ -18,6 +18,7 @@ sklearn-crfsuite>=0.3.6
 pyyaml>=6.0
 tqdm>=4.62.0
 pathlib2>=2.3.7
+faker
 
 # Hugging Face ecosystem
 datasets>=2.0.0
@@ -37,8 +38,6 @@ spacy>=3.4.0
 fasttext
 jsonlines
 sentencepiece
-
-# Deslexicalization
 faker>=18.0.0
 
 

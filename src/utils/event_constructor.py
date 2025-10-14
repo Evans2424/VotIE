@@ -14,21 +14,21 @@ logger = logging.getLogger(__name__)
 class EventConstructor:
     """
     Constructs structured voting events from BIO-tagged predictions.
-    
-    Event Structure:
+
+    Event Structure (HYBRID FORMAT):
     {
         'id': str,
         'has_voting_event': bool,
         'event': {
-            'subject': str,                              # Single string
-            'participants': [{'text': str, 'position': str}],  # List
-            'counting': {'text': str, 'type': str} or None,    # Single dict or None
-            'voting_expression': str or None                    # Single string or None
+            'subject': str or None,                       # SINGULAR (first one if multiple)
+            'participants': [{'text': str, 'position': str}],  # LIST (multiple allowed)
+            'counting': [{'text': str, 'type': str}],     # LIST (multiple allowed)
+            'voting_expressions': [str]                    # LIST (multiple allowed)
         }
     }
-    
-    Note: Each voting event has exactly one subject, one counting expression,
-    and one voting expression. Multiple participants are supported.
+
+    Note: Only 'subject' is singular (takes first if multiple found).
+    All other fields are lists to handle multiple occurrences.
     """
     
     def __init__(self):
@@ -65,9 +65,9 @@ class EventConstructor:
         # Extract all entity spans
         subject = self._extract_subject(tokens, labels)
         participants = self._extract_participants(tokens, labels)
-        counting = self._extract_counting(tokens, labels)
-        voting_expression = self._extract_voting_expression(tokens, labels)
-        
+        counting = self._extract_counting_list(tokens, labels)  # Returns LIST
+        voting_expressions = self._extract_voting_expressions_list(tokens, labels)  # Returns LIST
+
         return {
             'id': example_id,
             'has_voting_event': True,
@@ -75,7 +75,7 @@ class EventConstructor:
                 'subject': subject,
                 'participants': participants,
                 'counting': counting,
-                'voting_expression': voting_expression
+                'voting_expressions': voting_expressions
             }
         }
     
@@ -133,7 +133,6 @@ class EventConstructor:
             return None
         
         # Take first subject span
-        # Alternative: could concatenate with ' / ' if multiple exist
         subject_text = ' '.join(spans[0])
         
         return subject_text
@@ -189,81 +188,78 @@ class EventConstructor:
         
         return participants
     
-    def _extract_counting(
+    def _extract_counting_list(
         self,
         tokens: List[str],
         labels: List[str]
-    ) -> Optional[Dict[str, str]]:
+    ) -> List[Dict[str, str]]:
         """
-        Extract counting span with aggregation type (single dict).
-        
+        Extract all counting spans with aggregation types (LIST of dicts).
+
         Parses COUNTING-* labels to extract type (UNANIMITY, MAJORITY).
-        If multiple counting expressions exist, takes the first one.
-        
+        Returns all counting expressions found.
+
         Args:
             tokens: Word tokens
             labels: BIO labels
-            
+
         Returns:
-            {'text': str, 'type': str} dictionary or None
+            List of {'text': str, 'type': str} dictionaries (empty list if none found)
         """
-        # Find first COUNTING-* span
+        counting_list = []
         i = 0
+
         while i < len(labels):
             label = labels[i]
-            
+
             if label.startswith('B-COUNTING-'):
                 # Extract counting type (e.g., B-COUNTING-UNANIMITY -> UNANIMITY)
                 span_type = label[2:]  # Remove 'B-' prefix
                 counting_type = span_type.split('-', 1)[1]  # Extract type part
-                
+
                 # Collect span tokens
                 span_tokens = [tokens[i]]
                 j = i + 1
-                
+
                 # Continue with I-COUNTING-* tags
                 while j < len(labels) and labels[j] == f'I-{span_type}':
                     span_tokens.append(tokens[j])
                     j += 1
-                
+
                 counting_text = ' '.join(span_tokens)
-                
-                return {
+
+                counting_list.append({
                     'text': counting_text,
                     'type': counting_type.capitalize()
-                }
-            
-            i += 1
-        
-        # No counting expression found
-        return None
+                })
+
+                i = j
+            else:
+                i += 1
+
+        return counting_list
     
-    def _extract_voting_expression(
+    def _extract_voting_expressions_list(
         self,
         tokens: List[str],
         labels: List[str]
-    ) -> Optional[str]:
+    ) -> List[str]:
         """
-        Extract voting expression span (single string).
-        
-        If multiple VOTING spans exist, takes the first one.
-        
+        Extract all voting expression spans (LIST of strings).
+
+        Returns all VOTING spans found.
+
         Args:
             tokens: Word tokens
             labels: BIO labels
-            
+
         Returns:
-            Voting expression text string or None
+            List of voting expression text strings (empty list if none found)
         """
         spans = self._extract_spans_by_type(tokens, labels, 'VOTING')
-        
-        if not spans:
-            return None
-        
-        # Take first voting expression
-        voting_text = ' '.join(spans[0])
-        
-        return voting_text
+
+        # Convert all spans to strings and return as list
+        return [' '.join(span) for span in spans]
     
     def _extract_spans_by_type(
         self,

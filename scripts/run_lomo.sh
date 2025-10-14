@@ -8,9 +8,9 @@ set -e
 
 # Municipality configurations
 MUNICIPALITIES=("alandroal" "campomaior" "covilha" "fundao" "guimaraes" "porto")
-CONFIG_DIR="configs/cross_municipality/deberta_crf"
-OUTPUT_DIR="experiments/lomo"
-LOG_DIR="logs/lomo"
+CONFIG_DIR="configs/cross_municipality/bert_crf"
+OUTPUT_DIR="experiments/lomo_bert_crf"
+LOG_DIR="logs/lomo_bert_crf"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Create output and log directories

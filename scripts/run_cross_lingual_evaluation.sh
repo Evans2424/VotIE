@@ -34,6 +34,7 @@ MODELS=(
     "models/xlmr_crf/xlmr_crf_20251010_070842"
     "models/xlmr_linear/xlmr_linear_20251010_070842"
     "models/crf/crf_full"
+    "models/bilstm_fasttext/run_20251013_000437"
 )
 
 MODEL_NAMES=(
@@ -44,6 +45,7 @@ MODEL_NAMES=(
     "XLM-R-CRF"
     "XLM-R-Linear"
     "CRF"
+    "Bilstm-CRF"
 )
 
 # Initialize results summary

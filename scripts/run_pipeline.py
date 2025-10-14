@@ -100,15 +100,8 @@ def main():
     if args.baseline:
         baseline_name = args.baseline
     else:
-        # Try to derive from config file name, but for LOMO configs, use model name + architecture
-        config_stem = Path(args.config).stem
-        if config_stem.startswith('test_'):
-            # LOMO config - derive from model configuration
-            model_name = config['model']['name']
-            baseline_name = model_name
-        else:
-            # Regular config - use file stem
-            baseline_name = config_stem
+        # Always use the model name from config to avoid mismatches
+        baseline_name = config['model']['name']
     
     experiment_name = args.name
     data_config = config['data']

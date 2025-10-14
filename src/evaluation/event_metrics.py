@@ -15,6 +15,8 @@ Span matching uses exact text comparison after normalization (lowercase, strip).
 import logging
 from typing import List, Dict, Any, Set, Tuple
 
+# Note: Added Any to handle backward compatibility with different data formats
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,21 +24,62 @@ class EventLevelEvaluator:
     """
     Event-level evaluation for voting event extraction.
 
-    Evaluates structured event extraction with the following event schema:
+    Evaluates structured event extraction with the HYBRID event schema:
     {
         'has_voting_event': bool,
         'event': {
-            'subject': str,  # Single string, not list
-            'participants': [{'text': str, 'position': str}, ...],
-            'counting': {'text': str, 'type': str} or None,
-            'voting_expression': str or None
+            'subject': str or None,  # SINGULAR - single string
+            'participants': [{'text': str, 'position': str}],  # LIST
+            'counting': [{'text': str, 'type': str}],  # LIST (hybrid format)
+            'voting_expressions': [str]  # LIST (hybrid format)
         }
     }
+
+    Notes:
+    - Backward compatible: handles both old singular and new list formats
+    - For lists: compares first item only (configurable via parameters)
+    - All text comparisons are case-insensitive after normalization
     """
 
     def __init__(self):
         """Initialize evaluator."""
         pass
+
+    def _normalize_counting(self, counting: Any) -> List[Dict[str, str]]:
+        """
+        Normalize counting to list format (backward compatible).
+
+        Args:
+            counting: Can be None, dict, or list
+
+        Returns:
+            List of counting dicts (empty if None)
+        """
+        if counting is None:
+            return []
+        if isinstance(counting, list):
+            return counting
+        if isinstance(counting, dict):
+            return [counting]
+        return []
+
+    def _normalize_voting_expressions(self, expressions: Any) -> List[str]:
+        """
+        Normalize voting expressions to list format (backward compatible).
+
+        Args:
+            expressions: Can be None, str, or list
+
+        Returns:
+            List of expression strings (empty if None)
+        """
+        if expressions is None:
+            return []
+        if isinstance(expressions, list):
+            return [str(e) for e in expressions if e]
+        if isinstance(expressions, str):
+            return [expressions] if expressions else []
+        return []
 
     def extract_participant_vote_pairs(
         self,
@@ -135,8 +178,9 @@ class EventLevelEvaluator:
         false_negatives = 0
 
         for pred_event, gold_event in zip(pred_events, gold_events):
-            pred_has_event = pred_event.get('has_voting_event', False)
-            gold_has_event = gold_event.get('has_voting_event', False)
+            # Handle None events
+            pred_has_event = pred_event.get('has_voting_event', False) if pred_event else False
+            gold_has_event = gold_event.get('has_voting_event', False) if gold_event else False
 
             if pred_has_event == gold_has_event:
                 correct += 1
@@ -166,42 +210,73 @@ class EventLevelEvaluator:
         gold_events: List[Dict[str, Any]]
     ) -> Dict[str, float]:
         """
-        Evaluate subject extraction (exact string matching).
+        Evaluate subject extraction with precision, recall, and F1.
         
-        Each event has exactly one subject (single string), so we use
-        exact matching rather than set-based F1.
+        Treats subject extraction as binary classification:
+        - True Positive: Subject extracted correctly
+        - False Positive: Subject extracted but incorrect
+        - False Negative: Subject not extracted but should be
 
         Args:
             pred_events: List of predicted events
             gold_events: List of gold events
 
         Returns:
-            Dictionary with accuracy
+            Dictionary with accuracy, precision, recall, and F1
         """
         correct = 0
         total = 0
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
 
         for pred_event, gold_event in zip(pred_events, gold_events):
+            # Skip if no event structure (handle None pred_event or gold_event)
+            if pred_event is None or gold_event is None:
+                continue
+                
             if not gold_event.get('has_voting_event', False):
                 continue
 
             total += 1
 
-            # Extract subject (single string)
-            pred_subject = pred_event.get('event', {}).get('subject', '')
-            gold_subject = gold_event.get('event', {}).get('subject', '')
+            # Extract subject (single string) - safely handle None event dicts
+            # Note: event can be explicitly None when has_voting_event is False
+            pred_event_data = pred_event.get('event') if pred_event else None
+            gold_event_data = gold_event.get('event') if gold_event else None
+            
+            # Handle case where event is None (no voting event)
+            pred_subject = pred_event_data.get('subject') if pred_event_data and isinstance(pred_event_data, dict) else None
+            gold_subject = gold_event_data.get('subject') if gold_event_data and isinstance(gold_event_data, dict) else None
 
-            # Normalize and compare
-            pred_subject = pred_subject.strip().lower()
-            gold_subject = gold_subject.strip().lower()
+            # Normalize and compare (handle None values)
+            pred_subject_norm = pred_subject.strip().lower() if pred_subject else ''
+            gold_subject_norm = gold_subject.strip().lower() if gold_subject else ''
 
-            if pred_subject == gold_subject:
+            has_pred = len(pred_subject_norm) > 0
+            has_gold = len(gold_subject_norm) > 0
+
+            if pred_subject_norm == gold_subject_norm and has_gold:
                 correct += 1
+                true_positives += 1
+            elif has_pred and not has_gold:
+                false_positives += 1
+            elif has_pred and has_gold and pred_subject_norm != gold_subject_norm:
+                false_positives += 1
+                false_negatives += 1
+            elif not has_pred and has_gold:
+                false_negatives += 1
 
         accuracy = correct / total if total > 0 else 0.0
+        precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0.0
+        recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
         return {
             "subject_accuracy": accuracy,
+            "subject_precision": precision,
+            "subject_recall": recall,
+            "subject_f1": f1,
             "subject_correct": correct,
             "subject_total": total
         }
@@ -226,10 +301,12 @@ class EventLevelEvaluator:
         all_f1s = []
 
         for pred_event, gold_event in zip(pred_events, gold_events):
+            if pred_event is None or gold_event is None:
+                continue
             if not gold_event.get('has_voting_event', False):
                 continue
 
-            # Handle None event structures
+            # Handle None event structures (event can be None when has_voting_event is False)
             pred_event_data = pred_event.get('event') or {}
             gold_event_data = gold_event.get('event') or {}
             
@@ -254,63 +331,13 @@ class EventLevelEvaluator:
             "participant_vote_f1": sum(all_f1s) / len(all_f1s)
         }
 
-    def compare_counting(self, pred_event: Dict, gold_event: Dict) -> bool:
-        """
-        Evaluate subject extraction (strict set-based matching).
-
-        Args:
-            pred_event: Predicted event
-            gold_event: Gold event
-        
-        Returns:
-            True if counting matches exactly
-        """
-        all_precisions = []
-        all_recalls = []
-        all_f1s = []
-
-        for pred_event, gold_event in zip(pred_events, gold_events):
-            if not gold_event.get('has_voting_event', False):
-                continue
-
-            # Handle None event structures
-            pred_event_data = pred_event.get('event') or {}
-            gold_event_data = gold_event.get('event') or {}
-            
-            # Handle subject as a single string (not a list)
-            pred_subject = pred_event_data.get('subject', None)
-            gold_subject = gold_event_data.get('subject', None)
-
-            # Normalize and create sets for strict comparison
-            # Convert single strings to sets (empty set if None)
-            pred_subjects_set = {pred_subject.strip().lower()} if pred_subject else set()
-            gold_subjects_set = {gold_subject.strip().lower()} if gold_subject else set()
-
-            # Use set-based F1 calculation
-            metrics = self.compute_set_based_f1(pred_subjects_set, gold_subjects_set)
-            all_precisions.append(metrics['precision'])
-            all_recalls.append(metrics['recall'])
-            all_f1s.append(metrics['f1'])
-
-        # Aggregate across all events
-        if len(all_f1s) == 0:
-            return {
-                "subject_precision": 0.0,
-                "subject_recall": 0.0,
-                "subject_f1": 0.0
-            }
-
-        return {
-            "subject_precision": sum(all_precisions) / len(all_precisions),
-            "subject_recall": sum(all_recalls) / len(all_recalls),
-            "subject_f1": sum(all_f1s) / len(all_f1s)
-        }
-
     def evaluate_complete_event(
         self,
         pred_events: List[Dict[str, Any]],
         gold_events: List[Dict[str, Any]],
-        include_voting_expression: bool = True
+        include_voting_expression: bool = True,
+        compare_all_counting: bool = False,
+        compare_all_expressions: bool = False
     ) -> Dict[str, float]:
         """
         Evaluate complete event extraction (strict accuracy).
@@ -318,76 +345,121 @@ class EventLevelEvaluator:
         All components must match exactly:
         - Subject (exact string match)
         - All participant-vote pairs (set match)
-        - Counting information (exact match)
-        - Voting expression (exact match, if include_voting_expression=True)
+        - Counting information (first item or all items, based on compare_all_counting)
+        - Voting expression (first item or all items, based on compare_all_expressions)
 
         Args:
             pred_events: List of predicted events
             gold_events: List of gold events
             include_voting_expression: Whether to require voting expression match
+            compare_all_counting: If True, compare all counting items; if False, only first
+            compare_all_expressions: If True, compare all expressions; if False, only first
 
         Returns:
-            Dictionary with strict accuracy
+            Dictionary with strict accuracy and detailed counts
         """
         correct = 0
         total = 0
+        failures = {
+            'subject_mismatch': 0,
+            'participants_mismatch': 0,
+            'counting_mismatch': 0,
+            'expression_mismatch': 0
+        }
 
         for pred_event, gold_event in zip(pred_events, gold_events):
+            if pred_event is None or gold_event is None:
+                continue
             if not gold_event.get('has_voting_event', False):
                 continue
 
             total += 1
 
-            # Check all components - handle None event structures
+            # Check all components - handle None event structures (event can be None)
             pred_ev = pred_event.get('event') or {}
             gold_ev = gold_event.get('event') or {}
 
-            # Compare subjects (single string, not list)
+            # 1. Compare subjects (single string)
             pred_subject = pred_ev.get('subject', None)
             gold_subject = gold_ev.get('subject', None)
-            
-            # Normalize subjects for comparison
+
             pred_subject_norm = pred_subject.strip().lower() if pred_subject else None
             gold_subject_norm = gold_subject.strip().lower() if gold_subject else None
-            
+
             if pred_subject_norm != gold_subject_norm:
+                failures['subject_mismatch'] += 1
                 continue
 
-            # Compare participant-vote pairs (set)
+            # 2. Compare participant-vote pairs (set)
             pred_pairs = self.extract_participant_vote_pairs(pred_ev)
             gold_pairs = self.extract_participant_vote_pairs(gold_ev)
-            
+
             if pred_pairs != gold_pairs:
+                failures['participants_mismatch'] += 1
                 continue
 
-            # Compare counting (single dict or None, not list)
-            pred_counting_item = pred_ev.get('counting', None)
-            gold_counting_item = gold_ev.get('counting', None)
-            
-            # Normalize counting for comparison
-            if pred_counting_item is None and gold_counting_item is None:
-                # Both None - match
-                counting_match = True
-            elif pred_counting_item is None or gold_counting_item is None:
-                # One is None, other is not - no match
-                counting_match = False
+            # 3. Compare counting (LIST - hybrid format)
+            pred_counting_raw = pred_ev.get('counting')
+            gold_counting_raw = gold_ev.get('counting')
+
+            # Normalize to lists (backward compatible)
+            pred_counting = self._normalize_counting(pred_counting_raw)
+            gold_counting = self._normalize_counting(gold_counting_raw)
+
+            if compare_all_counting:
+                # Compare all items as sets
+                pred_counting_set = {
+                    (c.get('text', '').strip().lower(), c.get('type', '').strip().upper())
+                    for c in pred_counting
+                }
+                gold_counting_set = {
+                    (c.get('text', '').strip().lower(), c.get('type', '').strip().upper())
+                    for c in gold_counting
+                }
+                counting_match = (pred_counting_set == gold_counting_set)
             else:
-                # Both are dicts - compare text and type
-                pred_text = pred_counting_item.get('text', '').strip().lower()
-                pred_type = pred_counting_item.get('type', '').strip().upper()
-                gold_text = gold_counting_item.get('text', '').strip().lower()
-                gold_type = gold_counting_item.get('type', '').strip().upper()
-                counting_match = (pred_text == gold_text and pred_type == gold_type)
-            
+                # Compare only first items
+                pred_first = pred_counting[0] if pred_counting else None
+                gold_first = gold_counting[0] if gold_counting else None
+
+                if pred_first is None and gold_first is None:
+                    counting_match = True
+                elif pred_first is None or gold_first is None:
+                    counting_match = False
+                else:
+                    pred_text = pred_first.get('text', '').strip().lower()
+                    pred_type = pred_first.get('type', '').strip().upper()
+                    gold_text = gold_first.get('text', '').strip().lower()
+                    gold_type = gold_first.get('type', '').strip().upper()
+                    counting_match = (pred_text == gold_text and pred_type == gold_type)
+
             if not counting_match:
+                failures['counting_mismatch'] += 1
                 continue
 
-            # Optionally compare voting expression
+            # 4. Optionally compare voting expressions (LIST - hybrid format)
             if include_voting_expression:
-                pred_expr = pred_ev.get('voting_expression', '').strip().lower()
-                gold_expr = gold_ev.get('voting_expression', '').strip().lower()
-                
-                if pred_expr != gold_expr:
+                # Handle both old and new field names
+                pred_expr_raw = pred_ev.get('voting_expressions') or pred_ev.get('voting_expression')
+                gold_expr_raw = gold_ev.get('voting_expressions') or gold_ev.get('voting_expression')
+
+                # Normalize to lists (backward compatible)
+                pred_expressions = self._normalize_voting_expressions(pred_expr_raw)
+                gold_expressions = self._normalize_voting_expressions(gold_expr_raw)
+
+                if compare_all_expressions:
+                    # Compare all expressions as sets
+                    pred_expr_set = {e.strip().lower() for e in pred_expressions}
+                    gold_expr_set = {e.strip().lower() for e in gold_expressions}
+                    expressions_match = (pred_expr_set == gold_expr_set)
+                else:
+                    # Compare only first items
+                    pred_first = pred_expressions[0].strip().lower() if pred_expressions else ""
+                    gold_first = gold_expressions[0].strip().lower() if gold_expressions else ""
+                    expressions_match = (pred_first == gold_first)
+
+                if not expressions_match:
+                    failures['expression_mismatch'] += 1
                     continue
 
             # All components match
@@ -398,7 +470,8 @@ class EventLevelEvaluator:
         return {
             "complete_event_accuracy": accuracy,
             "complete_matches": correct,
-            "total_events": total
+            "total_events": total,
+            "failures": failures
         }
 
     def compute_metrics(

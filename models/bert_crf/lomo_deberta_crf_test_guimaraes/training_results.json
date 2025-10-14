@@ -1,0 +1,135 @@
+{
+  "best_eval_score": 0.9158040027605246,
+  "total_epochs": 8,
+  "training_time": 2783.156266927719,
+  "training_history": {
+    "train_loss": [
+      30.0084286980007,
+      8.632645466016687,
+      5.543076050799826,
+      4.0867582471474355,
+      2.7650608088659205,
+      2.0692257984824804,
+      1.5232311482014864,
+      1.0702337638191555
+    ],
+    "eval_loss": [
+      7.867436357339224,
+      6.57445520957311,
+      6.300930043061574,
+      6.0522125826941595,
+      6.609578067726559,
+      8.697456443309784,
+      8.504692531956566,
+      10.177109609709845
+    ],
+    "entity_f1_strict": [
+      0.8176271186440678,
+      0.8237254248583806,
+      0.8912969861158144,
+      0.8991138377641444,
+      0.9158040027605246,
+      0.9056994818652849,
+      0.9117241379310345,
+      0.9061421670117322
+    ],
+    "learning_rates": [
+      [
+        5e-05
+      ],
+      [
+        4.4444444444444447e-05
+      ],
+      [
+        3.888888888888889e-05
+      ],
+      [
+        3.3333333333333335e-05
+      ],
+      [
+        2.777777777777778e-05
+      ],
+      [
+        2.2222222222222223e-05
+      ],
+      [
+        1.6666666666666667e-05
+      ],
+      [
+        1.1111111111111112e-05
+      ]
+    ]
+  },
+  "total_steps": 1840,
+  "final_eval_results": {
+    "eval_loss": 10.177109609709845,
+    "entity_f1_strict": 0.9061421670117322,
+    "entity_precision": 0.875917278185457,
+    "entity_recall": 0.9385275196568977,
+    "entity_accuracy": 0.9885027021299142,
+    "evaluation_method": "entity_and_span_level",
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.8867924528301887,
+        "recall": 0.94,
+        "f1": 0.912621359223301,
+        "support": 50
+      },
+      "SUBJECT": {
+        "precision": 0.7027777777777777,
+        "recall": 0.8135048231511254,
+        "f1": 0.7540983606557378,
+        "support": 311
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.9223300970873787,
+        "recall": 0.9661016949152542,
+        "f1": 0.9437086092715231,
+        "support": 295
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.7142857142857143,
+        "recall": 0.625,
+        "f1": 0.6666666666666666,
+        "support": 8
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9267015706806283,
+        "recall": 0.9943820224719101,
+        "f1": 0.9593495934959348,
+        "support": 178
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.8571428571428571,
+        "recall": 1.0,
+        "f1": 0.923076923076923,
+        "support": 18
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.9290322580645162,
+        "recall": 0.993103448275862,
+        "f1": 0.9600000000000001,
+        "support": 145
+      },
+      "VOTING": {
+        "precision": 0.9528535980148883,
+        "recall": 0.9746192893401016,
+        "f1": 0.9636135508155584,
+        "support": 394
+      }
+    },
+    "num_examples": 715
+  },
+  "best_model_path": "models/bert_crf/lomo_deberta_crf_test_guimaraes",
+  "model_params": {
+    "base_model": "neuralmind/bert-large-portuguese-cased",
+    "num_labels": 17,
+    "learning_rate": 5e-05,
+    "train_batch_size": 16,
+    "eval_batch_size": 16,
+    "warmup_proportion": 0.1,
+    "max_grad_norm": 1.0,
+    "patience": 3,
+    "apply_bio_validation": true
+  }
+}

@@ -173,9 +173,30 @@ def evaluate(predictions_path: str, output_path: str = None, include_events: boo
         try:
             event_metrics = compute_event_level_metrics(predictions, pred_labels, gold_labels)
         except Exception as e:
-            logger.warning(f"Event-level evaluation failed: {e}")
-            logger.warning("Continuing with token-level metrics only...")
-            event_metrics = {"error": str(e)}
+            logger.error(f"Event-level evaluation failed: {e}")
+            logger.error("Stack trace:", exc_info=True)
+            logger.warning("Continuing with entity-level metrics only...")
+            # Provide default metrics structure to prevent downstream errors
+            event_metrics = {
+                "error": str(e),
+                "event_detection_accuracy": 0.0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "true_negatives": 0,
+                "false_negatives": 0,
+                "subject_accuracy": 0.0,
+                "subject_precision": 0.0,
+                "subject_recall": 0.0,
+                "subject_f1": 0.0,
+                "subject_correct": 0,
+                "subject_total": 0,
+                "participant_vote_precision": 0.0,
+                "participant_vote_recall": 0.0,
+                "participant_vote_f1": 0.0,
+                "complete_event_accuracy": 0.0,
+                "complete_matches": 0,
+                "total_events": 0
+            }
     
     # Compile results
     results = {

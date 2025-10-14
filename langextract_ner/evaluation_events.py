@@ -45,9 +45,15 @@ def event_to_spans(event_dict: Dict[str, Any]) -> List[Tuple[str, str]]:
 
     spans = []
 
-    # Subject
-    if event.get("subject"):
-        spans.append((event["subject"], "SUBJECT"))
+    # Subject (can be singular or list)
+    subjects = event.get("subjects") or event.get("subject")
+    if subjects:
+        if isinstance(subjects, list):
+            for subj in subjects:
+                if subj:
+                    spans.append((subj, "SUBJECT"))
+        elif subjects:
+            spans.append((subjects, "SUBJECT"))
 
     # Participants
     for participant in event.get("participants", []):
@@ -55,16 +61,29 @@ def event_to_spans(event_dict: Dict[str, Any]) -> List[Tuple[str, str]]:
         label = f"VOTER-{position.upper()}"
         spans.append((participant["text"], label))
 
-    # Counting
+    # Counting (can be singular dict or list)
     counting = event.get("counting")
     if counting:
-        counting_type = counting.get("type", "MAJORITY")
-        label = f"COUNTING-{counting_type.upper()}"
-        spans.append((counting["text"], label))
+        if isinstance(counting, list):
+            for count in counting:
+                if count:
+                    counting_type = count.get("type", "MAJORITY")
+                    label = f"COUNTING-{counting_type.upper()}"
+                    spans.append((count["text"], label))
+        else:
+            counting_type = counting.get("type", "MAJORITY")
+            label = f"COUNTING-{counting_type.upper()}"
+            spans.append((counting["text"], label))
 
-    # Voting expression
-    if event.get("voting_expression"):
-        spans.append((event["voting_expression"], "VOTING"))
+    # Voting expression (can be singular or list)
+    voting_expressions = event.get("voting_expressions") or event.get("voting_expression")
+    if voting_expressions:
+        if isinstance(voting_expressions, list):
+            for expr in voting_expressions:
+                if expr:
+                    spans.append((expr, "VOTING"))
+        elif voting_expressions:
+            spans.append((voting_expressions, "VOTING"))
 
     return spans
 
@@ -231,21 +250,28 @@ def compare_events(pred_event: Dict[str, Any], gold_event: Dict[str, Any]) -> Di
     if not pred or not gold:
         return scores
 
-    # Subject matching
-    pred_subj = pred.get("subject", "")
-    gold_subj = gold.get("subject", "")
+    # Subject matching (handle both singular and list formats)
+    pred_subj = pred.get("subject") or (pred.get("subjects", []) or [None])[0]
+    gold_subj = gold.get("subject") or (gold.get("subjects", []) or [None])[0]
     if pred_subj and gold_subj:
         scores["subject"] = compute_span_overlap(pred_subj, gold_subj)
 
-    # Voting expression matching
-    pred_voting = pred.get("voting_expression", "")
-    gold_voting = gold.get("voting_expression", "")
+    # Voting expression matching (handle both singular and list formats)
+    pred_voting = pred.get("voting_expression") or (pred.get("voting_expressions", []) or [None])[0]
+    gold_voting = gold.get("voting_expression") or (gold.get("voting_expressions", []) or [None])[0]
     if pred_voting and gold_voting:
         scores["voting_expression"] = compute_span_overlap(pred_voting, gold_voting)
 
-    # Counting matching
+    # Counting matching (handle both singular dict and list formats)
     pred_counting = pred.get("counting")
     gold_counting = gold.get("counting")
+    
+    # Convert lists to single items if needed
+    if isinstance(pred_counting, list):
+        pred_counting = pred_counting[0] if pred_counting else None
+    if isinstance(gold_counting, list):
+        gold_counting = gold_counting[0] if gold_counting else None
+    
     if pred_counting and gold_counting:
         # Check type match
         if pred_counting.get("type") == gold_counting.get("type"):

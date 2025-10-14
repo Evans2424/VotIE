@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/xlmr_crf_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-13T02:02:06.425871",
+    "timestamp": "2025-10-14T09:30:41.758378",
     "num_examples": 433,
     "include_events": true
   },
@@ -68,15 +68,25 @@
     "false_positives": 20,
     "true_negatives": 54,
     "false_negatives": 1,
+    "subject_accuracy": 0.8272980501392758,
+    "subject_precision": 0.8608695652173913,
+    "subject_recall": 0.8296089385474861,
+    "subject_f1": 0.844950213371266,
+    "subject_correct": 297,
+    "subject_total": 359,
     "participant_vote_precision": 0.975317239244816,
     "participant_vote_recall": 0.9755493655215104,
     "participant_vote_f1": 0.9753371357828182,
-    "subject_precision": 0.8272980501392758,
-    "subject_recall": 0.8272980501392758,
-    "subject_f1": 0.8272980501392758,
     "complete_event_accuracy": 0.807799442896936,
     "complete_matches": 290,
     "total_events": 359,
-    "evaluation_method": "event_level_structured"
+    "failures": {
+      "subject_mismatch": 62,
+      "participants_mismatch": 7,
+      "counting_mismatch": 0,
+      "expression_mismatch": 0
+    },
+    "evaluation_method": "event_level_structured",
+    "included_voting_expression": false
   }
 }

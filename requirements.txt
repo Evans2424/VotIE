@@ -40,4 +40,9 @@ jsonlines
 sentencepiece
 faker>=18.0.0
 
+#Utilities
+dotenv
 
+#Langextract
+google-generativeai
+langextract

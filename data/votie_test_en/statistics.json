@@ -1,20 +1,26 @@
 {
   "conversion_info": {
-    "timestamp": "2025-10-14T01:12:47.202705",
+    "timestamp": "2025-10-14T08:07:12.675430",
     "source_directory": "private/citilink_validated_en",
     "output_directory": "data/votie_test_en",
     "language": "en",
-    "split": "test_only"
+    "split": "test_only",
+    "format_version": "hybrid_cleaned"
   },
   "source_statistics": {
     "entities_by_label": {
-      "VOTING": 838,
+      "VOTING": 835,
       "VOTER-FAVOR": 233,
       "SUBJECT": 364,
       "COUNTING-UNANIMITY": 121,
+      "VOTER-ABSENT": 3,
       "COUNTING-MAJORITY": 8,
       "VOTER-ABSTENTION": 11,
       "VOTER-AGAINST": 5
+    },
+    "entities_by_source_type": {
+      "Posicionamento": 1216,
+      "Assunto": 364
     },
     "entities_filtered": {
       "Assunto": 122
@@ -25,12 +31,12 @@
       "resultado": 319
     },
     "municipalities": {
-      "M01": 4,
-      "M02": 4,
-      "M03": 4,
-      "M04": 4,
-      "M05": 4,
-      "M06": 4
+      "M01": 96,
+      "M02": 71,
+      "M03": 94,
+      "M04": 54,
+      "M05": 103,
+      "M06": 106
     },
     "documents": {
       "Alandroal_cm_011_2024-04-24": 1,
@@ -60,14 +66,16 @@
     },
     "total_documents": 24,
     "total_segments_processed": 500,
-    "total_segments_with_voting": 428
+    "total_segments_with_voting": 428,
+    "warnings_multiple_subjects": 1
   },
   "converted_statistics": {
     "entities": {
-      "VOTING": 838,
+      "VOTING": 835,
       "VOTER-FAVOR": 233,
       "SUBJECT": 364,
       "COUNTING-UNANIMITY": 121,
+      "VOTER-ABSENT": 3,
       "COUNTING-MAJORITY": 8,
       "VOTER-ABSTENTION": 11,
       "VOTER-AGAINST": 5
@@ -76,13 +84,14 @@
   },
   "test_set": {
     "num_examples": 500,
-    "total_tokens": 140138,
-    "avg_tokens_per_example": 280.276,
+    "total_chars": 879132,
+    "avg_chars_per_example": 1758.264,
     "entity_counts": {
-      "VOTING": 838,
+      "VOTING": 835,
       "VOTER-FAVOR": 233,
       "SUBJECT": 364,
       "COUNTING-UNANIMITY": 121,
+      "VOTER-ABSENT": 3,
       "COUNTING-MAJORITY": 8,
       "VOTER-ABSTENTION": 11,
       "VOTER-AGAINST": 5

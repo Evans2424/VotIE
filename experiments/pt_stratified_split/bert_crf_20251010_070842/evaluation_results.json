@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/bert_crf_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-13T02:01:34.600658",
+    "timestamp": "2025-10-14T09:30:20.593591",
     "num_examples": 433,
     "include_events": true
   },
@@ -68,15 +68,25 @@
     "false_positives": 19,
     "true_negatives": 55,
     "false_negatives": 5,
+    "subject_accuracy": 0.8133704735376045,
+    "subject_precision": 0.8768768768768769,
+    "subject_recall": 0.8156424581005587,
+    "subject_f1": 0.8451519536903039,
+    "subject_correct": 292,
+    "subject_total": 359,
     "participant_vote_precision": 0.9776385020117611,
     "participant_vote_recall": 0.9769421231816775,
     "participant_vote_f1": 0.9771410885617013,
-    "subject_precision": 0.8133704735376045,
-    "subject_recall": 0.8133704735376045,
-    "subject_f1": 0.8133704735376045,
     "complete_event_accuracy": 0.7966573816155988,
     "complete_matches": 286,
     "total_events": 359,
-    "evaluation_method": "event_level_structured"
+    "failures": {
+      "subject_mismatch": 67,
+      "participants_mismatch": 5,
+      "counting_mismatch": 1,
+      "expression_mismatch": 0
+    },
+    "evaluation_method": "event_level_structured",
+    "included_voting_expression": false
   }
 }

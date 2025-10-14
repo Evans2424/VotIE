@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "experiments/pt_stratified_split/bert_linear_20251010_070842/predictions.jsonl",
-    "timestamp": "2025-10-13T02:01:39.837376",
+    "timestamp": "2025-10-14T09:30:23.654952",
     "num_examples": 433,
     "include_events": true
   },
@@ -68,15 +68,25 @@
     "false_positives": 20,
     "true_negatives": 54,
     "false_negatives": 1,
+    "subject_accuracy": 0.7715877437325905,
+    "subject_precision": 0.7847025495750708,
+    "subject_recall": 0.7737430167597765,
+    "subject_f1": 0.7791842475386779,
+    "subject_correct": 277,
+    "subject_total": 359,
     "participant_vote_precision": 0.9356729621353577,
     "participant_vote_recall": 0.9839059114825132,
     "participant_vote_f1": 0.9511039329416723,
-    "subject_precision": 0.7715877437325905,
-    "subject_recall": 0.7715877437325905,
-    "subject_f1": 0.7715877437325905,
     "complete_event_accuracy": 0.6657381615598886,
     "complete_matches": 239,
     "total_events": 359,
-    "evaluation_method": "event_level_structured"
+    "failures": {
+      "subject_mismatch": 82,
+      "participants_mismatch": 33,
+      "counting_mismatch": 5,
+      "expression_mismatch": 0
+    },
+    "evaluation_method": "event_level_structured",
+    "included_voting_expression": false
   }
 }

@@ -1,20 +1,25 @@
 {
   "conversion_info": {
-    "timestamp": "2025-10-09T19:02:44.019777",
-    "source_directory": "citilink",
+    "timestamp": "2025-10-14T08:06:38.393359",
+    "source_directory": "private/citilink",
     "output_directory": "data/votie_events",
-    "random_seed": 42
+    "random_seed": 42,
+    "format_version": "singular_cleaned"
   },
   "source_statistics": {
     "entities_by_label": {
       "VOTER-FAVOR": 1650,
-      "VOTING": 2672,
+      "VOTING": 2648,
       "COUNTING-MAJORITY": 288,
       "VOTER-ABSTENTION": 1045,
       "SUBJECT": 2478,
-      "COUNTING-UNANIMITY": 1546,
+      "COUNTING-UNANIMITY": 1570,
       "VOTER-ABSENT": 98,
       "VOTER-AGAINST": 178
+    },
+    "entities_by_source_type": {
+      "positioning": 7477,
+      "subject": 2478
     },
     "entities_filtered": {
       "subject": 5888,
@@ -38,16 +43,17 @@
       "M06": 472
     },
     "total_segments_processed": 2879,
-    "total_segments_with_voting": 2489
+    "total_segments_with_voting": 2489,
+    "warnings_multiple_subjects": 5
   },
   "converted_statistics": {
     "entities": {
       "VOTER-FAVOR": 1650,
-      "VOTING": 2672,
+      "VOTING": 2648,
       "COUNTING-MAJORITY": 288,
       "VOTER-ABSTENTION": 1045,
       "SUBJECT": 2478,
-      "COUNTING-UNANIMITY": 1546,
+      "COUNTING-UNANIMITY": 1570,
       "VOTER-ABSENT": 98,
       "VOTER-AGAINST": 178
     },
@@ -56,12 +62,12 @@
   "splits": {
     "train": {
       "num_examples": 2015,
-      "total_tokens": 543053,
-      "avg_tokens_per_example": 269.50521091811413,
+      "total_chars": 3495090,
+      "avg_chars_per_example": 1734.5359801488835,
       "entity_counts": {
         "VOTER-FAVOR": 1150,
-        "VOTING": 1882,
-        "COUNTING-UNANIMITY": 1076,
+        "VOTING": 1866,
+        "COUNTING-UNANIMITY": 1092,
         "SUBJECT": 1731,
         "VOTER-ABSTENTION": 741,
         "COUNTING-MAJORITY": 202,
@@ -79,12 +85,12 @@
     },
     "dev": {
       "num_examples": 431,
-      "total_tokens": 118404,
-      "avg_tokens_per_example": 274.7192575406032,
+      "total_chars": 764782,
+      "avg_chars_per_example": 1774.4361948955916,
       "entity_counts": {
         "SUBJECT": 374,
-        "VOTING": 388,
-        "COUNTING-UNANIMITY": 248,
+        "VOTING": 385,
+        "COUNTING-UNANIMITY": 251,
         "VOTER-FAVOR": 245,
         "COUNTING-MAJORITY": 34,
         "VOTER-ABSTENTION": 166,
@@ -102,13 +108,13 @@
     },
     "test": {
       "num_examples": 433,
-      "total_tokens": 134410,
-      "avg_tokens_per_example": 310.4157043879908,
+      "total_chars": 859345,
+      "avg_chars_per_example": 1984.6304849884527,
       "entity_counts": {
         "SUBJECT": 373,
         "VOTER-FAVOR": 255,
-        "VOTING": 402,
-        "COUNTING-UNANIMITY": 222,
+        "VOTING": 397,
+        "COUNTING-UNANIMITY": 227,
         "VOTER-ABSTENTION": 138,
         "COUNTING-MAJORITY": 52,
         "VOTER-AGAINST": 40,

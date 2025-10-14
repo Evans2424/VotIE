@@ -252,8 +252,8 @@ def main():
     logger.info("=" * 80)
 
     # Paths
-    input_dir = Path("data/votie_events")
-    output_dir = Path("data/votie_bio")
+    input_dir = Path("../data/votie_events")
+    output_dir = Path("../data/votie_bio")
 
     if not input_dir.exists():
         logger.error(f"Input directory not found: {input_dir}")

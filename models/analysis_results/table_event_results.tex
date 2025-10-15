@@ -1,0 +1,19 @@
+\begin{table}[ht]
+\centering
+\caption{Event-level Performance of All Baselines}
+\label{tab:event_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Event Det. (\%)} & \textbf{Complete (\%)} & \textbf{Subject F1 (\%)} & \textbf{Part.-Vote F1 (\%)} \\
+\midrule
+deberta\_crf & 95.2 & \textbf{83.3} & \textbf{87.6} & 97.8 \\
+xlmr\_crf & 95.2 & 80.5 & 84.2 & \textbf{98.1} \\
+bert\_crf & 94.7 & 78.8 & 0.0 & 97.9 \\
+deberta\_linear & 94.9 & 77.4 & 84.6 & 97.9 \\
+bert\_linear & \textbf{95.4} & 73.0 & 81.8 & 96.8 \\
+xlmr\_linear & \textbf{95.4} & 56.8 & 66.9 & 93.3 \\
+crf & 95.2 & 56.3 & 74.4 & 90.8 \\
+bilstm\_fasttext & 93.5 & 43.5 & 64.2 & 86.0 \\
+\bottomrule
+\end{tabular}
+\end{table}

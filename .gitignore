@@ -3,8 +3,8 @@ venv
 .DS_Store
 CLAUDE.md
 __pycache__
-models/*/*/pytorch_model.bin
-models/*/*/model.safetensors
+models/*/pytorch_model.bin
+models/*/model.safetensors
 
 # FastText embedding files (large binary files)
 models/cc.pt.300.bin.gz

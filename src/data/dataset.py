@@ -751,11 +751,8 @@ def create_dynamic_windows(
             logger.error(f"Too many windows for {example_id}, stopping at {window_id}")
             break
 
-    # Log windowing info
+    # Validate all windows (only log errors)
     if len(windows) > 1:
-        total_tokens = sum(len(w[0]) for w in windows)
-        logger.info(f"Dynamic windowing for {example_id}: {len(tokens)} tokens -> {len(windows)} windows, {total_tokens} total tokens")
-        # Validate all windows
         for i, (w_tokens, w_labels) in enumerate(windows):
             w_text = " ".join(w_tokens)
             w_subwords = tokenizer.tokenize(w_text)

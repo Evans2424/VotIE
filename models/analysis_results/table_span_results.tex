@@ -1,0 +1,19 @@
+\begin{table}[ht]
+\centering
+\caption{Span-level Performance of All Baselines}
+\label{tab:span_results}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{F1 (\%)} \\
+\midrule
+deberta\_crf & \textbf{91.1} & 95.0 & \textbf{93.0} \\
+xlmr\_crf & 88.9 & 94.7 & 91.7 \\
+deberta\_linear & 87.1 & \textbf{95.6} & 91.2 \\
+bert\_crf & 88.4 & 93.5 & 90.9 \\
+bert\_linear & 82.5 & 95.3 & 88.5 \\
+crf & 88.3 & 84.7 & 86.5 \\
+xlmr\_linear & 76.3 & 93.6 & 84.1 \\
+bilstm\_fasttext & 80.7 & 77.4 & 79.0 \\
+\bottomrule
+\end{tabular}
+\end{table}

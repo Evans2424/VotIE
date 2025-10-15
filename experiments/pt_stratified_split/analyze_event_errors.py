@@ -566,6 +566,61 @@ class EventErrorAnalyzer:
         print(f"{dist['event_detection_errors']['percentage']:.0f}% from event detection errors, and ", end="")
         print(f"{dist['multiple_errors']['percentage']:.0f}% from multiple simultaneous errors.")
         print()
+        
+    def generate_latex_error_table(self, summary: Dict[str, Any], output_file: Path):
+        """Generate LaTeX table for error analysis"""
+        dist = summary['error_distribution']
+        
+        latex_lines = []
+        latex_lines.append("\\begin{table}[ht]")
+        latex_lines.append("\\centering")
+        latex_lines.append("\\caption{Event-Level Error Analysis for DeBERTa-CRF}")
+        latex_lines.append("\\label{tab:error_analysis}")
+        latex_lines.append("\\begin{tabular}{lcc}")
+        latex_lines.append("\\toprule")
+        latex_lines.append("\\textbf{Error Category} & \\textbf{Count} & \\textbf{\\%} \\\\")
+        latex_lines.append("\\midrule")
+        
+        # Subject errors
+        latex_lines.append(f"Subject Errors & {dist['subject_errors']['count']} & "
+                         f"{dist['subject_errors']['percentage']:.1f}\\% \\\\")
+        latex_lines.append(f"\\quad Missing & {dist['subject_errors']['breakdown']['missing']} & \\\\")
+        latex_lines.append(f"\\quad Boundary & {dist['subject_errors']['breakdown']['boundary']} & \\\\")
+        latex_lines.append(f"\\quad Incorrect & {dist['subject_errors']['breakdown']['incorrect']} & \\\\")
+        
+        # Participant errors
+        latex_lines.append(f"Participant-Vote Errors & {dist['participant_errors']['count']} & "
+                         f"{dist['participant_errors']['percentage']:.1f}\\% \\\\")
+        latex_lines.append(f"\\quad Missing & {dist['participant_errors']['breakdown']['missing']} & \\\\")
+        latex_lines.append(f"\\quad Extra & {dist['participant_errors']['breakdown']['extra']} & \\\\")
+        latex_lines.append(f"\\quad Position Wrong & {dist['participant_errors']['breakdown']['position_wrong']} & \\\\")
+        
+        # Counting errors
+        latex_lines.append(f"Counting Errors & {dist['counting_errors']['count']} & "
+                         f"{dist['counting_errors']['percentage']:.1f}\\% \\\\")
+        
+        # Voting expression errors
+        latex_lines.append(f"Voting Expression Errors & {dist['voting_expression_errors']['count']} & "
+                         f"{dist['voting_expression_errors']['percentage']:.1f}\\% \\\\")
+        
+        # Event detection errors
+        latex_lines.append(f"Event Detection Errors & {dist['event_detection_errors']['count']} & "
+                         f"{dist['event_detection_errors']['percentage']:.1f}\\% \\\\")
+        
+        # Multiple errors
+        latex_lines.append(f"Multiple Simultaneous Errors & {dist['multiple_errors']['count']} & "
+                         f"{dist['multiple_errors']['percentage']:.1f}\\% \\\\")
+        
+        latex_lines.append("\\midrule")
+        latex_lines.append(f"\\textbf{{Total Failed Events}} & \\textbf{{{summary['summary']['failed_events']}}} & "
+                         f"\\textbf{{100.0\\%}} \\\\")
+        latex_lines.append("\\bottomrule")
+        latex_lines.append("\\end{tabular}")
+        latex_lines.append("\\end{table}")
+        
+        latex_file = output_file.parent / (output_file.stem + '_table.tex')
+        latex_file.write_text('\n'.join(latex_lines))
+        print(f"✓ Created LaTeX error table: {latex_file}")
 
 
 def load_jsonl(file_path: Path) -> List[Dict]:
@@ -678,7 +733,10 @@ def main():
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
-        print(f"\nDetailed analysis saved to: {output_path}")
+        print(f"\n✓ Detailed analysis saved to: {output_path}")
+        
+        # Generate LaTeX table
+        analyzer.generate_latex_error_table(summary, output_path)
 
 
 if __name__ == '__main__':

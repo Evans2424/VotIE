@@ -106,23 +106,17 @@ def compute_event_level_metrics(predictions: List[Dict[str, Any]], pred_labels: 
     
     # Prepare examples for event construction
     pred_examples = [
-        {'id': pred.get('id', f'unknown_{i}'), 'tokens': pred.get('tokens', [])}
-        for i, pred in enumerate(predictions)
-        if pred is not None
+        {'id': pred['id'], 'tokens': pred['tokens']}
+        for pred in predictions
     ]
     gold_examples = [
-        {'id': pred.get('id', f'unknown_{i}'), 'tokens': pred.get('tokens', [])}
-        for i, pred in enumerate(predictions)
-        if pred is not None
+        {'id': pred['id'], 'tokens': pred['tokens']}
+        for pred in predictions
     ]
     
     # Construct events
     pred_events = event_constructor.construct_events(pred_examples, pred_labels)
     gold_events = event_constructor.construct_events(gold_examples, gold_labels)
-    
-    # Filter out None events (shouldn't happen but defensive)
-    pred_events = [e for e in pred_events if e is not None]
-    gold_events = [e for e in gold_events if e is not None]
     
     # Count events
     pred_event_count = sum(1 for e in pred_events if e.get('has_voting_event', False))
@@ -185,11 +179,11 @@ def evaluate(predictions_path: str, output_path: str = None, include_events: boo
                 "true_negatives": 0,
                 "false_negatives": 0,
                 "subject_accuracy": 0.0,
-                "subject_precision": 0.0,
-                "subject_recall": 0.0,
-                "subject_f1": 0.0,
                 "subject_correct": 0,
                 "subject_total": 0,
+                "counting_accuracy": 0.0,
+                "counting_correct": 0,
+                "counting_total": 0,
                 "participant_vote_precision": 0.0,
                 "participant_vote_recall": 0.0,
                 "participant_vote_f1": 0.0,

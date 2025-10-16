@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "models/bilstm_fasttext/predictions.jsonl",
-    "timestamp": "2025-10-14T23:22:14.635340",
+    "timestamp": "2025-10-15T08:55:09.390223",
     "num_examples": 433,
     "include_events": true
   },
@@ -63,41 +63,10 @@
     "evaluation_method": "seqeval_entity_level"
   },
   "event_level_metrics": {
-    "event_detection_accuracy": 0.9353348729792148,
-    "true_positives": 350,
-    "false_positives": 19,
-    "true_negatives": 55,
-    "false_negatives": 9,
-    "subject_accuracy": 0.5403899721448467,
-    "subject_precision": 0.7942386831275721,
-    "subject_recall": 0.5391061452513967,
-    "subject_f1": 0.6422628951747088,
-    "subject_correct": 194,
-    "subject_total": 359,
-    "subject_true_positives": 193,
-    "subject_false_positives": 50,
-    "subject_false_negatives": 165,
-    "counting_accuracy": 0.9442896935933147,
-    "counting_precision": 0.9881422924901185,
-    "counting_recall": 0.9363295880149812,
+    "event_detection_f1": 0.9615384615384616,
+    "subject_f1": 0.7005444646098004,
     "counting_f1": 0.9615384615384616,
-    "counting_correct": 339,
-    "counting_total": 359,
-    "counting_true_positives": 250,
-    "counting_false_positives": 3,
-    "counting_false_negatives": 17,
-    "participant_vote_precision": 0.8779015784586816,
-    "participant_vote_recall": 0.8509960327509074,
     "participant_vote_f1": 0.8599589825216571,
-    "complete_event_accuracy": 0.43454038997214484,
-    "complete_matches": 156,
-    "total_events": 359,
-    "failures": {
-      "subject_mismatch": 165,
-      "participants_mismatch": 36,
-      "counting_mismatch": 2,
-      "expression_mismatch": 0
-    },
-    "evaluation_method": "event_level_as_per_paper"
+    "complete_event_f1": 0.5842696629213483
   }
 }

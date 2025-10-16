@@ -170,26 +170,14 @@ def evaluate(predictions_path: str, output_path: str = None, include_events: boo
             logger.error(f"Event-level evaluation failed: {e}")
             logger.error("Stack trace:", exc_info=True)
             logger.warning("Continuing with entity-level metrics only...")
-            # Provide default metrics structure to prevent downstream errors
+            # Provide default metrics structure (5 key F1 scores only)
             event_metrics = {
                 "error": str(e),
-                "event_detection_accuracy": 0.0,
-                "true_positives": 0,
-                "false_positives": 0,
-                "true_negatives": 0,
-                "false_negatives": 0,
-                "subject_accuracy": 0.0,
-                "subject_correct": 0,
-                "subject_total": 0,
-                "counting_accuracy": 0.0,
-                "counting_correct": 0,
-                "counting_total": 0,
-                "participant_vote_precision": 0.0,
-                "participant_vote_recall": 0.0,
+                "event_detection_f1": 0.0,
+                "subject_f1": 0.0,
+                "counting_f1": 0.0,
                 "participant_vote_f1": 0.0,
-                "complete_event_accuracy": 0.0,
-                "complete_matches": 0,
-                "total_events": 0
+                "complete_event_f1": 0.0
             }
     
     # Compile results
@@ -222,8 +210,12 @@ def evaluate(predictions_path: str, output_path: str = None, include_events: boo
     logger.info(f"  Entity Recall:    {entity_metrics.get('entity_recall', 0.0):.4f}")
     
     if include_events and 'error' not in event_metrics:
-        logger.info(f"  Event Detection: {event_metrics.get('event_detection_accuracy', 0.0):.4f}")
-        logger.info(f"  Complete Events: {event_metrics.get('complete_event_accuracy', 0.0):.4f}")
+        # Event-level F1 metrics (NEW)
+        logger.info(f"  Event Detection F1: {event_metrics.get('event_detection_f1', 0.0):.4f}")
+        logger.info(f"  Subject F1:         {event_metrics.get('subject_f1', 0.0):.4f}")
+        logger.info(f"  Counting F1:        {event_metrics.get('counting_f1', 0.0):.4f}")
+        logger.info(f"  Participant F1:     {event_metrics.get('participant_vote_f1', 0.0):.4f}")
+        logger.info(f"  Complete Event F1:  {event_metrics.get('complete_event_f1', 0.0):.4f}")
     
     logger.info("="*80)
     

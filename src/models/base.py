@@ -91,7 +91,7 @@ class BaseNERModel(nn.Module):
         """
         Apply BIO validation to model predictions.
         """
-        from src.data.validation import validate_bio_sequence
+        from src.data.dataset import validate_bio_sequence
         
         validated_predictions = []
         total_corrections = 0

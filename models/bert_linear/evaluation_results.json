@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "models/bert_linear/predictions.jsonl",
-    "timestamp": "2025-10-14T23:21:53.655432",
+    "timestamp": "2025-10-15T08:55:06.889372",
     "num_examples": 433,
     "include_events": true
   },
@@ -63,41 +63,10 @@
     "evaluation_method": "seqeval_entity_level"
   },
   "event_level_metrics": {
-    "event_detection_accuracy": 0.953810623556582,
-    "true_positives": 359,
-    "false_positives": 20,
-    "true_negatives": 54,
-    "false_negatives": 0,
-    "subject_accuracy": 0.8133704735376045,
-    "subject_precision": 0.8202247191011236,
-    "subject_recall": 0.8156424581005587,
-    "subject_f1": 0.8179271708683472,
-    "subject_correct": 292,
-    "subject_total": 359,
-    "subject_true_positives": 292,
-    "subject_false_positives": 64,
-    "subject_false_negatives": 66,
-    "counting_accuracy": 0.9777158774373259,
-    "counting_precision": 0.9737827715355806,
-    "counting_recall": 0.9737827715355806,
-    "counting_f1": 0.9737827715355806,
-    "counting_correct": 351,
-    "counting_total": 359,
-    "counting_true_positives": 260,
-    "counting_false_positives": 7,
-    "counting_false_negatives": 7,
-    "participant_vote_precision": 0.9586370454058477,
-    "participant_vote_recall": 0.9866914268028474,
+    "event_detection_f1": 0.9728997289972899,
+    "subject_f1": 0.8970814132104455,
+    "counting_f1": 0.9848484848484848,
     "participant_vote_f1": 0.9678959469239489,
-    "complete_event_accuracy": 0.7298050139275766,
-    "complete_matches": 262,
-    "total_events": 359,
-    "failures": {
-      "subject_mismatch": 67,
-      "participants_mismatch": 24,
-      "counting_mismatch": 6,
-      "expression_mismatch": 0
-    },
-    "evaluation_method": "event_level_as_per_paper"
+    "complete_event_f1": 0.8174726989079563
   }
 }

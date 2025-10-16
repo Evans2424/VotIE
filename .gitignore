@@ -5,6 +5,7 @@ CLAUDE.md
 __pycache__
 models/*/pytorch_model.bin
 models/*/model.safetensors
+.python-version
 
 # FastText embedding files (large binary files)
 models/cc.pt.300.bin.gz

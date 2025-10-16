@@ -1,19 +1,20 @@
 \begin{table}[ht]
 \centering
-\caption{Event-level Performance of All Baselines}
+\caption{Event-level Performance (F1 Scores)}
 \label{tab:event_results}
-\begin{tabular}{lcccc}
+\begin{tabular}{lccccc}
 \toprule
-\textbf{Model} & \textbf{Event Det. (\%)} & \textbf{Complete (\%)} & \textbf{Subject F1 (\%)} & \textbf{Part.-Vote F1 (\%)} \\
+\textbf{Model} & \textbf{Event Det.} & \textbf{Subject} & \textbf{Counting} & \textbf{Part.-Vote} & \textbf{Complete} \\
+ & \textbf{F1} & \textbf{F1} & \textbf{F1} & \textbf{F1} & \textbf{F1} \\
 \midrule
-deberta\_crf & 95.2 & \textbf{83.3} & \textbf{87.6} & 97.8 \\
-xlmr\_crf & 95.2 & 80.5 & 84.2 & \textbf{98.1} \\
-bert\_crf & 94.7 & 78.8 & 0.0 & 97.9 \\
-deberta\_linear & 94.9 & 77.4 & 84.6 & 97.9 \\
-bert\_linear & \textbf{95.4} & 73.0 & 81.8 & 96.8 \\
-xlmr\_linear & \textbf{95.4} & 56.8 & 66.9 & 93.3 \\
-crf & 95.2 & 56.3 & 74.4 & 90.8 \\
-bilstm\_fasttext & 93.5 & 43.5 & 64.2 & 86.0 \\
+DeBERTa-CRF & 97.1 & \textbf{92.2} & \textbf{99.6} & 97.8 & \textbf{88.3} \\
+XLM-R-CRF & 97.2 & 90.2 & \textbf{99.6} & \textbf{98.1} & 86.5 \\
+BERT-CRF & 96.9 & 89.2 & 99.2 & 97.9 & 85.6 \\
+DeBERTa-Linear & 97.0 & 91.0 & 99.2 & 97.9 & 84.4 \\
+BERT-Linear & \textbf{97.3} & 89.7 & 98.5 & 96.8 & 81.7 \\
+XLM-R-Linear & \textbf{97.3} & 79.7 & 97.1 & 93.3 & 70.0 \\
+CRF & 97.1 & 78.2 & 99.4 & 90.8 & 69.8 \\
+BiLSTM-FastText & 96.2 & 70.1 & 96.2 & 86.0 & 58.4 \\
 \bottomrule
 \end{tabular}
 \end{table}

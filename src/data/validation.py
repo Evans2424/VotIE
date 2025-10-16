@@ -90,39 +90,3 @@ def validate_bio_sequence(labels: List[str], scheme: str = 'BIO', example_id: st
         logger.info(f"[{example_id}] Made {corrections_made} BIO corrections")
     
     return corrected_labels
-
-
-def validate_bio_batch(label_sequences: List[List[str]], scheme: str = 'BIO') -> Tuple[List[List[str]], Dict[str, Any]]:
-    """
-    Validate a batch of BIO sequences.
-    
-    Args:
-        label_sequences: List of label sequences
-        scheme: Tagging scheme ('BIO')
-        
-    Returns:
-        Tuple of (corrected_sequences, validation_stats)
-    """
-    corrected_sequences = []
-    total_corrections = 0
-    sequences_corrected = 0
-    
-    for i, seq in enumerate(label_sequences):
-        original_seq = seq.copy()
-        corrected_seq = validate_bio_sequence(seq, scheme, f"batch_{i}")
-        corrected_sequences.append(corrected_seq)
-        
-        # Count corrections
-        seq_corrections = sum(1 for orig, corr in zip(original_seq, corrected_seq) if orig != corr)
-        if seq_corrections > 0:
-            sequences_corrected += 1
-            total_corrections += seq_corrections
-    
-    stats = {
-        'total_sequences': len(label_sequences),
-        'sequences_corrected': sequences_corrected,
-        'total_corrections': total_corrections,
-        'correction_rate': sequences_corrected / len(label_sequences) if label_sequences else 0
-    }
-    
-    return corrected_sequences, stats

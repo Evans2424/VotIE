@@ -39,6 +39,50 @@ def extract_baseline_name(directory_name: str) -> str:
     return baseline
 
 
+def format_model_name_for_latex(baseline: str) -> str:
+    """
+    Format model name with proper capitalization for LaTeX output.
+    
+    Examples:
+        bert_crf -> BERT-CRF
+        deberta_crf -> DeBERTa-CRF
+        xlmr_linear -> XLM-R-Linear
+        bilstm_fasttext -> BiLSTM-FastText
+        crf -> CRF
+    
+    Args:
+        baseline: The baseline model name (e.g., 'bert_crf')
+    
+    Returns:
+        Formatted name with proper capitalization (e.g., 'BERT-CRF')
+    """
+    # Define proper capitalizations for known models
+    model_name_map = {
+        'bert': 'BERT',
+        'deberta': 'DeBERTa',
+        'xlmr': 'XLM-R',
+        'bilstm': 'BiLSTM',
+        'crf': 'CRF',
+        'linear': 'Linear',
+        'fasttext': 'FastText'
+    }
+    
+    # Split by underscore
+    parts = baseline.split('_')
+    
+    # Format each part
+    formatted_parts = []
+    for part in parts:
+        if part in model_name_map:
+            formatted_parts.append(model_name_map[part])
+        else:
+            # Default: capitalize first letter
+            formatted_parts.append(part.capitalize())
+    
+    # Join with hyphen and escape for LaTeX
+    return '-'.join(formatted_parts)
+
+
 def load_evaluation_results(exp_dir: Path) -> List[Dict[str, Any]]:
     """
     Load all evaluation_results.json files from experiment directory.
@@ -139,13 +183,20 @@ def create_per_entity_metrics_df(results: List[Dict[str, Any]]) -> pd.DataFrame:
 
 def create_event_level_metrics_df(results: List[Dict[str, Any]]) -> pd.DataFrame:
     """
-    Create DataFrame with event-level metrics for all baselines.
+    Create DataFrame with event-level F1 metrics for all baselines.
+    
+    Only includes the 5 key F1 metrics:
+    1. Event Detection F1
+    2. Subject F1
+    3. Counting F1
+    4. Participant-Vote F1
+    5. Complete Event F1
 
     Args:
         results: List of result dictionaries
 
     Returns:
-        DataFrame with event-level evaluation metrics
+        DataFrame with 5 key event-level F1 metrics
     """
     rows = []
 
@@ -158,25 +209,16 @@ def create_event_level_metrics_df(results: List[Dict[str, Any]]) -> pd.DataFrame
 
         rows.append({
             'baseline': baseline,
-            'event_detection_accuracy': event_metrics.get('event_detection_accuracy', 0.0),
-            'complete_event_accuracy': event_metrics.get('complete_event_accuracy', 0.0),
-            'participant_vote_precision': event_metrics.get('participant_vote_precision', 0.0),
-            'participant_vote_recall': event_metrics.get('participant_vote_recall', 0.0),
-            'participant_vote_f1': event_metrics.get('participant_vote_f1', 0.0),
-            'subject_precision': event_metrics.get('subject_precision', 0.0),
-            'subject_recall': event_metrics.get('subject_recall', 0.0),
+            'event_detection_f1': event_metrics.get('event_detection_f1', 0.0),
             'subject_f1': event_metrics.get('subject_f1', 0.0),
-            'true_positives': event_metrics.get('true_positives', 0),
-            'false_positives': event_metrics.get('false_positives', 0),
-            'true_negatives': event_metrics.get('true_negatives', 0),
-            'false_negatives': event_metrics.get('false_negatives', 0),
-            'complete_matches': event_metrics.get('complete_matches', 0),
-            'total_events': event_metrics.get('total_events', 0)
+            'counting_f1': event_metrics.get('counting_f1', 0.0),
+            'participant_vote_f1': event_metrics.get('participant_vote_f1', 0.0),
+            'complete_event_f1': event_metrics.get('complete_event_f1', 0.0)
         })
 
     df = pd.DataFrame(rows)
-    # Sort by complete event accuracy descending
-    df = df.sort_values('complete_event_accuracy', ascending=False)
+    # Sort by complete event F1 descending
+    df = df.sort_values('complete_event_f1', ascending=False)
 
     return df
 
@@ -236,11 +278,11 @@ def create_latex_table_overall(overall_df: pd.DataFrame, output_dir: Path):
     latex_lines.append("\\label{tab:span_results}")
     latex_lines.append("\\begin{tabular}{lccc}")
     latex_lines.append("\\toprule")
-    latex_lines.append("\\textbf{Model} & \\textbf{Precision (\\%)} & \\textbf{Recall (\\%)} & \\textbf{F1 (\\%)} \\\\")
+    latex_lines.append("\\textbf{Model} & \\textbf{Precision} & \\textbf{Recall} & \\textbf{F1-Score} \\\\")
     latex_lines.append("\\midrule")
     
     for _, row in overall_df.iterrows():
-        baseline = row['baseline'].replace('_', '\\_')
+        baseline = format_model_name_for_latex(row['baseline'])
         
         # Format with bold if best value
         prec_str = f"{row['precision']*100:.1f}"
@@ -268,52 +310,59 @@ def create_latex_table_overall(overall_df: pd.DataFrame, output_dir: Path):
 
 def create_latex_table_events(event_df: pd.DataFrame, output_dir: Path):
     """
-    Create LaTeX table for event-level metrics.
+    Create LaTeX table for event-level F1 metrics (5 key metrics only).
     
     Args:
-        event_df: DataFrame with event metrics
+        event_df: DataFrame with event F1 metrics
         output_dir: Directory to save LaTeX table
     """
     if event_df.empty:
+        print("⚠️ No event-level metrics available, skipping LaTeX table generation")
         return
     
     # Find best values for each metric
-    best_event_det = event_df['event_detection_accuracy'].max()
-    best_complete = event_df['complete_event_accuracy'].max()
+    best_event_det = event_df['event_detection_f1'].max()
     best_subject = event_df['subject_f1'].max()
+    best_counting = event_df['counting_f1'].max()
     best_part_vote = event_df['participant_vote_f1'].max()
+    best_complete = event_df['complete_event_f1'].max()
     
     latex_lines = []
     latex_lines.append("\\begin{table}[ht]")
     latex_lines.append("\\centering")
-    latex_lines.append("\\caption{Event-level Performance of All Baselines}")
+    latex_lines.append("\\caption{Event-level Performance (F1 Scores)}")
     latex_lines.append("\\label{tab:event_results}")
-    latex_lines.append("\\begin{tabular}{lcccc}")
+    latex_lines.append("\\begin{tabular}{lccccc}")
     latex_lines.append("\\toprule")
-    latex_lines.append("\\textbf{Model} & \\textbf{Event Det. (\\%)} & \\textbf{Complete (\\%)} & \\textbf{Subject F1 (\\%)} & \\textbf{Part.-Vote F1 (\\%)} \\\\")
+    latex_lines.append("\\textbf{Model} & \\textbf{Event Det.} & \\textbf{Subject} & \\textbf{Counting} & \\textbf{Part.-Vote} & \\textbf{Complete} \\\\")
+    latex_lines.append(" & \\textbf{F1} & \\textbf{F1} & \\textbf{F1} & \\textbf{F1} & \\textbf{F1} \\\\")
     latex_lines.append("\\midrule")
     
     for _, row in event_df.iterrows():
-        baseline = row['baseline'].replace('_', '\\_')
+        baseline = format_model_name_for_latex(row['baseline'])
         
         # Format with bold if best value
-        event_det_str = f"{row['event_detection_accuracy']*100:.1f}"
-        if abs(row['event_detection_accuracy'] - best_event_det) < 0.0001:
+        event_det_str = f"{row['event_detection_f1']*100:.1f}"
+        if abs(row['event_detection_f1'] - best_event_det) < 0.0001:
             event_det_str = f"\\textbf{{{event_det_str}}}"
-            
-        complete_str = f"{row['complete_event_accuracy']*100:.1f}"
-        if abs(row['complete_event_accuracy'] - best_complete) < 0.0001:
-            complete_str = f"\\textbf{{{complete_str}}}"
             
         subject_str = f"{row['subject_f1']*100:.1f}"
         if abs(row['subject_f1'] - best_subject) < 0.0001:
             subject_str = f"\\textbf{{{subject_str}}}"
             
+        counting_str = f"{row['counting_f1']*100:.1f}"
+        if abs(row['counting_f1'] - best_counting) < 0.0001:
+            counting_str = f"\\textbf{{{counting_str}}}"
+            
         part_vote_str = f"{row['participant_vote_f1']*100:.1f}"
         if abs(row['participant_vote_f1'] - best_part_vote) < 0.0001:
             part_vote_str = f"\\textbf{{{part_vote_str}}}"
+            
+        complete_str = f"{row['complete_event_f1']*100:.1f}"
+        if abs(row['complete_event_f1'] - best_complete) < 0.0001:
+            complete_str = f"\\textbf{{{complete_str}}}"
         
-        latex_lines.append(f"{baseline} & {event_det_str} & {complete_str} & {subject_str} & {part_vote_str} \\\\")
+        latex_lines.append(f"{baseline} & {event_det_str} & {subject_str} & {counting_str} & {part_vote_str} & {complete_str} \\\\")
     
     latex_lines.append("\\bottomrule")
     latex_lines.append("\\end{tabular}")
@@ -458,18 +507,18 @@ def main():
         print(f"  {entity_type:25s}: {best['baseline']:15s} (F1: {best['f1']:.4f})")
 
     # =================================================================
-    # SECTION 2: EVENT-LEVEL RESULTS
+    # SECTION 2: EVENT-LEVEL RESULTS (5 Key F1 Metrics)
     # =================================================================
     print("\n\n" + "="*70)
-    print("SECTION 2: EVENT-LEVEL PERFORMANCE")
+    print("SECTION 2: EVENT-LEVEL PERFORMANCE (F1 Scores)")
     print("="*70)
     
     # Create event-level metrics CSV
-    print("\nGenerating event-level metrics...")
+    print("\nGenerating event-level F1 metrics...")
     event_df = create_event_level_metrics_df(results)
     
     if not event_df.empty:
-        event_csv = output_dir / 'event_level_metrics.csv'
+        event_csv = output_dir / 'event_level_f1_metrics.csv'
         event_df.to_csv(event_csv, index=False, float_format='%.4f')
         print(f"✓ Saved CSV: {event_csv}")
         
@@ -477,13 +526,14 @@ def main():
         create_latex_table_events(event_df, output_dir)
 
         # Display event-level metrics
-        print("\nEvent-Level Metrics (sorted by complete event accuracy):")
+        print("\nEvent-Level F1 Metrics (sorted by complete event F1):")
         display_cols = [
             'baseline',
-            'event_detection_accuracy',
-            'complete_event_accuracy',
+            'event_detection_f1',
             'subject_f1',
-            'participant_vote_f1'
+            'counting_f1',
+            'participant_vote_f1',
+            'complete_event_f1'
         ]
         print(event_df[display_cols].to_string(index=False))
     else:
@@ -514,7 +564,7 @@ def main():
 
     if not event_df.empty:
         best_event = event_df.iloc[0]
-        print(f"Best Complete Event Accuracy: {best_event['baseline']} ({best_event['complete_event_accuracy']:.4f})")
+        print(f"Best Event-Level Complete F1: {best_event['baseline']} ({best_event['complete_event_f1']:.4f})")
 
     print("\n" + "="*70)
     print(f"✓ Analysis complete! Results saved to: {output_dir}")

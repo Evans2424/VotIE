@@ -1,7 +1,7 @@
 {
   "metadata": {
     "predictions_file": "models/deberta_linear/predictions.jsonl",
-    "timestamp": "2025-10-14T23:28:23.590694",
+    "timestamp": "2025-10-15T08:55:16.936729",
     "num_examples": 433,
     "include_events": true
   },
@@ -63,41 +63,10 @@
     "evaluation_method": "seqeval_entity_level"
   },
   "event_level_metrics": {
-    "event_detection_accuracy": 0.9491916859122402,
-    "true_positives": 359,
-    "false_positives": 22,
-    "true_negatives": 52,
-    "false_negatives": 0,
-    "subject_accuracy": 0.8356545961002786,
-    "subject_precision": 0.8547008547008547,
-    "subject_recall": 0.8379888268156425,
-    "subject_f1": 0.846262341325811,
-    "subject_correct": 300,
-    "subject_total": 359,
-    "subject_true_positives": 300,
-    "subject_false_positives": 51,
-    "subject_false_negatives": 58,
-    "counting_accuracy": 0.9888579387186629,
-    "counting_precision": 0.9962264150943396,
-    "counting_recall": 0.9887640449438202,
+    "event_detection_f1": 0.9702702702702702,
+    "subject_f1": 0.9104704097116845,
     "counting_f1": 0.9924812030075187,
-    "counting_correct": 355,
-    "counting_total": 359,
-    "counting_true_positives": 264,
-    "counting_false_positives": 1,
-    "counting_false_negatives": 3,
-    "participant_vote_precision": 0.9708744829914747,
-    "participant_vote_recall": 0.9938099659548127,
     "participant_vote_f1": 0.9792316364768447,
-    "complete_event_accuracy": 0.7743732590529248,
-    "complete_matches": 278,
-    "total_events": 359,
-    "failures": {
-      "subject_mismatch": 59,
-      "participants_mismatch": 22,
-      "counting_mismatch": 0,
-      "expression_mismatch": 0
-    },
-    "evaluation_method": "event_level_as_per_paper"
+    "complete_event_f1": 0.8437025796661608
   }
 }

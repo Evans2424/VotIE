@@ -15,8 +15,6 @@ Span matching uses exact text comparison after normalization (lowercase, strip).
 import logging
 from typing import List, Dict, Any, Set, Tuple
 
-# Note: Added Any to handle backward compatibility with different data formats
-
 logger = logging.getLogger(__name__)
 
 
@@ -36,7 +34,6 @@ class EventLevelEvaluator:
     }
 
     Notes:
-    - Backward compatible: handles both old singular and new list formats
     - For lists: compares first item only (configurable via parameters)
     - All text comparisons are case-insensitive after normalization
     """
@@ -160,21 +157,20 @@ class EventLevelEvaluator:
         gold_events: List[Dict[str, Any]]
     ) -> Dict[str, float]:
         """
-        Evaluate binary event detection accuracy.
+        Evaluate binary event detection with F1 score.
+        
+        As per paper: Binary classification of segments with/without voting events.
+        Uses standard precision, recall, and F1 for the positive class (has_voting_event=True).
 
         Args:
             pred_events: List of predicted events (one per segment)
             gold_events: List of gold events (one per segment)
 
         Returns:
-            Dictionary with detection accuracy and confusion matrix counts
+            Dictionary with F1, precision, recall, and counts
         """
-        correct = 0
-        total = len(gold_events)
-        
         true_positives = 0
         false_positives = 0
-        true_negatives = 0
         false_negatives = 0
 
         for pred_event, gold_event in zip(pred_events, gold_events):
@@ -182,26 +178,32 @@ class EventLevelEvaluator:
             pred_has_event = pred_event.get('has_voting_event', False) if pred_event else False
             gold_has_event = gold_event.get('has_voting_event', False) if gold_event else False
 
-            if pred_has_event == gold_has_event:
-                correct += 1
-                if gold_has_event:
-                    true_positives += 1
-                else:
-                    true_negatives += 1
-            else:
-                if pred_has_event and not gold_has_event:
-                    false_positives += 1
-                else:
-                    false_negatives += 1
+            if pred_has_event and gold_has_event:
+                true_positives += 1
+            elif pred_has_event and not gold_has_event:
+                false_positives += 1
+            elif not pred_has_event and gold_has_event:
+                false_negatives += 1
+            # true_negatives not needed for F1 calculation
 
-        accuracy = correct / total if total > 0 else 0.0
+        # Calculate precision, recall, F1
+        if true_positives + false_positives == 0:
+            precision = 0.0
+        else:
+            precision = true_positives / (true_positives + false_positives)
+
+        if true_positives + false_negatives == 0:
+            recall = 0.0
+        else:
+            recall = true_positives / (true_positives + false_negatives)
+
+        if precision + recall == 0:
+            f1 = 0.0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "event_detection_accuracy": accuracy,
-            "true_positives": true_positives,
-            "false_positives": false_positives,
-            "true_negatives": true_negatives,
-            "false_negatives": false_negatives
+            "event_detection_f1": f1
         }
 
     def evaluate_subject_extraction(
@@ -210,20 +212,24 @@ class EventLevelEvaluator:
         gold_events: List[Dict[str, Any]]
     ) -> Dict[str, float]:
         """
-        Evaluate subject extraction at span level (exact string matching).
+        Evaluate subject extraction at span level with F1 score.
         
         As per paper: "Subject and counting extraction are evaluated at the span level"
-        A subject is correct only if the extracted text exactly matches the gold subject.
+        Computes F1 treating each event with a voting event as a binary classification:
+        - TP: Both have subject and they match
+        - FP: Predicted subject exists but doesn't match gold (or gold has no subject)
+        - FN: Gold subject exists but pred doesn't match (or pred has no subject)
 
         Args:
             pred_events: List of predicted events
             gold_events: List of gold events
 
         Returns:
-            Dictionary with accuracy (correct matches / total events with voting)
+            Dictionary with F1, precision, recall
         """
-        correct = 0
-        total = 0
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
 
         for pred_event, gold_event in zip(pred_events, gold_events):
             # Skip if no event structure (handle None pred_event or gold_event)
@@ -233,10 +239,7 @@ class EventLevelEvaluator:
             if not gold_event.get('has_voting_event', False):
                 continue
 
-            total += 1
-
             # Extract subject (single string) - safely handle None event dicts
-            # Note: event can be explicitly None when has_voting_event is False
             pred_event_data = pred_event.get('event') if pred_event else None
             gold_event_data = gold_event.get('event') if gold_event else None
             
@@ -249,15 +252,35 @@ class EventLevelEvaluator:
             gold_subject_norm = gold_subject.strip().lower() if gold_subject else ''
 
             # Exact match at span level
-            if pred_subject_norm == gold_subject_norm:
-                correct += 1
+            has_gold = bool(gold_subject_norm)
+            has_pred = bool(pred_subject_norm)
+            match = pred_subject_norm == gold_subject_norm
 
-        accuracy = correct / total if total > 0 else 0.0
+            if has_gold and has_pred and match:
+                true_positives += 1
+            elif has_pred and not match:
+                false_positives += 1
+            elif has_gold and not match:
+                false_negatives += 1
+
+        # Calculate precision, recall, F1
+        if true_positives + false_positives == 0:
+            precision = 0.0
+        else:
+            precision = true_positives / (true_positives + false_positives)
+
+        if true_positives + false_negatives == 0:
+            recall = 0.0
+        else:
+            recall = true_positives / (true_positives + false_negatives)
+
+        if precision + recall == 0:
+            f1 = 0.0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "subject_accuracy": accuracy,
-            "subject_correct": correct,
-            "subject_total": total
+            "subject_f1": f1
         }
 
     def evaluate_counting_extraction(
@@ -266,28 +289,32 @@ class EventLevelEvaluator:
         gold_events: List[Dict[str, Any]]
     ) -> Dict[str, float]:
         """
-        Evaluate counting extraction at span level.
+        Evaluate counting extraction at span level with F1 score.
         
         As per paper: "Subject and counting extraction are evaluated at the span level"
         Compares the first counting expression (text + type).
+        
+        Computes F1 treating each event with a voting event as a binary classification:
+        - TP: Both have counting and they match (text + type)
+        - FP: Predicted counting exists but doesn't match gold (or gold has no counting)
+        - FN: Gold counting exists but pred doesn't match (or pred has no counting)
 
         Args:
             pred_events: List of predicted events
             gold_events: List of gold events
 
         Returns:
-            Dictionary with accuracy (correct matches / total events with voting)
+            Dictionary with F1, precision, recall
         """
-        correct = 0
-        total = 0
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
 
         for pred_event, gold_event in zip(pred_events, gold_events):
             if pred_event is None or gold_event is None:
                 continue
             if not gold_event.get('has_voting_event', False):
                 continue
-
-            total += 1
 
             # Handle None event structures
             pred_ev = pred_event.get('event') or {}
@@ -304,22 +331,45 @@ class EventLevelEvaluator:
             gold_first = gold_counting[0] if gold_counting else None
 
             # Compare at span level (text + type)
-            if pred_first is None and gold_first is None:
-                correct += 1
-            elif pred_first is not None and gold_first is not None:
+            has_gold = gold_first is not None
+            has_pred = pred_first is not None
+            match = False
+
+            if pred_first is not None and gold_first is not None:
                 pred_text = pred_first.get('text', '').strip().lower()
                 pred_type = pred_first.get('type', '').strip().upper()
                 gold_text = gold_first.get('text', '').strip().lower()
                 gold_type = gold_first.get('type', '').strip().upper()
-                if pred_text == gold_text and pred_type == gold_type:
-                    correct += 1
+                match = (pred_text == gold_text and pred_type == gold_type)
+            elif pred_first is None and gold_first is None:
+                # Both empty - true negative, not counted in F1
+                continue
 
-        accuracy = correct / total if total > 0 else 0.0
+            if has_gold and has_pred and match:
+                true_positives += 1
+            elif has_pred and not match:
+                false_positives += 1
+            elif has_gold and not match:
+                false_negatives += 1
+
+        # Calculate precision, recall, F1
+        if true_positives + false_positives == 0:
+            precision = 0.0
+        else:
+            precision = true_positives / (true_positives + false_positives)
+
+        if true_positives + false_negatives == 0:
+            recall = 0.0
+        else:
+            recall = true_positives / (true_positives + false_negatives)
+
+        if precision + recall == 0:
+            f1 = 0.0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "counting_accuracy": accuracy,
-            "counting_correct": correct,
-            "counting_total": total
+            "counting_f1": f1
         }
 
     def evaluate_participant_votes(
@@ -370,8 +420,6 @@ class EventLevelEvaluator:
             }
 
         return {
-            "participant_vote_precision": sum(all_precisions) / len(all_precisions),
-            "participant_vote_recall": sum(all_recalls) / len(all_recalls),
             "participant_vote_f1": sum(all_f1s) / len(all_f1s)
         }
 
@@ -381,10 +429,15 @@ class EventLevelEvaluator:
         gold_events: List[Dict[str, Any]]
     ) -> Dict[str, float]:
         """
-        Evaluate strict event-level accuracy.
+        Evaluate complete event extraction with F1 score.
         
         As per paper: "strict event-level accuracy, where an event is correct 
         only if all components match the gold annotation"
+        
+        Treats each voting event as a binary classification:
+        - TP: Event has voting event and ALL components match exactly
+        - FP: Predicted as voting event but components don't all match
+        - FN: Gold has voting event but prediction doesn't match all components
         
         Required matches:
         - Subject (exact span match)
@@ -396,29 +449,43 @@ class EventLevelEvaluator:
             gold_events: List of gold events
 
         Returns:
-            Dictionary with strict accuracy and detailed failure counts
+            Dictionary with F1, precision, recall, and detailed failure counts
         """
-        correct = 0
-        total = 0
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
         failures = {
             'subject_mismatch': 0,
             'participants_mismatch': 0,
-            'counting_mismatch': 0,
-            'expression_mismatch': 0
+            'counting_mismatch': 0
         }
 
         for pred_event, gold_event in zip(pred_events, gold_events):
             if pred_event is None or gold_event is None:
                 continue
-            if not gold_event.get('has_voting_event', False):
+            
+            # Get voting event flags
+            pred_has_event = pred_event.get('has_voting_event', False)
+            gold_has_event = gold_event.get('has_voting_event', False)
+            
+            # Skip segments without gold voting events
+            if not gold_has_event:
+                # But count false positives if we predicted an event where there is none
+                if pred_has_event:
+                    false_positives += 1
                 continue
 
-            total += 1
-
+            # Gold has a voting event - check if prediction matches all components
             # Check all components - handle None event structures (event can be None)
             pred_ev = pred_event.get('event') or {}
             gold_ev = gold_event.get('event') or {}
 
+            # If pred doesn't have an event but gold does, it's a false negative
+            if not pred_has_event:
+                false_negatives += 1
+                continue
+
+            # Both have events - check all components
             # 1. Compare subjects (single string)
             pred_subject = pred_ev.get('subject', None)
             gold_subject = gold_ev.get('subject', None)
@@ -428,6 +495,7 @@ class EventLevelEvaluator:
 
             if pred_subject_norm != gold_subject_norm:
                 failures['subject_mismatch'] += 1
+                false_negatives += 1
                 continue
 
             # 2. Compare participant-vote pairs (set)
@@ -436,6 +504,7 @@ class EventLevelEvaluator:
 
             if pred_pairs != gold_pairs:
                 failures['participants_mismatch'] += 1
+                false_negatives += 1
                 continue
 
             # 3. Compare counting (span-level: text + type)
@@ -463,18 +532,30 @@ class EventLevelEvaluator:
 
             if not counting_match:
                 failures['counting_mismatch'] += 1
+                false_negatives += 1
                 continue
 
-            # All components match
-            correct += 1
+            # All components match - true positive
+            true_positives += 1
 
-        accuracy = correct / total if total > 0 else 0.0
+        # Calculate precision, recall, F1
+        if true_positives + false_positives == 0:
+            precision = 0.0
+        else:
+            precision = true_positives / (true_positives + false_positives)
+
+        if true_positives + false_negatives == 0:
+            recall = 0.0
+        else:
+            recall = true_positives / (true_positives + false_negatives)
+
+        if precision + recall == 0:
+            f1 = 0.0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "complete_event_accuracy": accuracy,
-            "complete_matches": correct,
-            "total_events": total,
-            "failures": failures
+            "complete_event_f1": f1
         }
 
     def compute_metrics(
@@ -483,45 +564,44 @@ class EventLevelEvaluator:
         gold_events: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Compute all event-level evaluation metrics as per paper.
+        Compute all event-level evaluation metrics as per paper (F1 scores).
         
-        Metrics computed:
-        1. Event detection accuracy (binary classification per segment)
-        2. Subject extraction accuracy (span-level)
-        3. Counting extraction accuracy (span-level) 
+        All metrics use F1 score (precision, recall, F1) instead of accuracy:
+        1. Event detection F1 (binary classification per segment)
+        2. Subject extraction F1 (span-level exact matching)
+        3. Counting extraction F1 (span-level exact matching with type)
         4. Participant-vote F1 (set-based over tuples)
-        5. Strict event-level accuracy (all components must match)
+        5. Complete event F1 (strict - all components must match)
 
         Args:
             pred_events: List of predicted events
             gold_events: List of gold events
 
         Returns:
-            Dictionary with comprehensive event-level metrics
+            Dictionary with comprehensive F1-based metrics
         """
-        # Event detection
+        # Event detection F1
         detection_metrics = self.evaluate_event_detection(pred_events, gold_events)
 
-        # Subject extraction (span-level)
+        # Subject extraction F1 (span-level)
         subject_metrics = self.evaluate_subject_extraction(pred_events, gold_events)
 
-        # Counting extraction (span-level)
+        # Counting extraction F1 (span-level)
         counting_metrics = self.evaluate_counting_extraction(pred_events, gold_events)
 
-        # Participant-vote extraction (set-based F1)
+        # Participant-vote extraction F1 (set-based)
         participant_metrics = self.evaluate_participant_votes(pred_events, gold_events)
 
-        # Complete event extraction (strict accuracy)
+        # Complete event extraction F1 (strict)
         complete_metrics = self.evaluate_complete_event(pred_events, gold_events)
 
-        # Combine all metrics
+        # Combine all metrics (only 5 key F1 scores)
         return {
-            **detection_metrics,
-            **subject_metrics,
-            **counting_metrics,
-            **participant_metrics,
-            **complete_metrics,
-            "evaluation_method": "event_level_as_per_paper"
+            "event_detection_f1": detection_metrics["event_detection_f1"],
+            "subject_f1": subject_metrics["subject_f1"],
+            "counting_f1": counting_metrics["counting_f1"],
+            "participant_vote_f1": participant_metrics["participant_vote_f1"],
+            "complete_event_f1": complete_metrics["complete_event_f1"]
         }
 
 

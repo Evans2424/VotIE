@@ -1,6 +1,6 @@
 {
   "conversion_info": {
-    "timestamp": "2025-10-14T08:06:38.393359",
+    "timestamp": "2025-10-15T07:45:38.012532",
     "source_directory": "private/citilink",
     "output_directory": "data/votie_events",
     "random_seed": 42,
@@ -43,7 +43,7 @@
       "M06": 472
     },
     "total_segments_processed": 2879,
-    "total_segments_with_voting": 2489,
+    "total_segments_with_voting": 2404,
     "warnings_multiple_subjects": 5
   },
   "converted_statistics": {

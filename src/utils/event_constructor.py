@@ -15,20 +15,25 @@ class EventConstructor:
     """
     Constructs structured voting events from BIO-tagged predictions.
 
-    Event Structure (HYBRID FORMAT):
+    Event Structure (PAPER-ALIGNED FORMAT):
     {
         'id': str,
         'has_voting_event': bool,
         'event': {
-            'subject': str or None,                       # SINGULAR (first one if multiple)
-            'participants': [{'text': str, 'position': str}],  # LIST (multiple allowed)
-            'counting': [{'text': str, 'type': str}],     # LIST (multiple allowed)
-            'voting_expressions': [str]                    # LIST (multiple allowed)
+            'subject': str or None,                       # SINGULAR: |S| = 1 (first one if multiple)
+            'participants': [{'text': str, 'position': str}],  # LIST: |P| ≥ 0 (multiple allowed)
+            'counting': [{'text': str, 'type': str}],     # LIST: |C| ≥ 0 (multiple allowed)
+            'voting_expressions': [str],                  # LIST: |V| ≥ 1 (at least one required)
+            'outcome': str or None                        # SINGULAR: O ∈ {Approved, Rejected} or None
         }
     }
 
-    Note: Only 'subject' is singular (takes first if multiple found).
-    All other fields are lists to handle multiple occurrences.
+    Cardinality Constraints (from paper):
+    - |S| = 1: Exactly one subject per voting event
+    - |V| ≥ 1: At least one voting expression required
+    - |C| ≥ 0: Zero or more counting expressions
+    - |P| ≥ 0: Zero or more participants
+    - O: Deterministically inferred outcome
     """
     
     def __init__(self):
@@ -67,6 +72,9 @@ class EventConstructor:
         participants = self._extract_participants(tokens, labels)
         counting = self._extract_counting_list(tokens, labels)  # Returns LIST
         voting_expressions = self._extract_voting_expressions_list(tokens, labels)  # Returns LIST
+        
+        # Infer outcome deterministically from voting expressions, counting, and participants
+        outcome = self._infer_outcome(voting_expressions, counting, participants)
 
         return {
             'id': example_id,
@@ -75,7 +83,8 @@ class EventConstructor:
                 'subject': subject,
                 'participants': participants,
                 'counting': counting,
-                'voting_expressions': voting_expressions
+                'voting_expressions': voting_expressions,
+                'outcome': outcome
             }
         }
     
@@ -107,7 +116,16 @@ class EventConstructor:
         return events
     
     def _has_voting_event(self, labels: List[str]) -> bool:
-        """Check if labels contain a voting event (B-VOTING tag)."""
+        """
+        Check if labels contain a voting event.
+        
+        According to paper: A voting event is defined by |V| ≥ 1 (at least one voting expression).
+        The presence of a VOTING entity (B-VOTING tag) is the sole criterion for determining
+        whether a segment contains a voting event.
+        
+        Returns:
+            True if at least one B-VOTING tag is found, False otherwise
+        """
         return any(label.startswith('B-VOTING') for label in labels)
     
     def _extract_subject(
@@ -300,6 +318,74 @@ class EventConstructor:
                 i += 1
         
         return spans
+    
+    def _infer_outcome(
+        self,
+        voting_expressions: List[str],
+        counting: List[Dict[str, str]],
+        participants: List[Dict[str, str]]
+    ) -> Optional[str]:
+        """
+        Deterministically infer voting outcome from expressions, counting, and participants.
+        
+        As per paper: O ∈ {Approved, Rejected} is inferred from V, C, and P using rule-based heuristics.
+        
+        Heuristic rules (Portuguese municipal context):
+        1. Look for approval keywords in voting expressions
+        2. Consider counting type (unanimity often implies approval)
+        3. Consider participant positions (more favor than against suggests approval)
+        
+        Args:
+            voting_expressions: List of voting expression texts
+            counting: List of counting dicts with 'text' and 'type'
+            participants: List of participant dicts with 'text' and 'position'
+            
+        Returns:
+            'Approved', 'Rejected', or None if outcome cannot be determined
+        """
+        if not voting_expressions and not counting and not participants:
+            return None
+        
+        # Approval keywords (Portuguese)
+        approval_keywords = [
+            'aprovad', 'deliberad', 'deferido', 'autorizado', 'ratificad',
+            'homologad', 'sancionad', 'concordad'
+        ]
+        
+        # Rejection keywords (Portuguese)
+        rejection_keywords = [
+            'rejeitad', 'indeferido', 'recusad', 'negad', 'chumbad',
+            'não aprovad', 'não deferido'
+        ]
+        
+        # Check voting expressions for outcome keywords
+        for expr in voting_expressions:
+            expr_lower = expr.lower()
+            
+            # Check for rejection first (more specific)
+            if any(keyword in expr_lower for keyword in rejection_keywords):
+                return 'Rejected'
+            
+            # Check for approval
+            if any(keyword in expr_lower for keyword in approval_keywords):
+                return 'Approved'
+        
+        # If unanimity counting exists, likely approved (Portuguese municipal convention)
+        if any(c.get('type', '').lower() in ['unanimity', 'unanimidade'] for c in counting):
+            return 'Approved'
+        
+        # Count participant positions
+        if participants:
+            favor_count = sum(1 for p in participants if p.get('position') == 'Favor')
+            against_count = sum(1 for p in participants if p.get('position') == 'Against')
+            
+            if favor_count > against_count:
+                return 'Approved'
+            elif against_count > favor_count:
+                return 'Rejected'
+        
+        # Cannot determine outcome
+        return None
 
 
 # Convenience function

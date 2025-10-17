@@ -54,7 +54,6 @@ class FastTextEmbedding:
 
         Args:
             embedding_dim: Embedding dimension
-
             max_vocab_size: Maximum vocabulary size
             min_freq: Minimum frequency for vocabulary inclusion
         """
@@ -78,7 +77,7 @@ class FastTextEmbedding:
         self.oov_count = 0
         self.total_tokens = 0
 
-        logger.info(f"Initialized FastText embedding handler for portuguese with dim {embedding_dim}")
+        logger.info(f"Initialized FastText embedding handler for Portuguese with dim {embedding_dim}")
 
     def _download_fasttext_embeddings(self, model_path: Path) -> bool:
         """
@@ -95,7 +94,7 @@ class FastTextEmbedding:
             import gzip
             import shutil
             
-            logger.info(f"📥 Downloading Facebook's pre-trained FastText embeddings for {language}...")
+            logger.info("📥 Downloading Facebook's pre-trained FastText embeddings for Portuguese...")
             logger.info("This may take a few minutes depending on your internet connection...")
                 
             
@@ -156,12 +155,8 @@ class FastTextEmbedding:
             logger.error(f"❌ Failed to download FastText embeddings: {e}")
             logger.info("📋 Manual download options:")
             logger.info("   1. Download from: https://fasttext.cc/docs/en/crawl-vectors.html")
-            if language == "pt":
-                logger.info("   2. Direct link: https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.pt.300.bin.gz")
-                logger.info(f"   3. Save as: {model_path}")
-            else:
-                logger.info("   2. Direct link: https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.en.300.bin.gz")
-                logger.info(f"   3. Save as: {model_path}")
+            logger.info("   2. Direct link: https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.pt.300.bin.gz")
+            logger.info(f"   3. Save as: {model_path}")
             logger.info("   4. Decompress the .gz file after downloading")
             return False
 
@@ -179,8 +174,8 @@ class FastTextEmbedding:
                 logger.warning(f"FastText model not found at {model_path}")
                 logger.info("Attempting to download Facebook's pre-trained embeddings...")
                 
-                if not self._download_fasttext_embeddings(self.language, model_path):
-                    raise FileNotFoundError(f"Could not download FastText model for {self.language}")
+                if not self._download_fasttext_embeddings(model_path):
+                    raise FileNotFoundError("Could not download FastText model for Portuguese")
 
             # Load the FastText model
             logger.info("🔄 Loading FastText model (this may take a moment)...")
@@ -295,8 +290,7 @@ class FastTextEmbedding:
             'word2idx': self.word2idx,
             'idx2word': self.idx2word,
             'vocab_size': self.vocab_size,
-            'embedding_dim': self.embedding_dim,
-            'language': self.language
+            'embedding_dim': self.embedding_dim
         }
 
         with open(save_path / "vocabulary.json", 'w', encoding='utf-8') as f:
@@ -316,7 +310,6 @@ class FastTextEmbedding:
 
         # Create instance
         embedding_handler = cls(
-            language=vocab_info['language'],
             embedding_dim=vocab_info['embedding_dim']
         )
 
@@ -711,7 +704,7 @@ if __name__ == "__main__":
     logger.setLevel(logging.INFO)
 
     # Test embedding handler
-    embedding_handler = FastTextEmbedding(language="pt")
+    embedding_handler = FastTextEmbedding()
 
     # Sample sentences
     sentences = [

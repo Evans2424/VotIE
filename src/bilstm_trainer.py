@@ -305,13 +305,12 @@ class BiLSTMTrainer:
 
         logger.info(f"Built label vocabulary: {len(self.label2idx)} labels")
 
-    def prepare_embeddings(self, sentences: List[List[str]], language: str) -> None:
-        """Prepare FastText embeddings."""
+    def prepare_embeddings(self, sentences: List[List[str]]) -> None:
+        """Prepare FastText embeddings for Portuguese."""
         logger.info("Preparing embeddings...")
 
         # Initialize embedding handler
         self.embedding_handler = FastTextEmbedding(
-            language=language,
             embedding_dim=self.embedding_dim
         )
 
@@ -399,16 +398,14 @@ class BiLSTMTrainer:
     def train(
         self,
         train_file: Union[str, Path],
-        val_file: Optional[Union[str, Path]] = None,
-        language: str = "pt"
+        val_file: Optional[Union[str, Path]] = None
     ) -> Dict[str, Any]:
         """
         Train the BiLSTM model.
 
         Args:
-            train_file: Training data file  
+            train_file: Training data file
             val_file: Validation data file (optional)
-            language: Language code
 
         Returns:
             Training results
@@ -425,7 +422,7 @@ class BiLSTMTrainer:
 
         # Build vocabularies
         self.build_label_vocabulary(train_labels + (val_labels or []))
-        self.prepare_embeddings(train_sentences, language)
+        self.prepare_embeddings(train_sentences)
 
         # Create model
         self.create_model()
@@ -783,8 +780,7 @@ def train_bilstm_fasttext(
     # Train model
     results = trainer.train(
         train_file=train_file,
-        val_file=val_file,
-        language=config.get('language', 'pt')
+        val_file=val_file
     )
 
     logger.info("BiLSTM + FastText training completed")

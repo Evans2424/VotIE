@@ -145,8 +145,7 @@ def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: s
 
     results = trainer.train(
         train_file=data_dir / data_config['train_file'],
-        val_file=data_dir / data_config['dev_file'],
-        language='pt'
+        val_file=data_dir / data_config['dev_file']
     )
 
     best_dev_f1 = results.get('best_eval_score', 0.0)
@@ -166,7 +165,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     from src.models.bertimbau_models import BertimbauLinearVotIE, BertimbauCRFVotIE
     from src.models.deberta_models import DebertaLinearVotIE, DebertaCRFVotIE
     from src.models.xlmr_models import XLMRLinearVotIE, XLMRCRFVotIE
-    from src.data.dataset import load_ner_dataset_from_jsonl
+    from src.data.dataset import load_ner_dataset_with_dynamic_windowing
 
     MODEL_CLASSES = {
         "bert_linear": BertimbauLinearVotIE,
@@ -191,7 +190,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     data_dir = Path(data_config['data_dir'])
 
     model_name = model_config['model_name']
-    train_dataset, dev_dataset, _, label_to_id, id_to_label, tokenizer = load_ner_dataset_from_jsonl(
+    train_dataset, dev_dataset, _, label_to_id, id_to_label, tokenizer = load_ner_dataset_with_dynamic_windowing(
         data_dir=data_dir,
         train_file=data_config.get('train_file', 'train.jsonl'),
         dev_file=data_config.get('dev_file', 'dev.jsonl'),

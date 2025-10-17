@@ -484,7 +484,6 @@ def align_tokens_with_subwords(
                 
         # Handle empty tokenization (should be rare now with cleaning)
         if not token_subwords:
-            logger.warning(f"Empty tokenization for cleaned token: {cleaned_token!r} (original: {original_token!r}) - using [UNK]")
             token_subwords = [tokenizer.unk_token]
             empty_tokenizations += 1
         
@@ -518,7 +517,7 @@ def align_tokens_with_subwords(
     orig_token_indices.append(-1)  # SEP has no original token
     
     # Log important statistics to console
-    if cleaned_tokens > 5:  # Only log if significant cleaning happened
+    if cleaned_tokens > 20:  # Only log if significant cleaning happened
         logger.info(f"Cleaned {cleaned_tokens} problematic tokens in {example_id}")
     if skipped_tokens > 2:  # Only log if significant skipping happened
         logger.info(f"Skipped {skipped_tokens} empty/problematic tokens in {example_id}")
@@ -727,7 +726,7 @@ def create_dynamic_windows(
 
 def load_ner_dataset_with_dynamic_windowing(
     data_dir: Path,
-    train_files: List[str],
+    train_file: str,
     dev_file: str,
     test_file: str,
     tokenizer_name: str,
@@ -737,42 +736,40 @@ def load_ner_dataset_with_dynamic_windowing(
 ) -> Tuple[VotIEDataset, VotIEDataset, VotIEDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
     """
     Load NER dataset with dynamic windowing at training time.
-    
+
     This function works with full segments from the unified converter and applies
     windowing dynamically using the actual tokenizer, providing better control
     and logging than pre-computed windowing.
-    
+
     Args:
         data_dir: Directory containing JSONL files
-        train_files: List of training file names
+        train_file: Training file name
         dev_file: Development file name
         test_file: Test file name
         tokenizer_name: Name of tokenizer to use
         max_length: Maximum sequence length
         overlap_tokens: Overlap between windows
         enable_windowing: If True, apply dynamic windowing. If False, use traditional loading
-    
+
     Returns:
         train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer
     """
     logger.info(f"Loading NER dataset with dynamic windowing: {enable_windowing}")
     logger.info(f"Max length: {max_length}, Overlap: {overlap_tokens}")
-    
+
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    # Load all data files with dynamic windowing
-    train_examples = []
-    for train_file in train_files:
-        logger.info(f"Loading training file: {train_file}")
-        train_data = load_jsonl_file(data_dir / train_file)
-        file_examples = jsonl_to_examples_with_dynamic_windowing(
-            train_data, 
-            tokenizer=tokenizer,
-            max_length=max_length,
-            overlap_tokens=overlap_tokens,
-            enable_windowing=enable_windowing
-        )
-        train_examples.extend(file_examples)
-        logger.info(f"  Loaded {len(file_examples)} examples from {train_file}")
+
+    # Load training data
+    logger.info(f"Loading training file: {train_file}")
+    train_data = load_jsonl_file(data_dir / train_file)
+    train_examples = jsonl_to_examples_with_dynamic_windowing(
+        train_data,
+        tokenizer=tokenizer,
+        max_length=max_length,
+        overlap_tokens=overlap_tokens,
+        enable_windowing=enable_windowing
+    )
+    logger.info(f"  Loaded {len(train_examples)} examples from {train_file}")
     
     logger.info(f"Loading development file: {dev_file}")
     dev_data = load_jsonl_file(data_dir / dev_file)

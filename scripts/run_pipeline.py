@@ -106,13 +106,18 @@ def main():
     experiment_name = args.name
     data_config = config['data']
     
-    # Set up paths
+    # Set up paths following the repository structure
     model_dir = Path("models") / baseline_name / experiment_name
-    experiment_dir = Path("experiments") / "pt_stratified_split" / experiment_name
-    experiment_dir.mkdir(parents=True, exist_ok=True)
+    predictions_dir = Path("predictions")
+    evaluation_dir = Path("evaluation")
+
+    # Create output directories
+    predictions_dir.mkdir(parents=True, exist_ok=True)
+    evaluation_dir.mkdir(parents=True, exist_ok=True)
+
     test_data_path = Path(data_config['data_dir']) / data_config['test_file']
-    predictions_file = experiment_dir / "predictions.jsonl"
-    results_file = experiment_dir / "evaluation_results.json"
+    predictions_file = predictions_dir / f"{baseline_name}_{experiment_name}.jsonl"
+    results_file = evaluation_dir / f"{baseline_name}_{experiment_name}.json"
     
     print(f"🎯 Running pipeline for {baseline_name} experiment '{experiment_name}'")
     print(f"   Config: {args.config}")
@@ -173,9 +178,11 @@ def main():
         print(f"🔮 Predictions: {predictions_file}")
         print(f"📊 Results: {results_file}")
         print(f"⏱️  Total time: {pipeline_time:.2f}s")
-        print(f"🎯 Test F1: {results.get('entity_f1_strict', 0.0):.4f}")
-        
+        entity_f1 = results.get('entity_level_metrics', {}).get('entity_f1', 0.0)
+        print(f"🎯 Test Entity F1: {entity_f1:.4f}")
+
         # Save pipeline metadata
+        metadata_file = model_dir / "pipeline_metadata.json"
         pipeline_metadata = {
             'experiment_name': experiment_name,
             'baseline_name': baseline_name,
@@ -184,17 +191,16 @@ def main():
             'completed_at': datetime.now().isoformat(),
             'files': {
                 'model_dir': str(model_dir),
-                'experiment_dir': str(experiment_dir),
                 'predictions': str(predictions_file),
-                'results': str(results_file)
+                'evaluation': str(results_file)
             },
             'final_results': results
         }
-        
-        with open(experiment_dir / "pipeline_metadata.json", 'w') as f:
+
+        with open(metadata_file, 'w') as f:
             json.dump(pipeline_metadata, f, indent=2)
-        
-        print(f"📋 Pipeline metadata saved to: {experiment_dir}/pipeline_metadata.json")
+
+        print(f"📋 Pipeline metadata saved to: {metadata_file}")
         
     except Exception as e:
         print(f"\n❌ Pipeline failed: {e}")

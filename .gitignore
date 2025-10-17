@@ -1,14 +1,20 @@
-private
-venv
+# Private and development files
+private/
+venv/
 .DS_Store
-CLAUDE.md
-__pycache__
-models/*/pytorch_model.bin
-models/*/model.safetensors
+__pycache__/
 .python-version
+.env
+
+# Specific large model files
+*.bin
+*.safetensors
+*.pt
 
 # FastText embedding files (large binary files)
-models/cc.pt.300.bin.gz
+cc.pt.300.bin.gz
 **/cc.pt.300.bin
 **/cc.en.300.bin
-logs
+
+# Helper scripts
+helper/scripts

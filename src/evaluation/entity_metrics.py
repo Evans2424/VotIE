@@ -42,8 +42,8 @@ class EntityLevelEvaluator:
 
     def convert_ids_to_labels(self, predictions: List[List[int]]) -> List[List[str]]:
         """Convert predicted label IDs to label strings."""
+
         if not self.id_to_label:
-            # Assume predictions are already strings
             return predictions
 
         return [
@@ -101,7 +101,6 @@ class EntityLevelEvaluator:
                 "entity_f1": float(f1),
                 "entity_accuracy": float(accuracy),
                 "per_type_metrics": per_type_metrics,
-                "evaluation_method": "seqeval_entity_level"
             }
 
         except Exception as e:
@@ -112,21 +111,4 @@ class EntityLevelEvaluator:
                 "entity_f1": 0.0,
                 "entity_accuracy": 0.0,
                 "per_type_metrics": {},
-                "evaluation_method": "seqeval_entity_level"
             }
-
-
-# Legacy support for existing code
-def compute_entity_metrics(
-    true_labels: List[List[str]],
-    pred_labels: List[List[str]]
-) -> Dict[str, float]:
-    """Compute entity-level metrics for backward compatibility."""
-    evaluator = EntityLevelEvaluator()
-    results = evaluator.compute_metrics(pred_labels, true_labels)
-    return {
-        "precision": results["entity_precision"],
-        "recall": results["entity_recall"],
-        "f1": results["entity_f1"],
-        "accuracy": results["entity_accuracy"]
-    }

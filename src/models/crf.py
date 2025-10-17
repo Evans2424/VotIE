@@ -536,7 +536,7 @@ class TraditionalCRFModel:
         # Predict
         predictions = self.crf.predict(X_test)
 
-        # Apply BIO validation to ensure valid tag sequences (fair comparison with transformers)
+        # Apply BIO validation to ensure valid tag sequences
         validated_predictions = []
         for i, pred_seq in enumerate(predictions):
             validated_seq = validate_bio_sequence(
@@ -580,19 +580,15 @@ class TraditionalCRFModel:
             'entity_f1_strict': entity_metrics.get('entity_f1', 0.0),
             'entity_precision': entity_metrics.get('entity_precision', 0.0),
             'entity_recall': entity_metrics.get('entity_recall', 0.0),
-            'accuracy': entity_metrics.get('entity_accuracy', 0.0),
             'num_examples': len(test_data)
         }
-
-        # Add legacy field name for backward compatibility
-        results['entity_f1_weighted'] = results['entity_f1_strict']
 
         if detailed:
             # Per-type metrics from seqeval (entity-level) - same structure as transformers
             per_type_metrics = entity_metrics.get('per_type_metrics', {})
             results['per_type_metrics'] = per_type_metrics
 
-        logger.info(f"Evaluation completed - Entity F1: {results['entity_f1_strict']:.4f}, Accuracy: {results['accuracy']:.4f}")
+        logger.info(f"Evaluation completed - Entity F1: {results['entity_f1_strict']:.4f}")
 
         return results
 
@@ -722,75 +718,6 @@ class TraditionalCRFModel:
 
         logger.info(f"Model loaded from {model_path}")
         return model
-
-
-def hyperparameter_search(
-    train_data: List[Dict[str, Any]],
-    val_data: List[Dict[str, Any]],
-    param_grid: Dict[str, List],
-    cv_folds: int = 3
-) -> Dict[str, Any]:
-    """
-    Perform hyperparameter search for CRF model.
-
-    Args:
-        train_data: Training data
-        val_data: Validation data
-        param_grid: Grid of parameters to search
-        cv_folds: Number of cross-validation folds
-
-    Returns:
-        Best parameters and results
-    """
-    logger.info("Starting hyperparameter search...")
-
-    best_score = 0.0
-    best_params = None
-    best_model = None
-    results = []
-
-    # Generate parameter combinations
-    import itertools
-
-    param_names = list(param_grid.keys())
-    param_values = list(param_grid.values())
-
-    for param_combo in itertools.product(*param_values):
-        params = dict(zip(param_names, param_combo))
-
-        logger.info(f"Testing parameters: {params}")
-
-        # Create and train model
-        model = TraditionalCRFModel(**params)
-        model.train(train_data, verbose=False)
-
-        # Evaluate on validation set
-        val_results = model.evaluate(val_data, detailed=False)
-        score = val_results['entity_f1_weighted']
-
-        results.append({
-            'params': params,
-            'val_f1': score,
-            'val_accuracy': val_results['accuracy']
-        })
-
-        logger.info(f"Validation F1: {score:.4f}")
-
-        if score > best_score:
-            best_score = score
-            best_params = params
-            best_model = model
-            logger.info(f"New best score: {best_score:.4f}")
-
-    logger.info(f"Hyperparameter search completed. Best F1: {best_score:.4f}")
-    logger.info(f"Best parameters: {best_params}")
-
-    return {
-        'best_params': best_params,
-        'best_score': best_score,
-        'best_model': best_model,
-        'all_results': results
-    }
 
 
 # Example usage and testing

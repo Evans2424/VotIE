@@ -1,1 +1,47 @@
-{}
+{
+  "train": {
+    "num_examples": 2015,
+    "total_tokens": 685478,
+    "total_entities": 6957,
+    "entity_label_counts": {
+      "VOTER-FAVOR": 1150,
+      "VOTING": 1866,
+      "COUNTING-UNANIMITY": 1092,
+      "SUBJECT": 1731,
+      "VOTER-ABSTENTION": 738,
+      "COUNTING-MAJORITY": 202,
+      "VOTER-AGAINST": 116,
+      "VOTER-ABSENT": 62
+    }
+  },
+  "dev": {
+    "num_examples": 431,
+    "total_tokens": 151871,
+    "total_entities": 1490,
+    "entity_label_counts": {
+      "SUBJECT": 374,
+      "VOTING": 385,
+      "COUNTING-UNANIMITY": 251,
+      "VOTER-FAVOR": 245,
+      "COUNTING-MAJORITY": 34,
+      "VOTER-ABSTENTION": 166,
+      "VOTER-ABSENT": 14,
+      "VOTER-AGAINST": 21
+    }
+  },
+  "test": {
+    "num_examples": 433,
+    "total_tokens": 170975,
+    "total_entities": 1504,
+    "entity_label_counts": {
+      "SUBJECT": 373,
+      "VOTER-FAVOR": 255,
+      "VOTING": 397,
+      "COUNTING-UNANIMITY": 227,
+      "VOTER-ABSTENTION": 138,
+      "COUNTING-MAJORITY": 52,
+      "VOTER-AGAINST": 40,
+      "VOTER-ABSENT": 22
+    }
+   }
+}

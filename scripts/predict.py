@@ -2,7 +2,7 @@
 """
 VotIE Prediction Script
 
-Simple, robust prediction interface for Vote Information Extraction (VotIE) models.
+Prediction interface for Vote Information Extraction (VotIE) models.
 Handles windowing automatically for long sequences.
 
 Usage:
@@ -26,12 +26,10 @@ from transformers import AutoTokenizer
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models.transformer_models import (
-    BertLinearNER, BertCRFNER,
-    XLMRLinearNER, XLMRCRFNER,
-    DebertaLinearNER, DebertaCRFNER
-)
-from src.models.bilstm_crf import BiLSTMFastTextNER
+from src.models.bertimbau_models import BertimbauLinearVotIE, BertimbauCRFVotIE
+from src.models.deberta_models import DebertaLinearVotIE, DebertaCRFVotIE
+from src.models.xlmr_models import XLMRLinearVotIE, XLMRCRFVotIE
+from src.models.bilstm_crf import BiLSTMFastTextVotIE
 from src.data.dataset import load_jsonl_file, align_tokens_with_subwords, create_dynamic_windows
 
 logging.basicConfig(
@@ -72,7 +70,7 @@ def load_model(model_path: str, device: str = 'cuda'):
         try:
             from src.models.bilstm_crf import FastTextEmbedding, CharacterVocab
             
-            model = BiLSTMFastTextNER.from_pretrained(model_path)
+            model = BiLSTMFastTextVotIE.from_pretrained(model_path)
             model.to(device)
             model.eval()
             
@@ -121,12 +119,12 @@ def load_model(model_path: str, device: str = 'cuda'):
     base_model_name = config.get('base_model', 'neuralmind/bert-base-portuguese-cased')
     
     model_classes = {
-        'BertLinearNER': BertLinearNER,
-        'BertCRFNER': BertCRFNER,
-        'XLMRLinearNER': XLMRLinearNER,
-        'XLMRCRFNER': XLMRCRFNER,
-        'DebertaLinearNER': DebertaLinearNER,
-        'DebertaCRFNER': DebertaCRFNER,
+        'BertimbauLinearVotIE': BertimbauLinearVotIE,
+        'BertimbauCRFVotIE': BertimbauCRFVotIE,
+        'XLMRLinearVotIE': XLMRLinearVotIE,
+        'XLMRCRFVotIE': XLMRCRFVotIE,
+        'DebertaLinearVotIE': DebertaLinearVotIE,
+        'DebertaCRFVotIE': DebertaCRFVotIE,
     }
     
     if architecture not in model_classes:
@@ -154,7 +152,6 @@ def predict_single_window(model, tokenizer, tokens: List[str], device: str = 'cu
     """Predict labels for a single window (guaranteed to fit in max_length)."""
     dummy_labels = ['O'] * len(tokens)
 
-    # Tokenize (same as training)
     # Use allow_truncation=True as a safety measure - windowing should already ensure fit
     _, input_ids, _, subtoken_mask, _ = align_tokens_with_subwords(
         tokens=tokens,

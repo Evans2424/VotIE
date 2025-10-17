@@ -22,11 +22,9 @@ from transformers import AutoTokenizer
 
 logger = logging.getLogger(__name__)
 
-
 def clean_problematic_characters(text: str) -> str:
     """
     Clean problematic characters that cause empty tokenization.
-    Based on Portuguese BERT paper preprocessing methodology.
     """
     if not isinstance(text, str):
         return str(text)
@@ -43,7 +41,6 @@ def clean_problematic_characters(text: str) -> str:
     
     return text
 
-
 def is_problematic_token(token: str) -> bool:
     """Check if a token is problematic for BERT tokenization."""
     if not token or not token.strip():
@@ -58,9 +55,7 @@ def is_problematic_token(token: str) -> bool:
         return True
     
     return False
-
-# BIO tagging validation (from Portuguese BERT paper)
-VALID_TRANSITIONS = {
+VALID_TRANSITIONS = {  
     'BIO': {
         'B': ['B', 'I', 'O'],
         'I': ['B', 'I', 'O'],
@@ -89,8 +84,8 @@ class VoteFeatures:
     example_id: str
     orig_token_indices: List[int]  # Mapping from processed positions to original token indices
 
-class NERDataset(Dataset):
-    """PyTorch Dataset for NER tasks with BIO tagging."""
+class VotIEDataset(Dataset):
+    """PyTorch Dataset for stage 1 tasks with BIO tagging."""
     
     def __init__(self, features: List[VoteFeatures]):
         self.features = features
@@ -270,11 +265,6 @@ def load_jsonl_file(
 
     return examples
 
-
-# CONLL loading functions removed - system now uses JSONL format only
-
-
-def jsonl_to_examples(jsonl_data: List[Dict[str, Any]]) -> List[VoteExample]:
     """Convert JSONL data to VoteExample objects."""
     examples = []
     
@@ -427,7 +417,6 @@ def create_label_mapping(examples: List[VoteExample]) -> Tuple[Dict[str, int], D
     logger.info(f"Created label mapping with {len(sorted_labels)} labels: {sorted_labels}")
     return label_to_id, id_to_label
 
-
 def align_tokens_with_subwords(
     tokens: List[str], 
     labels: List[str], 
@@ -437,9 +426,7 @@ def align_tokens_with_subwords(
     allow_truncation: bool = True
 ) -> Tuple[List[str], List[int], List[int], List[bool], List[int]]:
     """
-    Align original tokens with subwords following Portuguese BERT paper methodology.
-    
-    Fixes empty tokenization issues by cleaning problematic characters.
+    Align original tokens with subwords.Solved tokenization issues by cleaning problematic characters.
     
     Args:
         tokens: Original word tokens
@@ -447,7 +434,7 @@ def align_tokens_with_subwords(
         tokenizer: HuggingFace tokenizer
         max_length: Maximum sequence length (including [CLS] and [SEP])
         example_id: Identifier for logging
-        allow_truncation: If False, process all tokens without truncation (for prediction)
+        allow_truncation: If False, process all tokens without truncation
     
     Returns:
         subwords: List of subword tokens
@@ -462,8 +449,6 @@ def align_tokens_with_subwords(
     subtoken_mask = []
     
     # Track original token mapping (Portuguese BERT paper approach)
-    tok_to_orig_index = []
-    orig_to_tok_index = []
     orig_token_indices = []  # Maps processed token positions to original indices
     
     # Add [CLS] token
@@ -478,8 +463,6 @@ def align_tokens_with_subwords(
     truncated_tokens = 0
     cleaned_tokens = 0
     empty_tokenizations = 0
-    problematic_characters_found = []
-    skipped_tokens_detail = []
     
     # Starting token alignment
     
@@ -488,22 +471,9 @@ def align_tokens_with_subwords(
         original_token = token
         cleaned_token = clean_problematic_characters(token)
         
-        # Track problematic character details
-        if is_problematic_token(original_token):
-            problematic_characters_found.append(f"Token {orig_token_idx}: {original_token!r}")
-        
-        # Skip empty tokens after cleaning
-        if not cleaned_token or not cleaned_token.strip():
-            skipped_tokens += 1
-            skipped_tokens_detail.append(f"Token {orig_token_idx}: {original_token!r} -> empty after cleaning")
-            continue
-        
         # Track if token was cleaned
         if cleaned_token != original_token:
             cleaned_tokens += 1
-        
-        # Store original token index mapping (only for tokens we keep)
-        orig_to_tok_index.append(len(subwords))
         
         # Tokenize the cleaned word
         try:
@@ -511,9 +481,7 @@ def align_tokens_with_subwords(
         except Exception as e:
             logger.warning(f"Tokenization error for {cleaned_token!r}: {e}")
             token_subwords = []
-        
-        # Tokenization complete for this token
-        
+                
         # Handle empty tokenization (should be rare now with cleaning)
         if not token_subwords:
             logger.warning(f"Empty tokenization for cleaned token: {cleaned_token!r} (original: {original_token!r}) - using [UNK]")
@@ -528,8 +496,6 @@ def align_tokens_with_subwords(
         
         # Add subwords with proper alignment tracking
         for i, subword in enumerate(token_subwords):
-            # Track original token mapping
-            tok_to_orig_index.append(orig_token_idx)
             
             subwords.append(subword)
             input_ids.append(tokenizer.convert_tokens_to_ids(subword))
@@ -551,7 +517,7 @@ def align_tokens_with_subwords(
     subtoken_mask.append(False)
     orig_token_indices.append(-1)  # SEP has no original token
     
-    # Log only important statistics to console
+    # Log important statistics to console
     if cleaned_tokens > 5:  # Only log if significant cleaning happened
         logger.info(f"Cleaned {cleaned_tokens} problematic tokens in {example_id}")
     if skipped_tokens > 2:  # Only log if significant skipping happened
@@ -620,10 +586,7 @@ def create_dynamic_windows(
     example_id: str = "unknown"
 ) -> List[Tuple[List[str], List[str]]]:
     """
-    Create sliding windows dynamically using actual tokenizer at training time.
-
-    This replaces the complex windowing estimates done at conversion time with
-    precise windowing based on actual subword tokenization.
+    Create sliding windows dynamically using actual tokenizer sub-word expansion.
 
     Args:
         tokens: Original word tokens
@@ -761,51 +724,6 @@ def create_dynamic_windows(
 
     return windows
 
-def load_ner_dataset(
-    data_dir: Path,
-    train_files: List[str],
-    dev_file: str,
-    test_file: str,
-    tokenizer_name: str,
-    max_length: int = 512
-) -> Tuple[NERDataset, NERDataset, NERDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
-    """
-    Load complete NER dataset with BIO tagging.
-    
-    Returns:
-        train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer
-    """
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    
-    # Load all data files
-    train_examples = []
-    for train_file in train_files:
-        train_data = load_jsonl_file(data_dir / train_file)
-        train_examples.extend(jsonl_to_examples(train_data))
-    
-    dev_data = load_jsonl_file(data_dir / dev_file)
-    dev_examples = jsonl_to_examples(dev_data)
-    
-    test_data = load_jsonl_file(data_dir / test_file)
-    test_examples = jsonl_to_examples(test_data)
-    
-    # Create label mapping from all examples
-    all_examples = train_examples + dev_examples + test_examples
-    label_to_id, id_to_label = create_label_mapping(all_examples)
-    
-    # Convert to features
-    train_features = convert_examples_to_features(train_examples, tokenizer, label_to_id, max_length)
-    dev_features = convert_examples_to_features(dev_examples, tokenizer, label_to_id, max_length)
-    test_features = convert_examples_to_features(test_examples, tokenizer, label_to_id, max_length)
-    
-    # Create datasets
-    train_dataset = NERDataset(train_features)
-    dev_dataset = NERDataset(dev_features)
-    test_dataset = NERDataset(test_features)
-    
-    logger.info(f"Dataset loaded - Train: {len(train_dataset)}, Dev: {len(dev_dataset)}, Test: {len(test_dataset)}")
-    
-    return train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer
 
 def load_ner_dataset_with_dynamic_windowing(
     data_dir: Path,
@@ -816,7 +734,7 @@ def load_ner_dataset_with_dynamic_windowing(
     max_length: int = 512,
     overlap_tokens: int = 50,
     enable_windowing: bool = True
-) -> Tuple[NERDataset, NERDataset, NERDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
+) -> Tuple[VotIEDataset, VotIEDataset, VotIEDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
     """
     Load NER dataset with dynamic windowing at training time.
     
@@ -889,9 +807,9 @@ def load_ner_dataset_with_dynamic_windowing(
     test_features = convert_examples_to_features(test_examples, tokenizer, label_to_id, max_length)
     
     # Create datasets
-    train_dataset = NERDataset(train_features)
-    dev_dataset = NERDataset(dev_features)
-    test_dataset = NERDataset(test_features)
+    train_dataset = VotIEDataset(train_features)
+    dev_dataset = VotIEDataset(dev_features)
+    test_dataset = VotIEDataset(test_features)
     
     logger.info(f"Dataset loaded with dynamic windowing:")
     logger.info(f"  Train: {len(train_dataset)} examples")
@@ -904,12 +822,12 @@ def load_ner_dataset_with_dynamic_windowing(
 def calculate_paper_class_weights(examples: List[VoteExample], label_to_id: Dict[str, int], 
                                  weight_o: float = 0.01) -> torch.Tensor:
     """
-    Calculate class weights following Portuguese BERT paper methodology.
+    Calculate class weights.
     
     Args:
         examples: List of training examples
         label_to_id: Label to ID mapping
-        weight_o: Weight for O tag (default 0.01 from paper)
+        weight_o: Weight for O tag (default 0.01)
         
     Returns:
         Class weights tensor
@@ -942,113 +860,3 @@ def calculate_paper_class_weights(examples: List[VoteExample], label_to_id: Dict
         logger.info(f"  {label}: {count} ({percentage:.2f}%)")
     
     return weights
-
-def get_class_weights(examples: List[VoteExample], label_to_id: Dict[str, int]) -> torch.Tensor:
-    """
-    Legacy function - now uses the paper methodology.
-    """
-    return calculate_paper_class_weights(examples, label_to_id)
-
-
-def load_ner_dataset_from_jsonl(
-    data_dir: Path,
-    train_file: str,
-    dev_file: str,
-    test_file: str,
-    tokenizer_name: str,
-    max_length: int = 512,
-    overlap_tokens: int = 50,
-    enable_windowing: bool = True
-) -> Tuple[NERDataset, NERDataset, NERDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
-    """
-    Load NER dataset from BIO-tagged JSONL format files with dynamic windowing.
-
-    Args:
-        data_dir: Directory containing JSONL files with BIO tags
-        train_file: Training file name (e.g., 'train.jsonl')
-        dev_file: Development file name (e.g., 'dev.jsonl')
-        test_file: Test file name (e.g., 'test.jsonl')
-        tokenizer_name: Name of tokenizer to use
-        max_length: Maximum sequence length
-        overlap_tokens: Overlap between windows
-        enable_windowing: If True, apply dynamic windowing
-
-    Returns:
-        train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer
-    """
-    logger.info(f"Loading NER dataset from BIO-tagged JSONL format with dynamic windowing: {enable_windowing}")
-    logger.info(f"Max length: {max_length}, Overlap: {overlap_tokens}")
-
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-
-    # Load training data
-    logger.info(f"Loading training file: {train_file}")
-    train_data = load_jsonl_file(data_dir / train_file)
-    train_examples = jsonl_to_examples_with_dynamic_windowing(
-        train_data,
-        tokenizer=tokenizer,
-        max_length=max_length,
-        overlap_tokens=overlap_tokens,
-        enable_windowing=enable_windowing
-    )
-    logger.info(f"  Loaded {len(train_examples)} examples from {train_file}")
-
-    # Load development data
-    logger.info(f"Loading development file: {dev_file}")
-    dev_data = load_jsonl_file(data_dir / dev_file)
-    dev_examples = jsonl_to_examples_with_dynamic_windowing(
-        dev_data,
-        tokenizer=tokenizer,
-        max_length=max_length,
-        overlap_tokens=overlap_tokens,
-        enable_windowing=enable_windowing
-    )
-    logger.info(f"  Loaded {len(dev_examples)} examples from {dev_file}")
-
-    # Load test data
-    logger.info(f"Loading test file: {test_file}")
-    test_data = load_jsonl_file(data_dir / test_file)
-    test_examples = jsonl_to_examples_with_dynamic_windowing(
-        test_data,
-        tokenizer=tokenizer,
-        max_length=max_length,
-        overlap_tokens=overlap_tokens,
-        enable_windowing=enable_windowing
-    )
-    logger.info(f"  Loaded {len(test_examples)} examples from {test_file}")
-    
-    # Build label vocabulary from all examples
-    all_labels = set()
-    for example in train_examples + dev_examples + test_examples:
-        all_labels.update(example.labels)
-    
-    # Create label mappings (O first, then sorted entity labels)
-    sorted_labels = ['O'] + sorted([label for label in all_labels if label != 'O'])
-    label_to_id = {label: idx for idx, label in enumerate(sorted_labels)}
-    id_to_label = {idx: label for label, idx in label_to_id.items()}
-    
-    logger.info(f"Created label mapping with {len(label_to_id)} labels: {sorted_labels}")
-    
-    # Convert examples to features
-    logger.info("Converting examples to features...")
-    train_features = convert_examples_to_features(train_examples, tokenizer, label_to_id, max_length)
-    logger.info(f"Converted {len(train_features)} examples to features")
-    
-    dev_features = convert_examples_to_features(dev_examples, tokenizer, label_to_id, max_length)
-    logger.info(f"Converted {len(dev_features)} examples to features")
-    
-    test_features = convert_examples_to_features(test_examples, tokenizer, label_to_id, max_length)
-    logger.info(f"Converted {len(test_features)} examples to features")
-    
-    # Create datasets from features
-    train_dataset = NERDataset(train_features)
-    dev_dataset = NERDataset(dev_features)
-    test_dataset = NERDataset(test_features)
-    
-    logger.info(f"Dataset loaded from BIO-tagged JSONL format:")
-    logger.info(f"  Train: {len(train_dataset)} examples")
-    logger.info(f"  Dev: {len(dev_dataset)} examples")
-    logger.info(f"  Test: {len(test_dataset)} examples")
-    logger.info(f"  Labels: {len(label_to_id)} ({sorted_labels})")
-    
-    return train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer

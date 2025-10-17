@@ -1,7 +1,0 @@
-{
-  "event_detection_f1": 0.9662618083670714,
-  "subject_f1": 0.5316973415132924,
-  "counting_f1": 0.9620253164556961,
-  "participant_vote_f1": 0.6965070522173588,
-  "complete_event_f1": 0.3238512035010941
-}

@@ -16,12 +16,12 @@ Example:
     
     ```python
     from transformers import AutoTokenizer
-    from .trainer import NERTrainer
-    from .model import BertLinearNER
+    from .trainer import VotIETrainer
+    from .model import BertimbauLinearVotIE
     
     # Initialize model and trainer
-    model = BertLinearNER("neuralmind/bert-base-portuguese-cased", num_labels=3)
-    trainer = NERTrainer(
+    model = BertimbauLinearVotIE("neuralmind/bert-large-portuguese-cased", num_labels=3)
+    trainer = VotIETrainer(
         model=model,
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
@@ -74,16 +74,9 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.absolute()))
 
-from src.models.base import BaseNERModel
-from src.data.dataset import NERDataset
-from src.evaluation.metrics import NEREvaluator
-
-# External service integrations (optional)
-
-
-def setup_all_auth():
-    """Setup authentication for external services."""
-    return {"status": "disabled"}
+from src.models.base import BaseVotIEModel
+from src.data.dataset import VotIEDataset
+from src.evaluation.entity_metrics import EntityLevelEvaluator
 
 
 def set_seed(seed: int) -> None:
@@ -118,9 +111,9 @@ MEMORY_CLEANUP_THRESHOLD = 0.85  # Clean up when GPU memory usage exceeds 85%
 OOM_BATCH_SIZE_REDUCTION = 0.75  # Reduce batch size by 25% on OOM
 
 
-class NERTrainer:
+class VotIETrainer:
     """
-    Trainer for Named Entity Recognition models.
+    Trainer for transformer models.
     
     Implements industry best practices for robust, reproducible NER training following
     the methodology from Portuguese BERT paper. Features comprehensive error handling,
@@ -130,29 +123,25 @@ class NERTrainer:
     with extensive validation, logging, and monitoring capabilities.
     
     Args:
-        model: The NER model to train (must inherit from BaseNERModel)
-        train_dataset: Training dataset (NERDataset instance)
-        eval_dataset: Evaluation/validation dataset (NERDataset instance)
+        model: The transformer model to train (must inherit from BaseVotIEModel)
+        train_dataset: Training dataset (VotIEDataset instance)
+        eval_dataset: Evaluation/validation dataset (VotIEDataset instance)
         output_dir: Directory for saving models and logs
         id_to_label: Mapping from label IDs to label strings (e.g., {0: "O", 1: "B-PER"})
-        learning_rate: Learning rate for all model parameters (default: 2e-5)
+        learning_rate: Learning rate for all model parameters (default: 5e-5)
         num_train_epochs: Maximum number of training epochs (default: 10)
         train_batch_size: Training batch size (default: 16)
         eval_batch_size: Evaluation batch size (default: 32)
         warmup_proportion: Proportion of training for warmup (default: 0.1)
         max_grad_norm: Maximum gradient norm for clipping (default: 1.0)
         patience: Early stopping patience in epochs (default: 3)
-        save_steps: Steps between checkpoint saves (default: 500)
-        eval_steps: Steps between evaluations (default: 500)
         logging_steps: Steps between log messages (default: 100)
         seed: Random seed for reproducibility (default: 42)
         base_model: Base model name for tokenizer creation (optional)
         tokenizer: Pre-initialized tokenizer (optional)
         device: CUDA device ID (-1 for CPU, >=0 for GPU) (default: -1)
 
-        save_only_best_model: Only save the best model checkpoint (default: False)
-        no_save_models: Disable all model saving (default: False)
-        enable_mixed_precision: Enable automatic mixed precision training (default: False)
+        save_only_best_model: Only save the best model checkpoint (default: True)
         dataloader_num_workers: Number of workers for data loading (default: 0)
         pin_memory: Pin memory for faster GPU transfer (default: True)
         
@@ -163,7 +152,7 @@ class NERTrainer:
         
     Example:
         ```python
-        trainer = NERTrainer(
+        trainer = VotIETrainer(
             model=bert_ner_model,
             train_dataset=train_data,
             eval_dataset=dev_data,
@@ -179,20 +168,18 @@ class NERTrainer:
     
     def __init__(
         self,
-        model: BaseNERModel,
-        train_dataset: NERDataset,
-        eval_dataset: NERDataset,
+        model: BaseVotIEModel,
+        train_dataset: VotIEDataset,
+        eval_dataset: VotIEDataset,
         output_dir: Union[str, Path],
         id_to_label: Dict[int, str],
-        learning_rate: float = 2e-5,
+        learning_rate: float = 5e-5,
         num_train_epochs: int = 10,
         train_batch_size: int = 16,
         eval_batch_size: int = 32,
         warmup_proportion: float = 0.1,
         max_grad_norm: float = 1.0,
         patience: int = 3,
-        save_steps: int = 500,
-        eval_steps: int = 500,
         logging_steps: int = 100,
         seed: int = 42,
         base_model: Optional[str] = None,
@@ -200,9 +187,8 @@ class NERTrainer:
         device: int = -1,
         apply_bio_validation: bool = True,
 
-        save_only_best_model: bool = False,
+        save_only_best_model: bool = True,
         no_save_models: bool = False,
-        enable_mixed_precision: bool = False,
         dataloader_num_workers: int = 0,
         pin_memory: bool = True
     ) -> None:
@@ -211,7 +197,7 @@ class NERTrainer:
             model, train_dataset, eval_dataset, output_dir, id_to_label,
             learning_rate, num_train_epochs,
             train_batch_size, eval_batch_size, warmup_proportion,
-            max_grad_norm, patience, save_steps, eval_steps, 
+            max_grad_norm, patience,
             logging_steps, seed, device
         )
         
@@ -228,10 +214,10 @@ class NERTrainer:
 
         # Initialize evaluator for entity-level evaluation
         try:
-            self.evaluator = NEREvaluator(id_to_label)
+            self.evaluator = EntityLevelEvaluator(id_to_label)
             logger.info(f"✅ Initialized evaluator with {len(id_to_label)} labels")
         except Exception as e:
-            raise RuntimeError(f"Failed to initialize NEREvaluator: {e}") from e
+            raise RuntimeError(f"Failed to initialize EntityLevelEvaluator: {e}") from e
         
         # Training hyperparameters with validation
         self.learning_rate = learning_rate
@@ -241,8 +227,6 @@ class NERTrainer:
         self.warmup_proportion = warmup_proportion
         self.max_grad_norm = max_grad_norm
         self.patience = patience
-        self.save_steps = save_steps
-        self.eval_steps = eval_steps
         self.logging_steps = logging_steps
         self.seed = seed
         
@@ -250,11 +234,8 @@ class NERTrainer:
         set_seed(self.seed)
         
         # Extended configuration
-        self.enable_mixed_precision = enable_mixed_precision
         self.dataloader_num_workers = dataloader_num_workers
         self.pin_memory = pin_memory and torch.cuda.is_available()
-        
-
         
         # Model saving configuration
         self.save_only_best_model = save_only_best_model
@@ -273,20 +254,10 @@ class NERTrainer:
         
         # Memory management setup
         if self.device.type == "cuda":
-            self.scaler = GradScaler() if enable_mixed_precision else None
             self._log_gpu_memory_status("Initial")
         else:
             self.scaler = None
             
-        # Authentication setup
-        try:
-            auth_status = setup_all_auth()
-            if auth_status.get('huggingface'):
-                logger.info("🔐 Hugging Face authentication enabled")
-            else:
-                logger.warning("⚠️  Hugging Face authentication not configured")
-        except Exception as e:
-            logger.warning(f"⚠️  Authentication setup failed: {e}")
         
         # Model initialization with error handling
         try:
@@ -302,17 +273,15 @@ class NERTrainer:
         except Exception as e:
             raise RuntimeError(f"Failed to setup optimizer: {e}") from e
         
-
-        
         # Final initialization log
-        logger.info("🚀 NERTrainer initialized successfully")
+        logger.info("🚀 VotIETrainer initialized successfully")
         self._log_configuration_summary()
     
     def _validate_initialization_parameters(
         self,
-        model: BaseNERModel,
-        train_dataset: NERDataset,
-        eval_dataset: NERDataset,
+        model: BaseVotIEModel,
+        train_dataset: VotIEDataset,
+        eval_dataset: VotIEDataset,
         output_dir: Union[str, Path],
         id_to_label: Dict[int, str],
         learning_rate: float,
@@ -322,8 +291,6 @@ class NERTrainer:
         warmup_proportion: float,
         max_grad_norm: float,
         patience: int,
-        save_steps: int,
-        eval_steps: int,
         logging_steps: int,
         seed: int,
         device: int
@@ -336,14 +303,14 @@ class NERTrainer:
             ValueError: If parameter values are invalid
         """
         # Type validation
-        if not isinstance(model, BaseNERModel):
-            raise TypeError(f"model must be BaseNERModel instance, got {type(model)}")
+        if not isinstance(model, BaseVotIEModel):
+            raise TypeError(f"model must be BaseVotIEModel instance, got {type(model)}")
         
-        if not isinstance(train_dataset, NERDataset):
-            raise TypeError(f"train_dataset must be NERDataset instance, got {type(train_dataset)}")
+        if not isinstance(train_dataset, VotIEDataset):
+            raise TypeError(f"train_dataset must be VotIEDataset instance, got {type(train_dataset)}")
             
-        if not isinstance(eval_dataset, NERDataset):
-            raise TypeError(f"eval_dataset must be NERDataset instance, got {type(eval_dataset)}")
+        if not isinstance(eval_dataset, VotIEDataset):
+            raise TypeError(f"eval_dataset must be VotIEDataset instance, got {type(eval_dataset)}")
             
         if not isinstance(id_to_label, dict):
             raise TypeError(f"id_to_label must be dict, got {type(id_to_label)}")
@@ -389,7 +356,7 @@ class NERTrainer:
         
         # Step validation
         for step_name, step_value in [
-            ("save_steps", save_steps), ("eval_steps", eval_steps), ("logging_steps", logging_steps)
+            ("logging_steps", logging_steps)
         ]:
             if not isinstance(step_value, int) or step_value < 1:
                 raise ValueError(f"{step_name} must be positive integer, got {step_value}")
@@ -473,7 +440,6 @@ class NERTrainer:
         logger.info(f"   Warmup proportion: {self.warmup_proportion}")
         logger.info(f"   Gradient clipping: {self.max_grad_norm}")
         logger.info(f"   Patience: {self.patience}")
-        logger.info(f"   Mixed precision: {self.enable_mixed_precision}")
         logger.info(f"   Output directory: {self.output_dir}")
 
     def _setup_optimizer(self) -> AdamW:
@@ -495,7 +461,6 @@ class NERTrainer:
         
         return optimizer
     
-
     def _setup_scheduler(self, num_training_steps: int) -> LambdaLR:
         """Setup learning rate scheduler with warmup."""
         num_warmup_steps = int(num_training_steps * self.warmup_proportion)
@@ -509,7 +474,7 @@ class NERTrainer:
         logger.info(f"Scheduler setup - Warmup steps: {num_warmup_steps}, Total steps: {num_training_steps}")
         return scheduler
     
-    def _get_dataloader(self, dataset: NERDataset, batch_size: int, shuffle: bool = False) -> DataLoader:
+    def _get_dataloader(self, dataset: VotIEDataset, batch_size: int, shuffle: bool = False) -> DataLoader:
         """Create DataLoader with proper sampling."""
         sampler = RandomSampler(dataset) if shuffle else SequentialSampler(dataset)
         
@@ -587,8 +552,6 @@ class NERTrainer:
                     f"LR = {learning_rates}"
                 )
                 
-
-        
         return {
             'train_loss': total_loss / total_steps if total_steps > 0 else 0.0,
             'steps': total_steps
@@ -660,57 +623,17 @@ class NERTrainer:
         
         eval_results = {
             'eval_loss': eval_loss,
-            'entity_f1_strict': entity_metrics.get('entity_f1_strict', 0.0),
-            'entity_precision': entity_metrics.get('precision', 0.0),
-            'entity_recall': entity_metrics.get('recall', 0.0),
-            'entity_accuracy': entity_metrics.get('accuracy', 0.0),
-            'evaluation_method': entity_metrics.get('evaluation_method', 'seqeval'),
+            'entity_f1_strict': entity_metrics.get('entity_f1', 0.0),  # Use entity_f1 from EntityLevelEvaluator
+            'entity_precision': entity_metrics.get('entity_precision', 0.0),
+            'entity_recall': entity_metrics.get('entity_recall', 0.0),
+            'entity_accuracy': entity_metrics.get('entity_accuracy', 0.0),
+            'evaluation_method': 'seqeval',  # EntityLevelEvaluator uses seqeval
             'per_type_metrics': entity_metrics.get('per_type_metrics', {}),
             'num_examples': len(all_predictions)
         }
         
         return eval_results
-    
-    def final_evaluate(self, dataloader: DataLoader, eval_set_name: str = "test") -> Dict[str, float]:
-        """
-        Run final evaluation (typically on test set).
-        
-        Args:
-            dataloader: DataLoader for the evaluation set
-            eval_set_name: Name of the evaluation set (e.g., "test", "validation")
-            
-        Returns:
-            Dictionary with evaluation results
-        """
-        logger.info(f"Running final evaluation on {eval_set_name} set...")
-        results = self.evaluate(dataloader, is_final_eval=True, final_eval_prefix=eval_set_name)
-        
-        logger.info(f"Final {eval_set_name} evaluation results:")
-        logger.info(f"  Loss: {results['eval_loss']:.4f}")
-        logger.info(f"  Entity Precision: {results.get('entity_precision', 0.0):.4f}")
-        logger.info(f"  Entity Recall: {results.get('entity_recall', 0.0):.4f}")
-        logger.info(f"  Entity F1 (Strict): {results['entity_f1_strict']:.4f}")
-        logger.info(f"  Entity Accuracy: {results.get('entity_accuracy', 0.0):.4f}")
-        logger.info(f"  Token Accuracy: {results.get('token_accuracy', 0.0):.4f}")
-        logger.info(f"  Examples: {results['num_examples']}")
-
-        # Log per-type metrics if available
-        per_type_metrics = results.get('per_type_metrics', {})
-        if per_type_metrics:
-            logger.info("  Per-Entity-Type Metrics:")
-            for entity_type, metrics in per_type_metrics.items():
-                logger.info(f"    {entity_type}:")
-                logger.info(f"      Precision: {metrics.get('precision', 0.0):.4f}")
-                logger.info(f"      Recall: {metrics.get('recall', 0.0):.4f}")
-                logger.info(f"      F1: {metrics.get('f1_score', 0.0):.4f}")
-                logger.info(f"      Support: {metrics.get('support', 0)}")
-
-
-
-        return results
-    
-
-    
+      
     def save_model(self, save_path: Path, is_best: bool = False):
         """Save model in HuggingFace format with safetensors."""
         save_path.mkdir(parents=True, exist_ok=True)
@@ -726,7 +649,7 @@ class NERTrainer:
         }, checkpoint_path)
         
         if is_best:
-            # Save best model in HuggingFace format with safetensors
+            # Save best model in HuggingFace
             self._save_huggingface_format(save_path)
         
         logger.info(f"Model saved to {save_path}")
@@ -739,10 +662,6 @@ class NERTrainer:
         # Save model weights in safetensors format
         model_safetensors_path = hf_dir / "model.safetensors"
         save_safetensors(self.model.state_dict(), str(model_safetensors_path))
-        
-        # Also save in pytorch format for backward compatibility
-        pytorch_model_path = hf_dir / "pytorch_model.bin"
-        torch.save(self.model.state_dict(), pytorch_model_path)
         
         # Save tokenizer if available
         if self.tokenizer is not None:
@@ -925,9 +844,7 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
     def train(self) -> Dict[str, Any]:
         """Main training loop."""
         logger.info("Starting training...")
-        
 
-        
         # Setup data loaders
         train_dataloader = self._get_dataloader(self.train_dataset, self.train_batch_size, shuffle=True)
         eval_dataloader = self._get_dataloader(self.eval_dataset, self.eval_batch_size, shuffle=False)
@@ -984,10 +901,11 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
                 self.patience_counter += 1
                 logger.info(f"No improvement. Patience: {self.patience_counter}/{self.patience}")
             
-            # Save model (only save intermediate epochs if save_only_best_model is False)
+            # Save model 
             if not self.save_only_best_model or is_best:
                 epoch_dir = self.output_dir / f"epoch_{epoch + 1}"
                 self.save_model(epoch_dir, is_best=is_best)
+
             elif is_best:
                 # For save_only_best_model=True, just track the best checkpoint path
                 epoch_dir = self.output_dir / f"epoch_{epoch + 1}"
@@ -1017,9 +935,6 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
                 'Eval F1': f"{eval_results['entity_f1_strict']:.4f}",
                 'Best': f"{self.best_eval_score:.4f}"
             })
-            
-
-            
             # Early stopping
             if self.patience_counter >= self.patience:
                 logger.info(f"Early stopping triggered after epoch {epoch + 1}")
@@ -1056,8 +971,6 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
             else:
                 logger.info(f"✅ Best model saved successfully to {final_model_dir}")
                 # Clean up checkpoint directories to save space
-                # For save_only_best_model=True, we always clean up since we only want the final best model
-                # For save_only_best_model=False, we still clean up by default (existing behavior)
                 self._cleanup_checkpoints()
 
         # Save final results with comprehensive metadata

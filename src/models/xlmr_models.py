@@ -9,13 +9,13 @@ from torchcrf import CRF
 from typing import Optional
 import logging
 
-from .base import BaseNERModel
+from .base import BaseVotIEModel
 from src.data.postprocessing import postprocess_model_output
 
 logger = logging.getLogger(__name__)
 
 
-class XLMRLinearNER(BaseNERModel):
+class XLMRLinearVotIE(BaseVotIEModel):
     """XLM-R + Linear (Fine-tuning approach similar to BERT paper)."""
     
     def __init__(self, model_name: str, num_labels: int, class_weights: Optional[torch.Tensor] = None,
@@ -82,7 +82,7 @@ class XLMRLinearNER(BaseNERModel):
             return batch_predictions
 
 
-class XLMRCRFNER(BaseNERModel):
+class XLMRCRFVotIE(BaseVotIEModel):
     """XLM-R + CRF (Fine-tuning approach similar to BERT paper)."""
     
     def __init__(self, model_name: str, num_labels: int, class_weights: Optional[torch.Tensor] = None,

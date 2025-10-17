@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class EventConstructor:
     """
-    Constructs structured voting events from BIO-tagged predictions.
+    Constructs structured voting events from BIO-tagged predictions: stage 2 of the VotIE pipeline. 
 
     Event Structure (PAPER-ALIGNED FORMAT):
     {

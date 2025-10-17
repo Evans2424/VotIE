@@ -22,61 +22,28 @@ class EventLevelEvaluator:
     """
     Event-level evaluation for voting event extraction.
 
-    Evaluates structured event extraction with the HYBRID event schema:
+    Evaluates structured event extraction with the VotIE events format:
     {
         'has_voting_event': bool,
         'event': {
             'subject': str or None,  # SINGULAR - single string
-            'participants': [{'text': str, 'position': str}],  # LIST
-            'counting': [{'text': str, 'type': str}],  # LIST (hybrid format)
-            'voting_expressions': [str]  # LIST (hybrid format)
+            'outcome': str or None,  # SINGULAR - single string  
+            'participants': [{'text': str, 'position': str}],  # ALWAYS LIST
+            'counting': [{'text': str, 'type': str}],  # ALWAYS LIST
+            'voting_expressions': [str]  # ALWAYS LIST
         }
     }
 
     Notes:
-    - For lists: compares first item only (configurable via parameters)
+    - subject and outcome are always single strings (or None)
+    - participants, counting, and voting_expressions are always lists (can be empty)
+    - For multi-item lists: compares first item only for counting and voting_expressions
     - All text comparisons are case-insensitive after normalization
     """
 
     def __init__(self):
         """Initialize evaluator."""
         pass
-
-    def _normalize_counting(self, counting: Any) -> List[Dict[str, str]]:
-        """
-        Normalize counting to list format (backward compatible).
-
-        Args:
-            counting: Can be None, dict, or list
-
-        Returns:
-            List of counting dicts (empty if None)
-        """
-        if counting is None:
-            return []
-        if isinstance(counting, list):
-            return counting
-        if isinstance(counting, dict):
-            return [counting]
-        return []
-
-    def _normalize_voting_expressions(self, expressions: Any) -> List[str]:
-        """
-        Normalize voting expressions to list format (backward compatible).
-
-        Args:
-            expressions: Can be None, str, or list
-
-        Returns:
-            List of expression strings (empty if None)
-        """
-        if expressions is None:
-            return []
-        if isinstance(expressions, list):
-            return [str(e) for e in expressions if e]
-        if isinstance(expressions, str):
-            return [expressions] if expressions else []
-        return []
 
     def extract_participant_vote_pairs(
         self,
@@ -86,12 +53,13 @@ class EventLevelEvaluator:
         Extract (participant, position) tuples from event.
 
         Args:
-            event: Event dictionary with 'participants' field
+            event: Event dictionary with 'participants' field (ALWAYS a list)
 
         Returns:
             Set of (participant_text, position) tuples (normalized)
         """
         pairs = set()
+        # participants is ALWAYS a list in VotIE format
         participants = event.get('participants', [])
         
         for participant in participants:
@@ -184,7 +152,6 @@ class EventLevelEvaluator:
                 false_positives += 1
             elif not pred_has_event and gold_has_event:
                 false_negatives += 1
-            # true_negatives not needed for F1 calculation
 
         # Calculate precision, recall, F1
         if true_positives + false_positives == 0:
@@ -203,6 +170,8 @@ class EventLevelEvaluator:
             f1 = 2 * precision * recall / (precision + recall)
 
         return {
+            "event_detection_precision": precision,
+            "event_detection_recall": recall,
             "event_detection_f1": f1
         }
 
@@ -214,7 +183,6 @@ class EventLevelEvaluator:
         """
         Evaluate subject extraction at span level with F1 score.
         
-        As per paper: "Subject and counting extraction are evaluated at the span level"
         Computes F1 treating each event with a voting event as a binary classification:
         - TP: Both have subject and they match
         - FP: Predicted subject exists but doesn't match gold (or gold has no subject)
@@ -232,22 +200,21 @@ class EventLevelEvaluator:
         false_negatives = 0
 
         for pred_event, gold_event in zip(pred_events, gold_events):
-            # Skip if no event structure (handle None pred_event or gold_event)
+            # Skip if no event structure
             if pred_event is None or gold_event is None:
                 continue
                 
             if not gold_event.get('has_voting_event', False):
                 continue
 
-            # Extract subject (single string) - safely handle None event dicts
+            # Extract subject (ALWAYS a single string or None in VotIE format)
             pred_event_data = pred_event.get('event') if pred_event else None
             gold_event_data = gold_event.get('event') if gold_event else None
             
-            # Handle case where event is None (no voting event)
             pred_subject = pred_event_data.get('subject') if pred_event_data and isinstance(pred_event_data, dict) else None
             gold_subject = gold_event_data.get('subject') if gold_event_data and isinstance(gold_event_data, dict) else None
 
-            # Normalize and compare (handle None values) - span-level matching
+            # Normalize and compare - span-level matching
             pred_subject_norm = pred_subject.strip().lower() if pred_subject else ''
             gold_subject_norm = gold_subject.strip().lower() if gold_subject else ''
 
@@ -280,7 +247,9 @@ class EventLevelEvaluator:
             f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "subject_f1": f1
+            "subject_f1": f1,
+            "subject_precision": precision,
+            "subject_recall": recall
         }
 
     def evaluate_counting_extraction(
@@ -316,17 +285,15 @@ class EventLevelEvaluator:
             if not gold_event.get('has_voting_event', False):
                 continue
 
-            # Handle None event structures
+            # Get event structures (counting is ALWAYS a list)
             pred_ev = pred_event.get('event') or {}
             gold_ev = gold_event.get('event') or {}
 
-            # Get first counting expression
-            pred_counting_raw = pred_ev.get('counting')
-            gold_counting_raw = gold_ev.get('counting')
+            # Get counting lists (already lists in VotIE format)
+            pred_counting = pred_ev.get('counting', [])
+            gold_counting = gold_ev.get('counting', [])
 
-            pred_counting = self._normalize_counting(pred_counting_raw)
-            gold_counting = self._normalize_counting(gold_counting_raw)
-
+            # Get first counting expression (or None if empty)
             pred_first = pred_counting[0] if pred_counting else None
             gold_first = gold_counting[0] if gold_counting else None
 
@@ -369,7 +336,9 @@ class EventLevelEvaluator:
             f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "counting_f1": f1
+            "counting_f1": f1,
+            "counting_precision": precision,
+            "counting_recall": recall
         }
 
     def evaluate_participant_votes(
@@ -400,7 +369,7 @@ class EventLevelEvaluator:
             if not gold_event.get('has_voting_event', False):
                 continue
 
-            # Handle None event structures (event can be None when has_voting_event is False)
+            # Get event structures (participants is ALWAYS a list in VotIE format)
             pred_event_data = pred_event.get('event') or {}
             gold_event_data = gold_event.get('event') or {}
             
@@ -420,7 +389,9 @@ class EventLevelEvaluator:
             }
 
         return {
-            "participant_vote_f1": sum(all_f1s) / len(all_f1s)
+            "participant_vote_f1": sum(all_f1s) / len(all_f1s),
+            "participant_vote_precision": sum(all_precisions) / len(all_precisions),
+            "participant_vote_recall": sum(all_recalls) / len(all_recalls)
         }
 
     def evaluate_complete_event(
@@ -430,19 +401,16 @@ class EventLevelEvaluator:
     ) -> Dict[str, float]:
         """
         Evaluate complete event extraction with F1 score.
-        
-        As per paper: "strict event-level accuracy, where an event is correct 
-        only if all components match the gold annotation"
-        
+
         Treats each voting event as a binary classification:
         - TP: Event has voting event and ALL components match exactly
         - FP: Predicted as voting event but components don't all match
         - FN: Gold has voting event but prediction doesn't match all components
         
-        Required matches:
-        - Subject (exact span match)
-        - All participant-vote pairs (set match)
-        - Counting expression (exact span + type match)
+        Required matches (VotIE format):
+        - subject: exact string match (single string)
+        - participants: set-based match of all (text, position) tuples
+        - counting: first item match (text + type) from list
 
         Args:
             pred_events: List of predicted events
@@ -454,6 +422,7 @@ class EventLevelEvaluator:
         true_positives = 0
         false_positives = 0
         false_negatives = 0
+
         failures = {
             'subject_mismatch': 0,
             'participants_mismatch': 0,
@@ -476,7 +445,6 @@ class EventLevelEvaluator:
                 continue
 
             # Gold has a voting event - check if prediction matches all components
-            # Check all components - handle None event structures (event can be None)
             pred_ev = pred_event.get('event') or {}
             gold_ev = gold_event.get('event') or {}
 
@@ -485,8 +453,8 @@ class EventLevelEvaluator:
                 false_negatives += 1
                 continue
 
-            # Both have events - check all components
-            # 1. Compare subjects (single string)
+            # Both have events - check all components match
+            # 1. Compare subject (ALWAYS single string in VotIE format)
             pred_subject = pred_ev.get('subject', None)
             gold_subject = gold_ev.get('subject', None)
 
@@ -498,7 +466,7 @@ class EventLevelEvaluator:
                 false_negatives += 1
                 continue
 
-            # 2. Compare participant-vote pairs (set)
+            # 2. Compare participants (ALWAYS list in VotIE format)
             pred_pairs = self.extract_participant_vote_pairs(pred_ev)
             gold_pairs = self.extract_participant_vote_pairs(gold_ev)
 
@@ -507,15 +475,11 @@ class EventLevelEvaluator:
                 false_negatives += 1
                 continue
 
-            # 3. Compare counting (span-level: text + type)
-            pred_counting_raw = pred_ev.get('counting')
-            gold_counting_raw = gold_ev.get('counting')
+            # 3. Compare counting
+            pred_counting = pred_ev.get('counting', [])
+            gold_counting = gold_ev.get('counting', [])
 
-            # Normalize to lists (backward compatible)
-            pred_counting = self._normalize_counting(pred_counting_raw)
-            gold_counting = self._normalize_counting(gold_counting_raw)
-
-            # Compare first counting expression (as per paper: span-level matching)
+            # Get first counting expression (or None if empty)
             pred_first = pred_counting[0] if pred_counting else None
             gold_first = gold_counting[0] if gold_counting else None
 
@@ -555,7 +519,10 @@ class EventLevelEvaluator:
             f1 = 2 * precision * recall / (precision + recall)
 
         return {
-            "complete_event_f1": f1
+            "complete_event_f1": f1,
+            "complete_event_precision": precision,
+            "complete_event_recall": recall,
+            "failures": failures
         }
 
     def compute_metrics(

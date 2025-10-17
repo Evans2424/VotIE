@@ -162,21 +162,19 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     import torch
     import yaml
     from transformers import AutoTokenizer
-    from src.trainer import NERTrainer
-    from src.models.transformer_models import (
-        BertLinearNER, BertCRFNER,
-        DebertaLinearNER, DebertaCRFNER,
-        XLMRLinearNER, XLMRCRFNER
-    )
+    from src.trainer import VotIETrainer
+    from src.models.bertimbau_models import BertimbauLinearVotIE, BertimbauCRFVotIE
+    from src.models.deberta_models import DebertaLinearVotIE, DebertaCRFVotIE
+    from src.models.xlmr_models import XLMRLinearVotIE, XLMRCRFVotIE
     from src.data.dataset import load_ner_dataset_from_jsonl
 
     MODEL_CLASSES = {
-        "bert_linear": BertLinearNER,
-        "bert_crf": BertCRFNER,
-        "deberta_linear": DebertaLinearNER,
-        "deberta_crf": DebertaCRFNER,
-        "xlmr_linear": XLMRLinearNER,
-        "xlmr_crf": XLMRCRFNER,
+        "bert_linear": BertimbauLinearVotIE,
+        "bert_crf": BertimbauCRFVotIE,
+        "deberta_linear": DebertaLinearVotIE,
+        "deberta_crf": DebertaCRFVotIE,
+        "xlmr_linear": XLMRLinearVotIE,
+        "xlmr_crf": XLMRCRFVotIE,
     }
 
     # Load config
@@ -214,7 +212,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     output_dir = Path("models") / baseline_name / experiment_name
     print(f"\n📦 Initializing trainer...")
 
-    trainer = NERTrainer(
+    trainer = VotIETrainer(
         model=model,
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
@@ -246,52 +244,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     return output_dir
 
 
-def run_comprehensive_evaluation(model_dir: Path, test_data_path: str, device: str = 'cpu'):
-    """
-    Run comprehensive evaluation using the standalone evaluate.py script.
-    
-    This ensures consistency between training evaluation and standalone evaluation.
-    """
-    try:
-        from scripts.evaluate import VotIEEvaluator
-        
-        print("\n" + "="*80)
-        print("🔍 Running comprehensive evaluation (using scripts/evaluate.py)")
-        print("="*80)
-        
-        # Initialize evaluator
-        evaluator = VotIEEvaluator(
-            model_path=str(model_dir / "best_model"),
-            test_data_path=test_data_path,
-            output_dir=str(model_dir / "evaluation"),
-            device=device
-        )
-        
-        # Run evaluation
-        results = evaluator.evaluate()
-        
-        print("\n📊 Comprehensive Evaluation Results:")
-        print(f"  Entity F1: {results['entity_level_metrics']['entity_f1']:.4f}")
-        print(f"  Entity Precision: {results['entity_level_metrics']['entity_precision']:.4f}")
-        print(f"  Entity Recall: {results['entity_level_metrics']['entity_recall']:.4f}")
-        
-        if 'event_metrics' in results:
-            print(f"  Event Detection Accuracy: {results['event_metrics']['event_detection_accuracy']:.4f}")
-            print(f"  Complete Event Accuracy: {results['event_metrics']['complete_event_accuracy']:.4f}")
-        
-        print(f"\n✅ Detailed results saved to: {model_dir / 'evaluation'}")
-        
-        return results
-        
-    except Exception as e:
-        print(f"\n⚠️  Comprehensive evaluation failed: {e}")
-        print("Training metrics are still available in the model directory.")
-        import traceback
-        traceback.print_exc()
-        return None
-
-
-def main(config_file: str, experiment_name: str = None, run_full_eval: bool = False):
+def main(config_file: str, experiment_name: str = None):
     """Main training entry point."""
     import yaml
     from pathlib import Path
@@ -347,14 +300,7 @@ def main(config_file: str, experiment_name: str = None, run_full_eval: bool = Fa
             output_dir = train_transformer(baseline_name, config_file, experiment_name)
 
         print(f"\n🎉 Training completed successfully!")
-        
-        # Run comprehensive evaluation if requested
-        if run_full_eval and output_dir is not None:
-            data_config = config['data']
-            test_data_path = str(Path(data_config['data_dir']) / data_config['test_file'])
-            device = 'cuda' if config.get('training', {}).get('device', 0) >= 0 else 'cpu'
-            
-            run_comprehensive_evaluation(output_dir, test_data_path, device)
+        print(f"📁 Model saved to: {output_dir}")
 
     except Exception as e:
         print(f"\n❌ Training failed: {e}")
@@ -365,7 +311,7 @@ def main(config_file: str, experiment_name: str = None, run_full_eval: bool = Fa
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME] [--full-eval]")
+        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME]")
         print("\nTraditional Baselines:")
         for name, desc in TRADITIONAL_BASELINES.items():
             print(f"  - {name}: {desc}")
@@ -375,17 +321,17 @@ if __name__ == "__main__":
         print("\nOptions:")
         print("  --config: Path to config file (required)")
         print("  --experiment-name: Name for this experiment run (optional)")
-        print("  --full-eval: Run comprehensive evaluation using scripts/evaluate.py (optional)")
         print("\nExamples:")
-        print("  python scripts/train.py --config configs/main_experiment/crf.yaml")
-        print("  python scripts/train.py --config configs/main_experiment/bert_linear.yaml --experiment-name exp1")
-        print("  python scripts/train.py --config configs/main_experiment/deberta_crf.yaml --full-eval")
+        print("  python scripts/train.py --config configs/crf.yaml")
+        print("  python scripts/train.py --config configs/bert_linear.yaml --experiment-name exp1")
+        print("  python scripts/train.py --config configs/deberta_crf.yaml --experiment-name paper_final")
+        print("\nFor full pipeline (train + predict + evaluate), use:")
+        print("  python scripts/run_pipeline.py --config configs/deberta_crf.yaml")
         sys.exit(1)
 
     # Parse arguments
     config_file = None
     experiment_name = None
-    run_full_eval = False
 
     i = 1
     while i < len(sys.argv):
@@ -395,15 +341,12 @@ if __name__ == "__main__":
         elif sys.argv[i] == "--experiment-name" and i + 1 < len(sys.argv):
             experiment_name = sys.argv[i + 1]
             i += 2
-        elif sys.argv[i] == "--full-eval":
-            run_full_eval = True
-            i += 1
         else:
             i += 1
-    
+
     if not config_file:
         print("❌ Error: --config argument is required")
-        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME] [--full-eval]")
+        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME]")
         sys.exit(1)
 
-    main(config_file, experiment_name, run_full_eval)
+    main(config_file, experiment_name)

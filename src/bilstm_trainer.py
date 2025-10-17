@@ -20,7 +20,7 @@ from torch.optim import Adam, AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 
-from .models.bilstm_crf import BiLSTMFastTextNER, FastTextEmbedding, CharacterVocab
+from .models.bilstm_crf import BiLSTMFastTextVotIE, FastTextEmbedding, CharacterVocab
 from src.evaluation.entity_metrics import EntityLevelEvaluator
 
 logger = logging.getLogger(__name__)
@@ -356,7 +356,7 @@ class BiLSTMTrainer:
             model_params['char_vocab_size'] = len(self.char_vocab.char2idx)
 
         # Create model
-        self.model = BiLSTMFastTextNER(**model_params)
+        self.model = BiLSTMFastTextVotIE(**model_params)
         self.model.to(self.device)
 
         # Count parameters

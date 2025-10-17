@@ -9,13 +9,13 @@ from torchcrf import CRF
 from typing import Optional
 import logging
 
-from .base import BaseNERModel
+from .base import BaseVotIEModel
 from src.data.postprocessing import postprocess_model_output
 
 logger = logging.getLogger(__name__)
 
 
-class DebertaLinearNER(BaseNERModel):
+class DebertaLinearVotIE(BaseVotIEModel):
     """DeBERTa + Linear fine tuning code."""
     
     def __init__(self, model_name: str, num_labels: int, class_weights: Optional[torch.Tensor] = None,
@@ -73,7 +73,7 @@ class DebertaLinearNER(BaseNERModel):
             return batch_predictions
 
 
-class DebertaCRFNER(BaseNERModel):
+class DebertaCRFVotIE(BaseVotIEModel):
     """DeBERTa + CRF fine tuning code."""
     
     def __init__(self, model_name: str, num_labels: int, class_weights: Optional[torch.Tensor] = None,

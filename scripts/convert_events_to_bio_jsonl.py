@@ -2,11 +2,11 @@
 """
 Convert Event-Based Format to BIO-Tagged JSONL Format
 
-This script converts the event-based JSONL format with spans to BIO-tagged JSONL format
+This script converts the event-based JSON format with spans to BIO-tagged JSONL format
 for sequence labeling.
 
-Input: data/votie_events/{train,dev,test}.jsonl
-Output: data/votie_bio/{train,dev,test}.jsonl
+Input: data/votie_events/{train,dev,test}.json (JSON list format)
+Output: votie_bio/{train,dev,test}.jsonl (JSONL format)
 """
 
 import json
@@ -16,12 +16,54 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from collections import Counter
 
-# Setup logging
+try:
+    from tqdm import tqdm
+except ImportError:
+    # Fallback if tqdm is not installed
+    def tqdm(iterable, **kwargs):
+        return iterable
+
+# Setup logging first
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Try to load spaCy
+try:
+    import spacy
+    # Load Portuguese language model with only tokenizer (faster)
+    try:
+        nlp = spacy.load("pt_core_news_sm", disable=["parser", "ner", "lemmatizer", "attribute_ruler"])
+        logger.info("Using spaCy for tokenization (optimized)")
+    except OSError:
+        logger.warning("Portuguese spaCy model not found. Install with: python -m spacy download pt_core_news_sm")
+        logger.info("Falling back to whitespace tokenization")
+        nlp = None
+except ImportError:
+    logger.warning("spaCy not installed. Install with: pip install spacy")
+    logger.info("Falling back to whitespace tokenization")
+    nlp = None
+
+
+def tokenize_text(text: str) -> List[str]:
+    """
+    Tokenize text using spaCy if available, otherwise fallback to whitespace.
+    
+    Args:
+        text: Raw text to tokenize
+        
+    Returns:
+        List of tokens
+    """
+    if nlp is not None:
+        # Use spaCy tokenization
+        doc = nlp(text)
+        return [token.text for token in doc]
+    else:
+        # Fallback to simple whitespace tokenization
+        return text.split()
 
 
 def spans_to_bio_tags(tokens: List[str], spans: List[Dict]) -> List[str]:
@@ -109,12 +151,99 @@ def convert_example_to_bio_jsonl(example: Dict[str, Any]) -> Tuple[Dict[str, Any
     Returns:
         (bio_example, statistics)
     """
-    tokens = example["tokens"]
+    text = example["text"]
     spans = example["spans"]
     example_id = example["id"]
 
-    # Convert spans to BIO tags
-    bio_tags = spans_to_bio_tags(tokens, spans)
+    # Tokenize the text using spaCy or whitespace
+    tokens = tokenize_text(text)
+    
+    # Map character-level spans to token-level spans
+    token_spans = []
+    if nlp is not None:
+        # Use spaCy for accurate character-to-token mapping
+        doc = nlp(text)
+        char_to_token = {}
+        for i, token in enumerate(doc):
+            for char_idx in range(token.idx, token.idx + len(token.text)):
+                char_to_token[char_idx] = i
+        
+        for span in spans:
+            # FIXED: Character positions in the original data are off by 1
+            # Adding +1 to both start and end positions to get correct alignment
+            start_char = span["start"] + 1
+            end_char = span["end"] + 1
+            label = span["label"]
+            span_text = span["text"]
+
+            # Find token indices that overlap with character span
+            # Try the character position first, if it fails try nearby positions
+            token_start = char_to_token.get(start_char)
+            if token_start is None and start_char > 0:
+                # Try adjacent positions in case of whitespace
+                token_start = char_to_token.get(start_char - 1) or char_to_token.get(start_char + 1)
+
+            token_end = char_to_token.get(end_char - 1)  # end is exclusive
+            if token_end is None and end_char > 1:
+                # Try adjacent positions
+                token_end = char_to_token.get(end_char - 2) or char_to_token.get(end_char)
+            
+            if token_start is not None and token_end is not None:
+                token_spans.append({
+                    "token_start": token_start,
+                    "token_end": token_end,
+                    "label": label,
+                    "text": span_text
+                })
+            else:
+                logger.warning(f"Could not map span to tokens in {example_id}: "
+                             f"'{span_text[:40]}...' ({label}) at chars [{start_char}:{end_char}]")
+    else:
+        # Fallback: use whitespace tokenization and approximate mapping
+        # This is less accurate but works without spaCy
+        char_pos = 0
+        token_idx = 0
+        char_to_token = {}
+        
+        for token in tokens:
+            # Find token in text starting from char_pos
+            idx = text.find(token, char_pos)
+            if idx >= 0:
+                for i in range(idx, idx + len(token)):
+                    char_to_token[i] = token_idx
+                char_pos = idx + len(token)
+            token_idx += 1
+        
+        for span in spans:
+            # FIXED: Character positions in the original data are off by 1
+            # Adding +1 to both start and end positions to get correct alignment
+            start_char = span["start"] + 1
+            end_char = span["end"] + 1
+            label = span["label"]
+            span_text = span["text"]
+
+            # Try the character position first, if it fails try nearby positions
+            token_start = char_to_token.get(start_char)
+            if token_start is None and start_char > 0:
+                token_start = char_to_token.get(start_char - 1) or char_to_token.get(start_char + 1)
+
+            token_end = char_to_token.get(end_char - 1)
+            if token_end is None and end_char > 1:
+                token_end = char_to_token.get(end_char - 2) or char_to_token.get(end_char)
+            
+            if token_start is not None and token_end is not None:
+                token_spans.append({
+                    "token_start": token_start,
+                    "token_end": token_end,
+                    "label": label,
+                    "text": span_text
+                })
+            else:
+                logger.warning(f"Could not map span to tokens in {example_id}: "
+                             f"'{span_text[:40]}...' ({label}) at chars [{start_char}:{end_char}]")
+
+    # Convert token-level spans to BIO tags
+    bio_tags = spans_to_bio_tags(tokens, token_spans)
 
     # Validate
     if not validate_bio_tags(tokens, bio_tags, example_id):
@@ -123,22 +252,32 @@ def convert_example_to_bio_jsonl(example: Dict[str, Any]) -> Tuple[Dict[str, Any
     # Create BIO-tagged example in JSONL format
     bio_example = {
         "id": example_id,
-        "text": example["text"],
+        "text": text,
         "tokens": tokens,
         "labels": bio_tags,  # BIO tags as labels
-        "municipality": example["municipality"],
-        "document_id": example["document_id"],
-        "segment_id": example["segment_id"]
+        "municipality": example["municipality"]
     }
+    
+    # Only include document_id and segment_id if they exist in the source
+    if "document_id" in example:
+        bio_example["document_id"] = example["document_id"]
+    if "segment_id" in example:
+        bio_example["segment_id"] = example["segment_id"]
 
     # Statistics
     entity_count = sum(1 for tag in bio_tags if tag.startswith('B-'))
     entity_types = Counter(tag[2:] for tag in bio_tags if tag.startswith('B-'))
 
+    # Track conversion success rate
+    original_entity_count = len(spans)
+    mapped_entity_count = len(token_spans)
+
     return bio_example, {
         "tokens": len(tokens),
         "entities": entity_count,
-        "entity_types": dict(entity_types)
+        "entity_types": dict(entity_types),
+        "original_spans": original_entity_count,
+        "mapped_spans": mapped_entity_count
     }
 
 
@@ -156,18 +295,24 @@ def convert_split(input_file: Path, output_file: Path) -> Dict[str, Any]:
     total_entities = 0
     entity_label_counts = Counter()
     num_examples = 0
+    total_original_spans = 0
+    total_mapped_spans = 0
 
-    # Read input
+    # Read input JSON file (list format)
     with open(input_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            example = json.loads(line.strip())
-            bio_example, stats = convert_example_to_bio_jsonl(example)
+        examples = json.load(f)
 
-            bio_examples.append(bio_example)
-            total_tokens += stats["tokens"]
-            total_entities += stats["entities"]
-            entity_label_counts.update(stats["entity_types"])
-            num_examples += 1
+    # Process each example with progress bar
+    for example in tqdm(examples, desc=f"  Processing {input_file.name}", unit="example"):
+        bio_example, stats = convert_example_to_bio_jsonl(example)
+
+        bio_examples.append(bio_example)
+        total_tokens += stats["tokens"]
+        total_entities += stats["entities"]
+        entity_label_counts.update(stats["entity_types"])
+        total_original_spans += stats["original_spans"]
+        total_mapped_spans += stats["mapped_spans"]
+        num_examples += 1
 
     # Write output as JSONL
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -175,13 +320,18 @@ def convert_split(input_file: Path, output_file: Path) -> Dict[str, Any]:
         for bio_example in bio_examples:
             f.write(json.dumps(bio_example, ensure_ascii=False) + '\n')
 
+    mapping_rate = 100 * total_mapped_spans / total_original_spans if total_original_spans > 0 else 0
     logger.info(f"  Converted {num_examples} examples with {total_entities} entities")
+    logger.info(f"  Mapping success: {total_mapped_spans}/{total_original_spans} spans ({mapping_rate:.1f}%)")
 
     return {
         "num_examples": num_examples,
         "total_tokens": total_tokens,
         "total_entities": total_entities,
-        "entity_label_counts": dict(entity_label_counts)
+        "entity_label_counts": dict(entity_label_counts),
+        "original_spans": total_original_spans,
+        "mapped_spans": total_mapped_spans,
+        "mapping_rate": f"{mapping_rate:.1f}%"
     }
 
 
@@ -197,17 +347,17 @@ def validate_conversion(event_dir: Path, bio_dir: Path) -> bool:
     validation_passed = True
 
     for split in ["train", "dev", "test"]:
-        event_file = event_dir / f"{split}.jsonl"
+        event_file = event_dir / f"{split}.json"
         bio_file = bio_dir / f"{split}.jsonl"
 
-        # Count entities in event format
+        # Count entities in event format (JSON list)
         event_entity_counts = Counter()
         event_example_count = 0
 
         with open(event_file, 'r', encoding='utf-8') as f:
-            for line in f:
-                example = json.loads(line.strip())
-                event_example_count += 1
+            examples = json.load(f)
+            event_example_count = len(examples)
+            for example in examples:
                 for span in example["spans"]:
                     event_entity_counts[span["label"]] += 1
 
@@ -252,18 +402,18 @@ def main():
     logger.info("=" * 80)
 
     # Paths
-    input_dir = Path("../data/votie_events")
-    output_dir = Path("../data/votie_bio")
+    input_dir = Path("data/votie_events")
+    output_dir = Path("data/votie_bio")
 
     if not input_dir.exists():
         logger.error(f"Input directory not found: {input_dir}")
-        logger.error("Please run convert_citilink_to_events.py first")
+        logger.error("Please run the data preparation script first")
         return 1
 
     # Convert each split
     all_stats = {}
     for split in ["train", "dev", "test"]:
-        input_file = input_dir / f"{split}.jsonl"
+        input_file = input_dir / f"{split}.json"
         output_file = output_dir / f"{split}.jsonl"
 
         if not input_file.exists():

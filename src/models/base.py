@@ -1,5 +1,5 @@
 """
-Base model class for all NER models with Portuguese BERT methodology.
+Base model class for all VotIE transformer models, used for the stage 1 - span extraction task framed as sequence labeling.
 """
 
 import torch
@@ -10,8 +10,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseNERModel(nn.Module):
-    """Base class for all NER models with Portuguese BERT."""
+class BaseVotIEModel(nn.Module):
+    """Base class for all VotIE models."""
     
     def __init__(self, model_name: str, num_labels: int, class_weights: Optional[torch.Tensor] = None,
                  weight_o: float = 0.01, bias_o: float = 6.0):
@@ -24,11 +24,10 @@ class BaseNERModel(nn.Module):
         self.weight_o = weight_o
         self.bias_o = bias_o
         
-        # Setup weighted loss function (Portuguese BERT paper methodology)
+        # Setup weighted loss function 
         if class_weights is not None:
             self.class_weights = class_weights
         else:
-            # Default weights following paper methodology
             weights = torch.ones(num_labels)
             weights[0] = weight_o  # O-tag gets reduced weight
             self.class_weights = weights
@@ -36,7 +35,7 @@ class BaseNERModel(nn.Module):
         # Create weighted cross-entropy loss
         self.loss_fct = nn.CrossEntropyLoss(weight=self.class_weights, ignore_index=-100)
         
-        logger.info(f"BaseNERModel initialized with O-weight={weight_o}, O-bias={bias_o}")
+        logger.info(f"BaseVotIEModel initialized with O-weight={weight_o}, O-bias={bias_o}")
     
     def _initialize_o_bias(self, classifier_layer):
         """Initialize classifier bias to prevent model collapse."""
@@ -63,7 +62,7 @@ class BaseNERModel(nn.Module):
             self.loss_fct = nn.CrossEntropyLoss(weight=self.class_weights, ignore_index=-100)
             self.loss_fct = self.loss_fct.to(logits.device)
         
-        # Only compute loss on active tokens (Portuguese BERT paper approach)
+        # Only compute loss on active tokens
         active_loss = attention_mask.view(-1) == 1
         active_logits = logits.view(-1, self.num_labels)
         active_labels = torch.where(
@@ -94,9 +93,6 @@ class BaseNERModel(nn.Module):
         from src.data.dataset import validate_bio_sequence
         
         validated_predictions = []
-        total_corrections = 0
-        total_sequences = len(predictions)
-        sequences_corrected = 0
         
         # Create reverse mapping
         label_to_id = {v: k for k, v in id_to_label.items()}

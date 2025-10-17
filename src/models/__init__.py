@@ -7,23 +7,23 @@ This package contains all the transformer-based NER models:
 - DeBERTa models
 """
 
-from .base import BaseNERModel
-from .bert_models import BertLinearNER, BertCRFNER
-from .xlmr_models import XLMRLinearNER, XLMRCRFNER
-from .deberta_models import DebertaLinearNER, DebertaCRFNER
+from .base import BaseVotIEModel
+from .bertimbau_models import BertimbauLinearVotIE, BertimbauCRFVotIE
+from .xlmr_models import XLMRLinearVotIE, XLMRCRFVotIE
+from .deberta_models import DebertaLinearVotIE, DebertaCRFVotIE
 
 # Import postprocessing utilities from data directory
 from src.data.postprocessing import postprocess_model_output, postprocess_labels_to_original
 
 __all__ = [
     # Base class
-    'BaseNERModel',
+    'BaseVotIEModel',
     # BERT models
-    'BertLinearNER', 'BertCRFNER',
+    'BertimbauLinearVotIE', 'BertimbauCRFVotIE',
     # XLM-R models  
-    'XLMRLinearNER', 'XLMRCRFNER',
+    'XLMRLinearVotIE', 'XLMRCRFVotIE',
     # DeBERTa models
-    'DebertaLinearNER', 'DebertaCRFNER',
+    'DebertaLinearVotIE', 'DebertaCRFVotIE',
     # Utilities
     'postprocess_model_output', 'postprocess_labels_to_original'
 ]

@@ -2,16 +2,13 @@
 """
 BiLSTM + FastText Model for Portuguese Voting NER
 
-Implements a traditional BiLSTM-CRF model using FastText embeddings as a baseline
-comparison to BERT-based approaches. This provides insight into the performance
-gains from contextualized vs static embeddings.
+Implements a traditional BiLSTM-CRF model using FastText embeddings as a baseline. This provides insight into the performance gains from contextualized vs static embeddings.
 
 Architecture:
     Input → FastText Embeddings → BiLSTM → Dropout → Linear → CRF → Output
 
 Features:
 - Facebook's pre-trained FastText embeddings (300d)
-- Portuguese and English language support
 - Bidirectional LSTM for sequence modeling
 - CRF layer for sequence consistency
 - Character-level CNN for OOV handling
@@ -42,17 +39,13 @@ logger = logging.getLogger(__name__)
 
 class FastTextEmbedding:
     """
-    FastText embedding wrapper for Portuguese and English.
-
     Handles loading pre-trained embeddings, vocabulary management,
     and OOV token handling for the BiLSTM model.
     """
 
     def __init__(
         self,
-        language: str = "pt",
         embedding_dim: int = 300,
-
         max_vocab_size: int = 50000,
         min_freq: int = 2
     ):
@@ -60,13 +53,11 @@ class FastTextEmbedding:
         Initialize embedding handler.
 
         Args:
-            language: Language code ('pt' or 'en')
             embedding_dim: Embedding dimension
 
             max_vocab_size: Maximum vocabulary size
             min_freq: Minimum frequency for vocabulary inclusion
         """
-        self.language = language
         self.embedding_dim = embedding_dim
         self.max_vocab_size = max_vocab_size
         self.min_freq = min_freq
@@ -87,14 +78,13 @@ class FastTextEmbedding:
         self.oov_count = 0
         self.total_tokens = 0
 
-        logger.info(f"Initialized FastText embedding handler for {language} with dim {embedding_dim}")
+        logger.info(f"Initialized FastText embedding handler for portuguese with dim {embedding_dim}")
 
-    def _download_fasttext_embeddings(self, language: str, model_path: Path) -> bool:
+    def _download_fasttext_embeddings(self, model_path: Path) -> bool:
         """
-        Download Facebook's pre-trained FastText embeddings for the specified language.
+        Download Facebook's pre-trained FastText embeddings for Portuguese.
         
         Args:
-            language: Language code ('pt' or 'en')
             model_path: Path where to save the downloaded model
             
         Returns:
@@ -107,12 +97,7 @@ class FastTextEmbedding:
             
             logger.info(f"📥 Downloading Facebook's pre-trained FastText embeddings for {language}...")
             logger.info("This may take a few minutes depending on your internet connection...")
-            
-            # Provide size estimates
-            if language == "pt":
-                logger.info("💡 Portuguese model size: ~6.8GB compressed, ~12GB uncompressed")
-            else:
-                logger.info("💡 English model size: ~6.2GB compressed, ~11GB uncompressed")
+                
             
             # Check available disk space
             try:
@@ -131,41 +116,27 @@ class FastTextEmbedding:
                         
             except Exception:
                 pass  # Ignore disk space check errors
-            
-            # Facebook's pre-trained model URLs
-            if language == "pt":
-                url = "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.pt.300.bin.gz"
-            else:
-                url = "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.en.300.bin.gz"
-            
+
+            url = "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.pt.300.bin.gz"
+
             # Download compressed file
             compressed_path = model_path.with_suffix('.bin.gz')
             logger.info(f"Downloading from: {url}")
             logger.info(f"Saving to: {compressed_path}")
             
             # Try to use tqdm for better progress, fallback to simple callback
-            try:
-                from tqdm import tqdm
-                
-                class TqdmUpTo(tqdm):
-                    def update_to(self, b=1, bsize=1, tsize=None):
-                        if tsize is not None:
-                            self.total = tsize
-                        return self.update(b * bsize - self.n)
-                
-                with TqdmUpTo(unit='B', unit_scale=True, miniters=1, desc="Downloading") as t:
-                    urllib.request.urlretrieve(url, compressed_path, reporthook=t.update_to)
-                    
-            except ImportError:
-                # Fallback to simple progress callback
-                def progress_callback(block_num, block_size, total_size):
-                    if total_size > 0:
-                        percent = (block_num * block_size * 100) / total_size
-                        if block_num % 1000 == 0:  # Print every 1000 blocks to avoid spam
-                            logger.info(f"Download progress: {percent:.1f}%")
-                
-                urllib.request.urlretrieve(url, compressed_path, reporthook=progress_callback)
-                
+       
+            from tqdm import tqdm
+            
+            class TqdmUpTo(tqdm):
+                def update_to(self, b=1, bsize=1, tsize=None):
+                    if tsize is not None:
+                        self.total = tsize
+                    return self.update(b * bsize - self.n)
+            
+            with TqdmUpTo(unit='B', unit_scale=True, miniters=1, desc="Downloading") as t:
+                urllib.request.urlretrieve(url, compressed_path, reporthook=t.update_to)
+                                    
             logger.info("✅ Download completed!")
             
             # Decompress the file
@@ -200,14 +171,8 @@ class FastTextEmbedding:
             # Get the path to the bilstm_fasttext folder
             bilstm_dir = Path(__file__).parent
             
-            if self.language == "pt":
-                # Look for Portuguese model in bilstm_fasttext folder
-                model_path = bilstm_dir / 'cc.pt.300.bin'
-                logger.info(f"Loading Portuguese FastText embeddings from {model_path}...")
-            else:
-                # Look for English model in bilstm_fasttext folder
-                model_path = bilstm_dir / 'cc.en.300.bin'
-                logger.info(f"Loading English FastText embeddings from {model_path}...")
+            model_path = bilstm_dir / 'cc.pt.300.bin'
+            logger.info(f"Loading Portuguese FastText embeddings from {model_path}...")
 
             # Check if file exists, if not try to download it
             if not model_path.exists():
@@ -436,16 +401,16 @@ class CharCNN(nn.Module):
         return char_features
 
 
-class BiLSTMFastTextNER(nn.Module):
+class BiLSTMFastTextVotIE(nn.Module):
     """
-    BiLSTM model with FastText embeddings for NER.
+    BiLSTM model with FastText embeddings for VotIE baselines.
 
     Architecture:
         Input → [FastText Embeddings + Char CNN] → BiLSTM → Dropout → Linear → [CRF] → Output
 
     This model serves as a traditional baseline for comparison with BERT-based models,
     demonstrating the performance difference between static and contextualized embeddings
-    for Named Entity Recognition in Portuguese voting documents.
+    for Vote Information Extraction in Portuguese voting documents.
 
     Args:
         vocab_size: Size of the vocabulary
@@ -678,7 +643,7 @@ class BiLSTMFastTextNER(nn.Module):
         logger.info(f"Model saved to {save_path}")
 
     @classmethod
-    def from_pretrained(cls, model_path: Union[str, Path]) -> 'BiLSTMFastTextNER':
+    def from_pretrained(cls, model_path: Union[str, Path]) -> 'BiLSTMFastTextVotIE':
         """Load model from directory."""
         model_path = Path(model_path)
 
@@ -761,7 +726,7 @@ if __name__ == "__main__":
     embedding_matrix = embedding_handler.create_embedding_matrix()
 
     # Create model
-    model = BiLSTMFastTextNER(
+    model = BiLSTMFastTextVotIE(
         vocab_size=embedding_handler.vocab_size,
         embedding_dim=embedding_handler.embedding_dim,
         hidden_dim=128,

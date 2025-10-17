@@ -610,11 +610,16 @@ def create_dynamic_windows(
     if not tokens:
         return []
 
-    # Reserve space for [CLS] and [SEP] tokens
-    effective_max_length = max_length - 2
+    # Reserve space for [CLS] and [SEP] tokens, plus extra safety margin
+    # Use 90% of available space to account for cleaning and tokenization differences
+    effective_max_length = int((max_length - 2) * 0.9)
+
+    # Clean tokens before checking size (same as align_tokens_with_subwords)
+    cleaned_tokens = [clean_problematic_characters(t) for t in tokens]
+    cleaned_tokens = [t for t in cleaned_tokens if t and t.strip()]  # Remove empty
 
     # Always check if sequence fits after tokenization (not just by token count)
-    text = " ".join(tokens)
+    text = " ".join(cleaned_tokens)
     subwords = tokenizer.tokenize(text)
 
     if len(subwords) <= effective_max_length:
@@ -636,16 +641,20 @@ def create_dynamic_windows(
         window_tokens = tokens[start_idx:end_idx]
         window_labels = labels[start_idx:end_idx]
 
-        # Check actual tokenized length and grow if possible
-        window_text = " ".join(window_tokens)
+        # Check actual tokenized length and grow if possible (with cleaning)
+        cleaned_window_tokens = [clean_problematic_characters(t) for t in window_tokens]
+        cleaned_window_tokens = [t for t in cleaned_window_tokens if t and t.strip()]
+        window_text = " ".join(cleaned_window_tokens)
         window_subwords = tokenizer.tokenize(window_text)
 
-        # Try to grow the window to use more space
-        while len(window_subwords) < effective_max_length * 0.95 and end_idx < len(tokens):
+        # Try to grow the window to use more space (use full effective_max_length now)
+        while len(window_subwords) < effective_max_length and end_idx < len(tokens):
             # Try adding more tokens
             candidate_end = min(end_idx + 10, len(tokens))
             candidate_tokens = tokens[start_idx:candidate_end]
-            candidate_text = " ".join(candidate_tokens)
+            cleaned_candidate = [clean_problematic_characters(t) for t in candidate_tokens]
+            cleaned_candidate = [t for t in cleaned_candidate if t and t.strip()]
+            candidate_text = " ".join(cleaned_candidate)
             candidate_subwords = tokenizer.tokenize(candidate_text)
 
             if len(candidate_subwords) <= effective_max_length:
@@ -658,7 +667,7 @@ def create_dynamic_windows(
                 # Would be too large, stop growing
                 break
 
-        # Ensure window definitely fits (safety check)
+        # Ensure window definitely fits (safety check with cleaning)
         max_iterations = 50
         iteration = 0
         while len(window_subwords) > effective_max_length and len(window_tokens) > 1 and iteration < max_iterations:
@@ -666,7 +675,9 @@ def create_dynamic_windows(
             new_size = max(1, int(len(window_tokens) * 0.9))
             window_tokens = window_tokens[:new_size]
             window_labels = window_labels[:new_size]
-            window_text = " ".join(window_tokens)
+            cleaned_window = [clean_problematic_characters(t) for t in window_tokens]
+            cleaned_window = [t for t in cleaned_window if t and t.strip()]
+            window_text = " ".join(cleaned_window)
             window_subwords = tokenizer.tokenize(window_text)
             iteration += 1
 
@@ -677,8 +688,10 @@ def create_dynamic_windows(
             window_tokens = window_tokens[:1]
             window_labels = window_labels[:1]
 
-        # Validate the final window size
-        final_check = " ".join(window_tokens)
+        # Validate the final window size (with cleaning)
+        final_cleaned = [clean_problematic_characters(t) for t in window_tokens]
+        final_cleaned = [t for t in final_cleaned if t and t.strip()]
+        final_check = " ".join(final_cleaned)
         final_subwords = tokenizer.tokenize(final_check)
         if len(final_subwords) > effective_max_length:
             logger.error(f"CRITICAL: Window still too large ({len(final_subwords)} > {effective_max_length}) for {example_id}")
@@ -718,10 +731,12 @@ def create_dynamic_windows(
             logger.error(f"Too many windows for {example_id}, stopping at {window_id}")
             break
 
-    # Validate all windows (only log errors)
+    # Validate all windows (only log errors, use cleaning like actual processing)
     if len(windows) > 1:
         for i, (w_tokens, w_labels) in enumerate(windows):
-            w_text = " ".join(w_tokens)
+            w_cleaned = [clean_problematic_characters(t) for t in w_tokens]
+            w_cleaned = [t for t in w_cleaned if t and t.strip()]
+            w_text = " ".join(w_cleaned)
             w_subwords = tokenizer.tokenize(w_text)
             if len(w_subwords) > effective_max_length:
                 logger.error(f"Window {i} exceeds max length: {len(w_subwords)} > {effective_max_length}")

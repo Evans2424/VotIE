@@ -4,6 +4,7 @@ torch>=1.10.0
 transformers>=4.20.0
 pytorch-crf>=0.7.2
 
+
 #Data processing
 
 numpy>=1.21.0
@@ -20,6 +21,7 @@ sklearn-crfsuite>=0.3.6
 pyyaml>=6.0
 tqdm>=4.62.0
 python-dotenv>=1.0.0
+SentencePiece>=0.1.96
 
 #Portuguese NLP
 
@@ -29,3 +31,4 @@ fasttext         # optional: required by bilstm_fasttext baseline
 #Gemini / LLM extraction (optional, only for src/gemini)
 
 google-generativeai
+SentencePiece

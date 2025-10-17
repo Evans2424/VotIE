@@ -589,8 +589,7 @@ def create_dynamic_windows(
     effective_max_length = int((max_length - 2) * 0.9)
 
     # Always check if sequence fits after tokenization (not just by token count)
-    text = " ".join(cleaned_tokens)
-    subwords = tokenizer.tokenize(text)
+    subwords = tokenizer.tokenize(" ".join(tokens))
 
     if len(subwords) <= effective_max_length:
         # Sequence fits in one window

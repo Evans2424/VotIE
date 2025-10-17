@@ -1,7 +1,7 @@
 {
   "train": {
     "num_examples": 2015,
-    "total_tokens": 685478,
+    "total_tokens": 674139,
     "total_entities": 6957,
     "entity_label_counts": {
       "VOTER-FAVOR": 1150,
@@ -12,11 +12,12 @@
       "COUNTING-MAJORITY": 202,
       "VOTER-AGAINST": 116,
       "VOTER-ABSENT": 62
-    }
+    },
+    "filtered_tokens": 11339
   },
   "dev": {
     "num_examples": 431,
-    "total_tokens": 151871,
+    "total_tokens": 149031,
     "total_entities": 1490,
     "entity_label_counts": {
       "SUBJECT": 374,
@@ -27,11 +28,12 @@
       "VOTER-ABSTENTION": 166,
       "VOTER-ABSENT": 14,
       "VOTER-AGAINST": 21
-    }
+    },
+    "filtered_tokens": 2840
   },
   "test": {
     "num_examples": 433,
-    "total_tokens": 170975,
+    "total_tokens": 168278,
     "total_entities": 1504,
     "entity_label_counts": {
       "SUBJECT": 373,
@@ -42,6 +44,7 @@
       "COUNTING-MAJORITY": 52,
       "VOTER-AGAINST": 40,
       "VOTER-ABSENT": 22
-    }
-   }
+    },
+    "filtered_tokens": 2697
+  }
 }

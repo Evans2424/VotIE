@@ -12,6 +12,7 @@ Output: votie_bio/{train,dev,test}.jsonl (JSONL format)
 import json
 import logging
 import sys
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from collections import Counter
@@ -47,13 +48,74 @@ except ImportError:
     nlp = None
 
 
+def is_problematic_token(token: str) -> bool:
+    """
+    Check if a token should be filtered out.
+
+    Filters out:
+    - Empty or whitespace-only tokens (including \\n, \\t, etc.)
+    - Private use area Unicode characters
+    - Control characters
+    """
+    if not token or not token.strip():
+        return True
+
+    # Check for private use area characters
+    if re.search(r'[\uf000-\uf8ff]', token):
+        return True
+
+    # Check for control characters
+    if re.search(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', token):
+        return True
+
+    return False
+
+
+def filter_problematic_tokens(tokens: List[str], bio_tags: List[str]) -> Tuple[List[str], List[str]]:
+    """
+    Remove problematic tokens and their corresponding BIO tags.
+
+    This ensures that the data is clean from the start and prevents
+    alignment issues during training, prediction, and evaluation.
+
+    Args:
+        tokens: List of tokens
+        bio_tags: List of BIO tags (same length as tokens)
+
+    Returns:
+        (filtered_tokens, filtered_tags)
+    """
+    if len(tokens) != len(bio_tags):
+        logger.error(f"Token/tag length mismatch: {len(tokens)} vs {len(bio_tags)}")
+        return tokens, bio_tags
+
+    filtered_tokens = []
+    filtered_tags = []
+    removed_count = 0
+
+    for token, tag in zip(tokens, bio_tags):
+        if not is_problematic_token(token):
+            filtered_tokens.append(token)
+            filtered_tags.append(tag)
+        else:
+            removed_count += 1
+            # If we're removing a B- or I- tag, log a warning
+            if not tag.startswith('O'):
+                logger.debug(f"Removing problematic token with entity tag: '{token}' ({tag})")
+
+    if removed_count > 0:
+        logger.debug(f"Filtered {removed_count} problematic tokens")
+
+    return filtered_tokens, filtered_tags
+
+
 def tokenize_text(text: str) -> List[str]:
     """
     Tokenize text using spaCy if available, otherwise fallback to whitespace.
-    
+
     Args:
         text: Raw text to tokenize
-        
+
     Returns:
         List of tokens
     """
@@ -249,6 +311,12 @@ def convert_example_to_bio_jsonl(example: Dict[str, Any]) -> Tuple[Dict[str, Any
     if not validate_bio_tags(tokens, bio_tags, example_id):
         logger.error(f"BIO validation failed for {example_id}")
 
+    # FILTER PROBLEMATIC TOKENS - Critical for preventing alignment issues
+    # This removes whitespace-only tokens, newlines, control characters, etc.
+    original_token_count = len(tokens)
+    tokens, bio_tags = filter_problematic_tokens(tokens, bio_tags)
+    filtered_token_count = original_token_count - len(tokens)
+
     # Create BIO-tagged example in JSONL format
     bio_example = {
         "id": example_id,
@@ -277,7 +345,8 @@ def convert_example_to_bio_jsonl(example: Dict[str, Any]) -> Tuple[Dict[str, Any
         "entities": entity_count,
         "entity_types": dict(entity_types),
         "original_spans": original_entity_count,
-        "mapped_spans": mapped_entity_count
+        "mapped_spans": mapped_entity_count,
+        "filtered_tokens": filtered_token_count
     }
 
 
@@ -297,6 +366,7 @@ def convert_split(input_file: Path, output_file: Path) -> Dict[str, Any]:
     num_examples = 0
     total_original_spans = 0
     total_mapped_spans = 0
+    total_problematic_tokens = 0
 
     # Read input JSON file (list format)
     with open(input_file, 'r', encoding='utf-8') as f:
@@ -312,6 +382,7 @@ def convert_split(input_file: Path, output_file: Path) -> Dict[str, Any]:
         entity_label_counts.update(stats["entity_types"])
         total_original_spans += stats["original_spans"]
         total_mapped_spans += stats["mapped_spans"]
+        total_problematic_tokens += stats["filtered_tokens"]
         num_examples += 1
 
     # Write output as JSONL
@@ -323,6 +394,8 @@ def convert_split(input_file: Path, output_file: Path) -> Dict[str, Any]:
     mapping_rate = 100 * total_mapped_spans / total_original_spans if total_original_spans > 0 else 0
     logger.info(f"  Converted {num_examples} examples with {total_entities} entities")
     logger.info(f"  Mapping success: {total_mapped_spans}/{total_original_spans} spans ({mapping_rate:.1f}%)")
+    if total_problematic_tokens > 0:
+        logger.info(f"  Filtered {total_problematic_tokens} problematic tokens (newlines, whitespace, control chars)")
 
     return {
         "num_examples": num_examples,
@@ -331,7 +404,8 @@ def convert_split(input_file: Path, output_file: Path) -> Dict[str, Any]:
         "entity_label_counts": dict(entity_label_counts),
         "original_spans": total_original_spans,
         "mapped_spans": total_mapped_spans,
-        "mapping_rate": f"{mapping_rate:.1f}%"
+        "mapping_rate": f"{mapping_rate:.1f}%",
+        "filtered_tokens": total_problematic_tokens
     }
 
 

@@ -12,11 +12,9 @@ __pycache__/
 *.pt
 
 # FastText embedding files (large binary files)
-cc.pt.300.bin.gz
+cc.pt.300.bin.gzM
 **/cc.pt.300.bin
 **/cc.en.300.bin
 
-# Helper scripts
-helper/scripts
-deberta_crf
+
 backup

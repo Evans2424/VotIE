@@ -122,15 +122,43 @@ pip install -r requirements.txt
 ## Quick Start
 
 **Option 1: Use Pre-trained Model (Fastest)**
+
+For a quick test of the model on your own text, see `scripts/quick_start.py`:
+
 ```python
-# Download the best model from Hugging Face
 from transformers import AutoTokenizer, AutoModel
 
-model = AutoModel.from_pretrained("Anonymous3445/DeBERTa-CRF-VotIE")
-tokenizer = AutoTokenizer.from_pretrained("Anonymous3445/DeBERTa-CRF-VotIE")
+# Load model and tokenizer
+model_name = "Anonymous3445/DeBERTa-CRF-VotIE"
+tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
 
-# Use for inference (see Usage section for details)
+# Example text
+text = "A Câmara deliberou aprovar a proposta por unanimidade."
+
+# Tokenize
+inputs = tokenizer(text, return_tensors="pt")
+
+# Get predictions
+predictions = model.decode(**inputs, tokenizer=tokenizer, text=text)
+
+# Print results
+for pred in predictions:
+    print(f"{pred['word']:<30} {pred['label']}")
 ```
+
+To evaluate the model on the full test set:
+
+```bash
+python scripts/evaluate_deberta_hf.py
+```
+
+This will:
+1. Download the model from HuggingFace
+2. Run predictions on `data/votie_bio/test.jsonl`
+3. Save predictions to `predictions/deberta_hf_predictions.jsonl`
+4. Compute comprehensive metrics (entity-level and event-level)
+5. Save results to `evaluation/deberta_hf_results.json`
 
 **Option 2: Train from Scratch - Full Pipeline**
 ```bash
@@ -158,6 +186,72 @@ python scripts/evaluate.py \
 ---
 
 ## Usage
+
+### Quick Testing with Pre-trained Model
+
+Two scripts are provided for quickly testing the published HuggingFace model without training:
+
+#### 1. Interactive Demo (`quick_start.py`)
+
+Test the model on your own Portuguese text:
+
+```bash
+python scripts/quick_start.py
+```
+
+This script demonstrates:
+- Loading the model from HuggingFace Hub
+- Processing a sample Portuguese municipal text
+- Extracting voting entities with BIO labels
+- Displaying results with character offsets
+
+**Customization:** Edit the `text` variable in the script to test your own content.
+
+**Example output:**
+```
+Text: 'A Câmara deliberou aprovar a proposta por unanimidade.'
+
+Word                           Label
+--------------------------------------------------
+A                              O
+Câmara                         B-VOTER-FAVOR
+deliberou                      B-VOTING
+aprovar                        O
+a                              O
+proposta                       B-SUBJECT
+por                            O
+unanimidade                    B-COUNTING-UNANIMITY
+.                              O
+```
+
+#### 2. Full Test Set Evaluation (`evaluate_deberta_hf.py`)
+
+Evaluate the HuggingFace model on the complete test set:
+
+```bash
+# Default: evaluate on test set with GPU
+python scripts/evaluate_deberta_hf.py
+
+# Custom options
+python scripts/evaluate_deberta_hf.py --test-file data/votie_bio/dev.jsonl
+python scripts/evaluate_deberta_hf.py --device cpu
+python scripts/evaluate_deberta_hf.py --output predictions/my_predictions.jsonl
+python scripts/evaluate_deberta_hf.py --no-events  # Skip event-level metrics (faster)
+```
+
+**Output:**
+- `predictions/deberta_hf_predictions.jsonl` - Model predictions
+- `evaluation/deberta_hf_results.json` - Comprehensive metrics
+
+**Options:**
+- `--model-name`: HuggingFace model ID (default: `Anonymous3445/DeBERTa-CRF-VotIE`)
+- `--test-file`: Path to test JSONL file (default: `data/votie_bio/test.jsonl`)
+- `--output`: Path to save predictions (default: `predictions/deberta_hf_predictions.jsonl`)
+- `--evaluation-file`: Path to save results (default: `evaluation/deberta_hf_results.json`)
+- `--device`: Device for inference, `cuda` or `cpu` (default: `cuda`)
+- `--no-events`: Skip event-level evaluation for faster results
+
+---
 
 ### Training Models
 
@@ -247,6 +341,26 @@ python scripts/predict.py \
 ```
 
 ### Running Evaluation
+
+#### Option 1: Evaluate HuggingFace Model
+
+To quickly evaluate the published model on the test set:
+
+```bash
+# Full evaluation (entity + event metrics)
+python scripts/evaluate_deberta_hf.py
+
+# Custom dataset
+python scripts/evaluate_deberta_hf.py --test-file data/votie_bio/dev.jsonl
+
+# Use CPU instead of GPU
+python scripts/evaluate_deberta_hf.py --device cpu
+
+# Entity-level metrics only (faster)
+python scripts/evaluate_deberta_hf.py --no-events
+```
+
+#### Option 2: Evaluate Trained Models
 
 Evaluate predictions with comprehensive metrics:
 
@@ -382,6 +496,7 @@ All models follow a token classification architecture for BIO tagging:
 2. **BiLSTM+FastText** – Bidirectional LSTM with pre-trained FastText embeddings
 
 **Transformer Baselines:**
+
 3. **BERTimbau-Large + Linear** – Portuguese BERT with linear classification head
 4. **BERTimbau-Large + CRF** – Portuguese BERT with CRF layer
 5. **DeBERTa-V3-Base + Linear** – DeBERTa V3 with linear head
@@ -568,12 +683,14 @@ votie/
 │       ├── deberta_crf.json
 │       └── ...
 │
-├── scripts/                     # Executable scripts 
+├── scripts/                     # Executable scripts
+│   ├── quick_start.py           # Quick demo using HuggingFace model
+│   ├── evaluate_deberta_hf.py   # Evaluate HF model on test set
 │   ├── train.py                 # Unified training script
-│   ├── predict.py               # Prediction with 
+│   ├── predict.py               # Prediction with trained models
 │   ├── evaluate.py              # Comprehensive evaluation
 │   ├── run_pipeline.py          # End-to-end pipeline
-│   └── run_all_experiments.sh   # Run all sequentially
+│   └── run_all_experiments.sh   # Run all experiments sequentially
 │
 ├── src/                         # Source code
 │   ├── models/                  # Model implementations

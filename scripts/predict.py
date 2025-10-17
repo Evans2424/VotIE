@@ -135,7 +135,21 @@ def load_model(model_path: str, device: str = 'cuda'):
     
     # Load model
     model = model_class(base_model_name, num_labels)
-    state_dict = torch.load(model_path / 'pytorch_model.bin', map_location=device)
+
+    # Try to load from safetensors first (new format), fallback to pytorch_model.bin
+    safetensors_path = model_path / 'model.safetensors'
+    pytorch_path = model_path / 'pytorch_model.bin'
+
+    if safetensors_path.exists():
+        from safetensors.torch import load_file as load_safetensors
+        state_dict = load_safetensors(str(safetensors_path))
+        logger.info(f"Loaded model from safetensors: {safetensors_path}")
+    elif pytorch_path.exists():
+        state_dict = torch.load(pytorch_path, map_location=device)
+        logger.info(f"Loaded model from pytorch bin: {pytorch_path}")
+    else:
+        raise FileNotFoundError(f"No model weights found. Expected {safetensors_path} or {pytorch_path}")
+
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()

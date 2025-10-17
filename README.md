@@ -147,18 +147,7 @@ for pred in predictions:
     print(f"{pred['word']:<30} {pred['label']}")
 ```
 
-To evaluate the model on the full test set:
-
-```bash
-python scripts/evaluate_deberta_hf.py
-```
-
-This will:
-1. Download the model from HuggingFace
-2. Run predictions on `data/votie_bio/test.jsonl`
-3. Save predictions to `predictions/deberta_hf_predictions.jsonl`
-4. Compute comprehensive metrics (entity-level and event-level)
-5. Save results to `evaluation/deberta_hf_results.json`
+**Note:** The HuggingFace model is designed for inference on raw text and uses its own tokenization. For evaluation on the pre-tokenized test dataset, use the training pipeline (Option 2 or 3 below).
 
 **Option 2: Train from Scratch - Full Pipeline**
 ```bash
@@ -189,9 +178,7 @@ python scripts/evaluate.py \
 
 ### Quick Testing with Pre-trained Model
 
-Two scripts are provided for quickly testing the published HuggingFace model without training:
-
-#### 1. Interactive Demo (`quick_start.py`)
+#### Interactive Demo (`quick_start.py`)
 
 Test the model on your own Portuguese text:
 
@@ -213,8 +200,8 @@ Text: 'A Câmara deliberou aprovar a proposta por unanimidade.'
 
 Word                           Label
 --------------------------------------------------
-A                              O
-Câmara                         B-VOTER-FAVOR
+A                              B-VOTER-FAVOR
+Câmara                         I-VOTER-FAVOR
 deliberou                      B-VOTING
 aprovar                        O
 a                              O
@@ -224,32 +211,7 @@ unanimidade                    B-COUNTING-UNANIMITY
 .                              O
 ```
 
-#### 2. Full Test Set Evaluation (`evaluate_deberta_hf.py`)
-
-Evaluate the HuggingFace model on the complete test set:
-
-```bash
-# Default: evaluate on test set with GPU
-python scripts/evaluate_deberta_hf.py
-
-# Custom options
-python scripts/evaluate_deberta_hf.py --test-file data/votie_bio/dev.jsonl
-python scripts/evaluate_deberta_hf.py --device cpu
-python scripts/evaluate_deberta_hf.py --output predictions/my_predictions.jsonl
-python scripts/evaluate_deberta_hf.py --no-events  # Skip event-level metrics (faster)
-```
-
-**Output:**
-- `predictions/deberta_hf_predictions.jsonl` - Model predictions
-- `evaluation/deberta_hf_results.json` - Comprehensive metrics
-
-**Options:**
-- `--model-name`: HuggingFace model ID (default: `Anonymous3445/DeBERTa-CRF-VotIE`)
-- `--test-file`: Path to test JSONL file (default: `data/votie_bio/test.jsonl`)
-- `--output`: Path to save predictions (default: `predictions/deberta_hf_predictions.jsonl`)
-- `--evaluation-file`: Path to save results (default: `evaluation/deberta_hf_results.json`)
-- `--device`: Device for inference, `cuda` or `cpu` (default: `cuda`)
-- `--no-events`: Skip event-level evaluation for faster results
+**Note:** The HuggingFace model is optimized for inference on raw text. For evaluation on the pre-tokenized VotIE test set, use the full training pipeline below.
 
 ---
 
@@ -341,26 +303,6 @@ python scripts/predict.py \
 ```
 
 ### Running Evaluation
-
-#### Option 1: Evaluate HuggingFace Model
-
-To quickly evaluate the published model on the test set:
-
-```bash
-# Full evaluation (entity + event metrics)
-python scripts/evaluate_deberta_hf.py
-
-# Custom dataset
-python scripts/evaluate_deberta_hf.py --test-file data/votie_bio/dev.jsonl
-
-# Use CPU instead of GPU
-python scripts/evaluate_deberta_hf.py --device cpu
-
-# Entity-level metrics only (faster)
-python scripts/evaluate_deberta_hf.py --no-events
-```
-
-#### Option 2: Evaluate Trained Models
 
 Evaluate predictions with comprehensive metrics:
 
@@ -685,7 +627,6 @@ votie/
 │
 ├── scripts/                     # Executable scripts
 │   ├── quick_start.py           # Quick demo using HuggingFace model
-│   ├── evaluate_deberta_hf.py   # Evaluate HF model on test set
 │   ├── train.py                 # Unified training script
 │   ├── predict.py               # Prediction with trained models
 │   ├── evaluate.py              # Comprehensive evaluation

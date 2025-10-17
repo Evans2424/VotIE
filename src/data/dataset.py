@@ -584,40 +584,9 @@ def create_dynamic_windows(
     if not tokens:
         return []
 
-    # PRE-FILTER: Remove problematic tokens that will be skipped by align_tokens_with_subwords
-    # This ensures window token counts match what will actually be processed
-    filtered_tokens = []
-    filtered_labels = []
-    skipped_count = 0
-
-    for token, label in zip(tokens, labels):
-        cleaned_token = clean_problematic_characters(token)
-        if cleaned_token and cleaned_token.strip():
-            # Token will be processed - keep it
-            filtered_tokens.append(token)
-            filtered_labels.append(label)
-        else:
-            # Token will be skipped - don't include in windows
-            skipped_count += 1
-
-    if skipped_count > 0:
-        logger.info(f"Pre-filtered {skipped_count} problematic tokens in {example_id}")
-
-    # Work with filtered tokens from now on
-    tokens = filtered_tokens
-    labels = filtered_labels
-
-    if not tokens:
-        logger.warning(f"No valid tokens remaining after filtering in {example_id}")
-        return []
-
     # Reserve space for [CLS] and [SEP] tokens, plus extra safety margin
-    # Use 90% of available space to account for cleaning and tokenization differences
+    # Use 90% of available space to account for subword expansion
     effective_max_length = int((max_length - 2) * 0.9)
-
-    # Clean tokens before checking size (should be no-op now since we pre-filtered)
-    cleaned_tokens = [clean_problematic_characters(t) for t in tokens]
-    cleaned_tokens = [t for t in cleaned_tokens if t and t.strip()]
 
     # Always check if sequence fits after tokenization (not just by token count)
     text = " ".join(cleaned_tokens)

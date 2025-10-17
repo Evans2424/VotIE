@@ -470,18 +470,23 @@ def align_tokens_with_subwords(
         # Clean problematic characters first (Portuguese BERT paper approach)
         original_token = token
         cleaned_token = clean_problematic_characters(token)
-        
+
+        # Skip empty cleaned tokens (whitespace-only tokens like \n)
+        if not cleaned_token or not cleaned_token.strip():
+            skipped_tokens += 1
+            continue
+
         # Track if token was cleaned
         if cleaned_token != original_token:
             cleaned_tokens += 1
-        
+
         # Tokenize the cleaned word
         try:
             token_subwords = tokenizer.tokenize(cleaned_token)
         except Exception as e:
             logger.warning(f"Tokenization error for {cleaned_token!r}: {e}")
             token_subwords = []
-                
+
         # Handle empty tokenization (should be rare now with cleaning)
         if not token_subwords:
             token_subwords = [tokenizer.unk_token]
@@ -517,7 +522,7 @@ def align_tokens_with_subwords(
     orig_token_indices.append(-1)  # SEP has no original token
     
     # Log important statistics to console
-    if cleaned_tokens > 20:  # Only log if significant cleaning happened
+    if cleaned_tokens > 5:  # Only log if significant cleaning happened
         logger.info(f"Cleaned {cleaned_tokens} problematic tokens in {example_id}")
     if skipped_tokens > 2:  # Only log if significant skipping happened
         logger.info(f"Skipped {skipped_tokens} empty/problematic tokens in {example_id}")

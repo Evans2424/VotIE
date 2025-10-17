@@ -768,7 +768,6 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
         
         logger.info(f"Model saved in HuggingFace format to {hf_dir}")
         logger.info(f"  - Model weights (safetensors): {model_safetensors_path}")
-        logger.info(f"  - Model weights (pytorch): {pytorch_model_path}")
         logger.info(f"  - Configuration: {config_path}")
         logger.info(f"  - README: {readme_path}")
 

@@ -1,0 +1,61 @@
+{
+  "train": {
+    "num_examples": 1976,
+    "total_entities": 6772,
+    "entity_type_counts": {
+      "VOTER-FAVOR": 1286,
+      "VOTING": 1818,
+      "COUNTING-UNANIMITY": 940,
+      "SUBJECT": 1495,
+      "VOTER-ABSTENTION": 866,
+      "VOTER-ABSENT": 38,
+      "COUNTING-MAJORITY": 209,
+      "VOTER-AGAINST": 120
+    },
+    "municipality_counts": {
+      "M01": 430,
+      "M04": 197,
+      "M03": 622,
+      "M02": 330,
+      "M06": 397
+    }
+  },
+  "dev": {
+    "num_examples": 349,
+    "total_entities": 1243,
+    "entity_type_counts": {
+      "SUBJECT": 270,
+      "VOTER-FAVOR": 239,
+      "VOTING": 329,
+      "VOTER-ABSTENTION": 144,
+      "COUNTING-UNANIMITY": 166,
+      "VOTER-ABSENT": 8,
+      "COUNTING-MAJORITY": 57,
+      "VOTER-AGAINST": 30
+    },
+    "municipality_counts": {
+      "M03": 97,
+      "M06": 75,
+      "M01": 73,
+      "M02": 66,
+      "M04": 38
+    }
+  },
+  "test": {
+    "num_examples": 554,
+    "total_entities": 1706,
+    "entity_type_counts": {
+      "SUBJECT": 483,
+      "VOTING": 501,
+      "COUNTING-UNANIMITY": 464,
+      "VOTER-ABSENT": 52,
+      "VOTER-FAVOR": 125,
+      "COUNTING-MAJORITY": 22,
+      "VOTER-AGAINST": 27,
+      "VOTER-ABSTENTION": 32
+    },
+    "municipality_counts": {
+      "M05": 554
+    }
+  }
+}

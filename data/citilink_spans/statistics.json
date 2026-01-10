@@ -1,0 +1,50 @@
+{
+  "train": {
+    "num_examples": 1798,
+    "total_chars": 3236471,
+    "total_entities": 6200,
+    "entity_type_counts": {
+      "VOTER-FAVOR": 1039,
+      "VOTING": 1709,
+      "COUNTING-UNANIMITY": 970,
+      "SUBJECT": 1422,
+      "COUNTING-MAJORITY": 175,
+      "VOTER-ABSTENTION": 730,
+      "VOTER-ABSENT": 57,
+      "VOTER-AGAINST": 98
+    },
+    "validation_rate": "97.7%"
+  },
+  "dev": {
+    "num_examples": 552,
+    "total_chars": 944394,
+    "total_entities": 1780,
+    "entity_type_counts": {
+      "VOTER-FAVOR": 311,
+      "VOTING": 472,
+      "COUNTING-MAJORITY": 51,
+      "VOTER-ABSTENTION": 179,
+      "SUBJECT": 406,
+      "COUNTING-UNANIMITY": 295,
+      "VOTER-ABSENT": 23,
+      "VOTER-AGAINST": 43
+    },
+    "validation_rate": "97.4%"
+  },
+  "test": {
+    "num_examples": 529,
+    "total_chars": 938352,
+    "total_entities": 1741,
+    "entity_type_counts": {
+      "VOTER-FAVOR": 300,
+      "VOTING": 467,
+      "COUNTING-MAJORITY": 62,
+      "VOTER-ABSTENTION": 133,
+      "SUBJECT": 420,
+      "COUNTING-UNANIMITY": 305,
+      "VOTER-ABSENT": 18,
+      "VOTER-AGAINST": 36
+    },
+    "validation_rate": "97.9%"
+  }
+}

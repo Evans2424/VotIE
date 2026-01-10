@@ -1,0 +1,1130 @@
+{
+  "conversion_timestamp": "2025-12-22T00:54:47.905235",
+  "input_directory": "data/votie_bio",
+  "output_directory": "data/votie_bio_converted",
+  "main_dataset": {
+    "train.jsonl": {
+      "input_file": "data/votie_bio/train.jsonl",
+      "output_file": "data/votie_bio_converted/train.jsonl",
+      "original_count": 1798,
+      "converted_count": 1798,
+      "conversion_errors": 0,
+      "statistics": {
+        "total_examples": 1798,
+        "total_tokens": 665158,
+        "total_entities": 6200,
+        "avg_tokens_per_example": 369.94,
+        "max_tokens": 9644,
+        "min_tokens": 9,
+        "examples_with_entities": 1529,
+        "examples_without_entities": 269,
+        "entity_counts": {
+          "VOTER-FAVOR": 1039,
+          "VOTING": 1709,
+          "COUNTING-UNANIMITY": 970,
+          "SUBJECT": 1422,
+          "COUNTING-MAJORITY": 175,
+          "VOTER-ABSTENTION": 730,
+          "VOTER-ABSENT": 57,
+          "VOTER-AGAINST": 98
+        },
+        "label_distribution": {
+          "O": 629447,
+          "B-VOTER-FAVOR": 1039,
+          "I-VOTER-FAVOR": 1592,
+          "B-VOTING": 1709,
+          "B-COUNTING-UNANIMITY": 970,
+          "I-COUNTING-UNANIMITY": 974,
+          "B-SUBJECT": 1422,
+          "I-SUBJECT": 23408,
+          "B-COUNTING-MAJORITY": 175,
+          "I-COUNTING-MAJORITY": 361,
+          "B-VOTER-ABSTENTION": 730,
+          "I-VOTER-ABSTENTION": 2770,
+          "B-VOTER-ABSENT": 57,
+          "I-VOTER-ABSENT": 123,
+          "B-VOTER-AGAINST": 98,
+          "I-VOTER-AGAINST": 243,
+          "I-VOTING": 40
+        }
+      },
+      "validation": {
+        "total_examples": 1798,
+        "valid_examples": 1798,
+        "invalid_examples": 0,
+        "validation_errors": [],
+        "validation_rate": 100.0
+      }
+    },
+    "dev.jsonl": {
+      "input_file": "data/votie_bio/dev.jsonl",
+      "output_file": "data/votie_bio_converted/dev.jsonl",
+      "original_count": 552,
+      "converted_count": 552,
+      "conversion_errors": 0,
+      "statistics": {
+        "total_examples": 552,
+        "total_tokens": 192048,
+        "total_entities": 1780,
+        "avg_tokens_per_example": 347.91,
+        "max_tokens": 7837,
+        "min_tokens": 6,
+        "examples_with_entities": 432,
+        "examples_without_entities": 120,
+        "entity_counts": {
+          "VOTER-FAVOR": 311,
+          "VOTING": 472,
+          "COUNTING-MAJORITY": 51,
+          "VOTER-ABSTENTION": 179,
+          "SUBJECT": 406,
+          "COUNTING-UNANIMITY": 295,
+          "VOTER-ABSENT": 23,
+          "VOTER-AGAINST": 43
+        },
+        "label_distribution": {
+          "O": 181946,
+          "B-VOTER-FAVOR": 311,
+          "I-VOTER-FAVOR": 474,
+          "B-VOTING": 472,
+          "B-COUNTING-MAJORITY": 51,
+          "I-COUNTING-MAJORITY": 51,
+          "B-VOTER-ABSTENTION": 179,
+          "I-VOTER-ABSTENTION": 685,
+          "B-SUBJECT": 406,
+          "I-SUBJECT": 6684,
+          "B-COUNTING-UNANIMITY": 295,
+          "I-COUNTING-UNANIMITY": 297,
+          "B-VOTER-ABSENT": 23,
+          "I-VOTER-ABSENT": 56,
+          "I-VOTING": 5,
+          "B-VOTER-AGAINST": 43,
+          "I-VOTER-AGAINST": 70
+        }
+      },
+      "validation": {
+        "total_examples": 552,
+        "valid_examples": 552,
+        "invalid_examples": 0,
+        "validation_errors": [],
+        "validation_rate": 100.0
+      }
+    },
+    "test.jsonl": {
+      "input_file": "data/votie_bio/test.jsonl",
+      "output_file": "data/votie_bio_converted/test.jsonl",
+      "original_count": 529,
+      "converted_count": 529,
+      "conversion_errors": 0,
+      "statistics": {
+        "total_examples": 529,
+        "total_tokens": 187532,
+        "total_entities": 1741,
+        "avg_tokens_per_example": 354.5,
+        "max_tokens": 5487,
+        "min_tokens": 9,
+        "examples_with_entities": 443,
+        "examples_without_entities": 86,
+        "entity_counts": {
+          "VOTER-FAVOR": 300,
+          "VOTING": 467,
+          "COUNTING-MAJORITY": 62,
+          "VOTER-ABSTENTION": 133,
+          "SUBJECT": 420,
+          "COUNTING-UNANIMITY": 305,
+          "VOTER-ABSENT": 18,
+          "VOTER-AGAINST": 36
+        },
+        "label_distribution": {
+          "O": 176207,
+          "B-VOTER-FAVOR": 300,
+          "I-VOTER-FAVOR": 503,
+          "B-VOTING": 467,
+          "B-COUNTING-MAJORITY": 62,
+          "I-COUNTING-MAJORITY": 90,
+          "B-VOTER-ABSTENTION": 133,
+          "I-VOTER-ABSTENTION": 484,
+          "B-SUBJECT": 420,
+          "I-SUBJECT": 8018,
+          "B-COUNTING-UNANIMITY": 305,
+          "I-COUNTING-UNANIMITY": 350,
+          "B-VOTER-ABSENT": 18,
+          "I-VOTER-ABSENT": 34,
+          "B-VOTER-AGAINST": 36,
+          "I-VOTER-AGAINST": 95,
+          "I-VOTING": 10
+        }
+      },
+      "validation": {
+        "total_examples": 529,
+        "valid_examples": 529,
+        "invalid_examples": 0,
+        "validation_errors": [],
+        "validation_rate": 100.0
+      }
+    }
+  },
+  "municipality_splits": {
+    "M01": {
+      "train.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M01/train.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M01/train.jsonl",
+        "original_count": 2019,
+        "converted_count": 2019,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 2019,
+          "total_tokens": 849300,
+          "total_entities": 6895,
+          "avg_tokens_per_example": 420.65,
+          "max_tokens": 9644,
+          "min_tokens": 6,
+          "examples_with_entities": 1697,
+          "examples_without_entities": 322,
+          "entity_counts": {
+            "VOTER-FAVOR": 1021,
+            "VOTING": 1905,
+            "SUBJECT": 1652,
+            "COUNTING-UNANIMITY": 1012,
+            "VOTER-ABSTENTION": 847,
+            "COUNTING-MAJORITY": 220,
+            "VOTER-AGAINST": 162,
+            "VOTER-ABSENT": 76
+          },
+          "label_distribution": {
+            "O": 807422,
+            "B-VOTER-FAVOR": 1021,
+            "I-VOTER-FAVOR": 1398,
+            "B-VOTING": 1905,
+            "B-SUBJECT": 1652,
+            "I-SUBJECT": 28403,
+            "B-COUNTING-UNANIMITY": 1012,
+            "I-COUNTING-UNANIMITY": 1058,
+            "B-VOTER-ABSTENTION": 847,
+            "I-VOTER-ABSTENTION": 3132,
+            "B-COUNTING-MAJORITY": 220,
+            "I-COUNTING-MAJORITY": 422,
+            "B-VOTER-AGAINST": 162,
+            "I-VOTER-AGAINST": 372,
+            "B-VOTER-ABSENT": 76,
+            "I-VOTER-ABSENT": 160,
+            "I-VOTING": 38
+          }
+        },
+        "validation": {
+          "total_examples": 2019,
+          "valid_examples": 2019,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "dev.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M01/dev.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M01/dev.jsonl",
+        "original_count": 357,
+        "converted_count": 357,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 357,
+          "total_tokens": 144980,
+          "total_entities": 1220,
+          "avg_tokens_per_example": 406.11,
+          "max_tokens": 4361,
+          "min_tokens": 9,
+          "examples_with_entities": 303,
+          "examples_without_entities": 54,
+          "entity_counts": {
+            "VOTER-FAVOR": 183,
+            "VOTING": 339,
+            "COUNTING-UNANIMITY": 191,
+            "SUBJECT": 296,
+            "COUNTING-MAJORITY": 28,
+            "VOTER-AGAINST": 12,
+            "VOTER-ABSTENTION": 159,
+            "VOTER-ABSENT": 12
+          },
+          "label_distribution": {
+            "O": 137329,
+            "B-VOTER-FAVOR": 183,
+            "I-VOTER-FAVOR": 241,
+            "B-VOTING": 339,
+            "B-COUNTING-UNANIMITY": 191,
+            "I-COUNTING-UNANIMITY": 196,
+            "B-SUBJECT": 296,
+            "I-SUBJECT": 5257,
+            "B-COUNTING-MAJORITY": 28,
+            "I-COUNTING-MAJORITY": 40,
+            "B-VOTER-AGAINST": 12,
+            "I-VOTER-AGAINST": 22,
+            "B-VOTER-ABSTENTION": 159,
+            "I-VOTER-ABSTENTION": 639,
+            "B-VOTER-ABSENT": 12,
+            "I-VOTER-ABSENT": 19,
+            "I-VOTING": 17
+          }
+        },
+        "validation": {
+          "total_examples": 357,
+          "valid_examples": 357,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "test.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M01/test.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M01/test.jsonl",
+        "original_count": 503,
+        "converted_count": 503,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 503,
+          "total_tokens": 50458,
+          "total_entities": 1606,
+          "avg_tokens_per_example": 100.31,
+          "max_tokens": 550,
+          "min_tokens": 9,
+          "examples_with_entities": 404,
+          "examples_without_entities": 99,
+          "entity_counts": {
+            "VOTER-FAVOR": 446,
+            "VOTING": 404,
+            "COUNTING-UNANIMITY": 367,
+            "SUBJECT": 300,
+            "COUNTING-MAJORITY": 40,
+            "VOTER-ABSTENTION": 36,
+            "VOTER-ABSENT": 10,
+            "VOTER-AGAINST": 3
+          },
+          "label_distribution": {
+            "O": 42849,
+            "B-VOTER-FAVOR": 446,
+            "I-VOTER-FAVOR": 930,
+            "B-VOTING": 404,
+            "B-COUNTING-UNANIMITY": 367,
+            "I-COUNTING-UNANIMITY": 367,
+            "B-SUBJECT": 300,
+            "I-SUBJECT": 4450,
+            "B-COUNTING-MAJORITY": 40,
+            "I-COUNTING-MAJORITY": 40,
+            "B-VOTER-ABSTENTION": 36,
+            "I-VOTER-ABSTENTION": 168,
+            "B-VOTER-ABSENT": 10,
+            "I-VOTER-ABSENT": 34,
+            "B-VOTER-AGAINST": 3,
+            "I-VOTER-AGAINST": 14
+          }
+        },
+        "validation": {
+          "total_examples": 503,
+          "valid_examples": 503,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      }
+    },
+    "M02": {
+      "train.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M02/train.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M02/train.jsonl",
+        "original_count": 2110,
+        "converted_count": 2110,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 2110,
+          "total_tokens": 747742,
+          "total_entities": 7293,
+          "avg_tokens_per_example": 354.38,
+          "max_tokens": 9644,
+          "min_tokens": 6,
+          "examples_with_entities": 1808,
+          "examples_without_entities": 302,
+          "entity_counts": {
+            "VOTER-FAVOR": 1209,
+            "VOTING": 1998,
+            "COUNTING-UNANIMITY": 1107,
+            "SUBJECT": 1683,
+            "VOTER-ABSTENTION": 856,
+            "VOTER-AGAINST": 138,
+            "VOTER-ABSENT": 78,
+            "COUNTING-MAJORITY": 224
+          },
+          "label_distribution": {
+            "O": 704757,
+            "B-VOTER-FAVOR": 1209,
+            "I-VOTER-FAVOR": 2011,
+            "B-VOTING": 1998,
+            "B-COUNTING-UNANIMITY": 1107,
+            "I-COUNTING-UNANIMITY": 1099,
+            "B-SUBJECT": 1683,
+            "I-SUBJECT": 28312,
+            "B-VOTER-ABSTENTION": 856,
+            "I-VOTER-ABSTENTION": 3333,
+            "B-VOTER-AGAINST": 138,
+            "I-VOTER-AGAINST": 328,
+            "B-VOTER-ABSENT": 78,
+            "I-VOTER-ABSENT": 170,
+            "B-COUNTING-MAJORITY": 224,
+            "I-COUNTING-MAJORITY": 392,
+            "I-VOTING": 47
+          }
+        },
+        "validation": {
+          "total_examples": 2110,
+          "valid_examples": 2110,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "dev.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M02/dev.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M02/dev.jsonl",
+        "original_count": 373,
+        "converted_count": 373,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 373,
+          "total_tokens": 130181,
+          "total_entities": 1281,
+          "avg_tokens_per_example": 349.01,
+          "max_tokens": 4130,
+          "min_tokens": 6,
+          "examples_with_entities": 328,
+          "examples_without_entities": 45,
+          "entity_counts": {
+            "SUBJECT": 308,
+            "VOTING": 351,
+            "COUNTING-MAJORITY": 38,
+            "VOTER-FAVOR": 195,
+            "COUNTING-UNANIMITY": 200,
+            "VOTER-ABSTENTION": 145,
+            "VOTER-AGAINST": 29,
+            "VOTER-ABSENT": 15
+          },
+          "label_distribution": {
+            "O": 122540,
+            "B-SUBJECT": 308,
+            "I-SUBJECT": 5087,
+            "B-VOTING": 351,
+            "B-COUNTING-MAJORITY": 38,
+            "I-COUNTING-MAJORITY": 84,
+            "B-VOTER-FAVOR": 195,
+            "I-VOTER-FAVOR": 314,
+            "B-COUNTING-UNANIMITY": 200,
+            "I-COUNTING-UNANIMITY": 200,
+            "B-VOTER-ABSTENTION": 145,
+            "I-VOTER-ABSTENTION": 565,
+            "B-VOTER-AGAINST": 29,
+            "I-VOTER-AGAINST": 70,
+            "I-VOTING": 2,
+            "B-VOTER-ABSENT": 15,
+            "I-VOTER-ABSENT": 38
+          }
+        },
+        "validation": {
+          "total_examples": 373,
+          "valid_examples": 373,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "test.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M02/test.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M02/test.jsonl",
+        "original_count": 396,
+        "converted_count": 396,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 396,
+          "total_tokens": 166815,
+          "total_entities": 1147,
+          "avg_tokens_per_example": 421.25,
+          "max_tokens": 3183,
+          "min_tokens": 29,
+          "examples_with_entities": 268,
+          "examples_without_entities": 128,
+          "entity_counts": {
+            "VOTING": 299,
+            "SUBJECT": 257,
+            "COUNTING-UNANIMITY": 263,
+            "VOTER-FAVOR": 246,
+            "COUNTING-MAJORITY": 26,
+            "VOTER-ABSTENTION": 41,
+            "VOTER-AGAINST": 10,
+            "VOTER-ABSENT": 5
+          },
+          "label_distribution": {
+            "O": 160303,
+            "B-VOTING": 299,
+            "I-VOTING": 6,
+            "B-SUBJECT": 257,
+            "I-SUBJECT": 4711,
+            "B-COUNTING-UNANIMITY": 263,
+            "I-COUNTING-UNANIMITY": 322,
+            "B-VOTER-FAVOR": 246,
+            "I-VOTER-FAVOR": 244,
+            "B-COUNTING-MAJORITY": 26,
+            "I-COUNTING-MAJORITY": 26,
+            "B-VOTER-ABSTENTION": 41,
+            "I-VOTER-ABSTENTION": 41,
+            "B-VOTER-AGAINST": 10,
+            "I-VOTER-AGAINST": 10,
+            "B-VOTER-ABSENT": 5,
+            "I-VOTER-ABSENT": 5
+          }
+        },
+        "validation": {
+          "total_examples": 396,
+          "valid_examples": 396,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      }
+    },
+    "M03": {
+      "train.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M03/train.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M03/train.jsonl",
+        "original_count": 1836,
+        "converted_count": 1836,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 1836,
+          "total_tokens": 675713,
+          "total_entities": 6002,
+          "avg_tokens_per_example": 368.04,
+          "max_tokens": 9644,
+          "min_tokens": 9,
+          "examples_with_entities": 1561,
+          "examples_without_entities": 275,
+          "entity_counts": {
+            "SUBJECT": 1422,
+            "VOTING": 1609,
+            "COUNTING-UNANIMITY": 1335,
+            "VOTER-FAVOR": 908,
+            "COUNTING-MAJORITY": 254,
+            "VOTER-AGAINST": 119,
+            "VOTER-ABSTENTION": 294,
+            "VOTER-ABSENT": 61
+          },
+          "label_distribution": {
+            "O": 640990,
+            "B-SUBJECT": 1422,
+            "I-SUBJECT": 24336,
+            "B-VOTING": 1609,
+            "B-COUNTING-UNANIMITY": 1335,
+            "I-COUNTING-UNANIMITY": 1384,
+            "B-VOTER-FAVOR": 908,
+            "I-VOTER-FAVOR": 1690,
+            "B-COUNTING-MAJORITY": 254,
+            "I-COUNTING-MAJORITY": 420,
+            "B-VOTER-AGAINST": 119,
+            "I-VOTER-AGAINST": 211,
+            "B-VOTER-ABSTENTION": 294,
+            "I-VOTER-ABSTENTION": 558,
+            "B-VOTER-ABSENT": 61,
+            "I-VOTER-ABSENT": 111,
+            "I-VOTING": 11
+          }
+        },
+        "validation": {
+          "total_examples": 1836,
+          "valid_examples": 1836,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "dev.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M03/dev.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M03/dev.jsonl",
+        "original_count": 324,
+        "converted_count": 324,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 324,
+          "total_tokens": 119547,
+          "total_entities": 1040,
+          "avg_tokens_per_example": 368.97,
+          "max_tokens": 7458,
+          "min_tokens": 11,
+          "examples_with_entities": 267,
+          "examples_without_entities": 57,
+          "entity_counts": {
+            "VOTER-FAVOR": 164,
+            "VOTING": 276,
+            "COUNTING-MAJORITY": 34,
+            "VOTER-ABSTENTION": 40,
+            "SUBJECT": 254,
+            "COUNTING-UNANIMITY": 233,
+            "VOTER-AGAINST": 25,
+            "VOTER-ABSENT": 14
+          },
+          "label_distribution": {
+            "O": 113423,
+            "B-VOTER-FAVOR": 164,
+            "I-VOTER-FAVOR": 302,
+            "B-VOTING": 276,
+            "B-COUNTING-MAJORITY": 34,
+            "I-COUNTING-MAJORITY": 82,
+            "B-VOTER-ABSTENTION": 40,
+            "I-VOTER-ABSTENTION": 88,
+            "B-SUBJECT": 254,
+            "I-SUBJECT": 4310,
+            "B-COUNTING-UNANIMITY": 233,
+            "I-COUNTING-UNANIMITY": 235,
+            "B-VOTER-AGAINST": 25,
+            "I-VOTER-AGAINST": 40,
+            "I-VOTING": 5,
+            "B-VOTER-ABSENT": 14,
+            "I-VOTER-ABSENT": 22
+          }
+        },
+        "validation": {
+          "total_examples": 324,
+          "valid_examples": 324,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "test.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M03/test.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M03/test.jsonl",
+        "original_count": 719,
+        "converted_count": 719,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 719,
+          "total_tokens": 249478,
+          "total_entities": 2679,
+          "avg_tokens_per_example": 346.98,
+          "max_tokens": 4234,
+          "min_tokens": 6,
+          "examples_with_entities": 576,
+          "examples_without_entities": 143,
+          "entity_counts": {
+            "VOTING": 763,
+            "VOTER-AGAINST": 33,
+            "SUBJECT": 572,
+            "VOTER-FAVOR": 578,
+            "VOTER-ABSTENTION": 708,
+            "VOTER-ABSENT": 23,
+            "COUNTING-UNANIMITY": 2
+          },
+          "label_distribution": {
+            "O": 233187,
+            "B-VOTING": 763,
+            "I-VOTING": 39,
+            "B-VOTER-AGAINST": 33,
+            "I-VOTER-AGAINST": 157,
+            "B-SUBJECT": 572,
+            "I-SUBJECT": 9464,
+            "B-VOTER-FAVOR": 578,
+            "I-VOTER-FAVOR": 577,
+            "B-VOTER-ABSTENTION": 708,
+            "I-VOTER-ABSTENTION": 3293,
+            "B-VOTER-ABSENT": 23,
+            "I-VOTER-ABSENT": 80,
+            "B-COUNTING-UNANIMITY": 2,
+            "I-COUNTING-UNANIMITY": 2
+          }
+        },
+        "validation": {
+          "total_examples": 719,
+          "valid_examples": 719,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      }
+    },
+    "M04": {
+      "train.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M04/train.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M04/train.jsonl",
+        "original_count": 2247,
+        "converted_count": 2247,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 2247,
+          "total_tokens": 727034,
+          "total_entities": 7425,
+          "avg_tokens_per_example": 323.56,
+          "max_tokens": 5487,
+          "min_tokens": 6,
+          "examples_with_entities": 1843,
+          "examples_without_entities": 404,
+          "entity_counts": {
+            "SUBJECT": 1725,
+            "VOTING": 2047,
+            "COUNTING-UNANIMITY": 1167,
+            "VOTER-FAVOR": 1183,
+            "VOTER-ABSTENTION": 874,
+            "COUNTING-MAJORITY": 212,
+            "VOTER-ABSENT": 79,
+            "VOTER-AGAINST": 138
+          },
+          "label_distribution": {
+            "O": 683277,
+            "B-SUBJECT": 1725,
+            "I-SUBJECT": 29020,
+            "B-VOTING": 2047,
+            "B-COUNTING-UNANIMITY": 1167,
+            "I-COUNTING-UNANIMITY": 1216,
+            "B-VOTER-FAVOR": 1183,
+            "I-VOTER-FAVOR": 1766,
+            "B-VOTER-ABSTENTION": 874,
+            "I-VOTER-ABSTENTION": 3391,
+            "B-COUNTING-MAJORITY": 212,
+            "I-COUNTING-MAJORITY": 383,
+            "I-VOTING": 37,
+            "B-VOTER-ABSENT": 79,
+            "I-VOTER-ABSENT": 175,
+            "B-VOTER-AGAINST": 138,
+            "I-VOTER-AGAINST": 344
+          }
+        },
+        "validation": {
+          "total_examples": 2247,
+          "valid_examples": 2247,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "dev.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M04/dev.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M04/dev.jsonl",
+        "original_count": 397,
+        "converted_count": 397,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 397,
+          "total_tokens": 125124,
+          "total_entities": 1331,
+          "avg_tokens_per_example": 315.17,
+          "max_tokens": 4090,
+          "min_tokens": 6,
+          "examples_with_entities": 327,
+          "examples_without_entities": 70,
+          "entity_counts": {
+            "VOTER-FAVOR": 234,
+            "VOTING": 366,
+            "COUNTING-UNANIMITY": 198,
+            "SUBJECT": 310,
+            "COUNTING-MAJORITY": 49,
+            "VOTER-AGAINST": 30,
+            "VOTER-ABSENT": 16,
+            "VOTER-ABSTENTION": 128
+          },
+          "label_distribution": {
+            "O": 117278,
+            "B-VOTER-FAVOR": 234,
+            "I-VOTER-FAVOR": 338,
+            "B-VOTING": 366,
+            "B-COUNTING-UNANIMITY": 198,
+            "I-COUNTING-UNANIMITY": 201,
+            "B-SUBJECT": 310,
+            "I-SUBJECT": 5271,
+            "B-COUNTING-MAJORITY": 49,
+            "I-COUNTING-MAJORITY": 92,
+            "B-VOTER-AGAINST": 30,
+            "I-VOTER-AGAINST": 54,
+            "B-VOTER-ABSENT": 16,
+            "I-VOTER-ABSENT": 34,
+            "B-VOTER-ABSTENTION": 128,
+            "I-VOTER-ABSTENTION": 508,
+            "I-VOTING": 17
+          }
+        },
+        "validation": {
+          "total_examples": 397,
+          "valid_examples": 397,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "test.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M04/test.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M04/test.jsonl",
+        "original_count": 235,
+        "converted_count": 235,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 235,
+          "total_tokens": 192580,
+          "total_entities": 965,
+          "avg_tokens_per_example": 819.49,
+          "max_tokens": 9644,
+          "min_tokens": 37,
+          "examples_with_entities": 234,
+          "examples_without_entities": 1,
+          "entity_counts": {
+            "VOTER-FAVOR": 233,
+            "VOTING": 235,
+            "COUNTING-MAJORITY": 27,
+            "SUBJECT": 213,
+            "VOTER-AGAINST": 9,
+            "VOTER-ABSTENTION": 40,
+            "COUNTING-UNANIMITY": 205,
+            "VOTER-ABSENT": 3
+          },
+          "label_distribution": {
+            "O": 187045,
+            "B-VOTER-FAVOR": 233,
+            "I-VOTER-FAVOR": 465,
+            "B-VOTING": 235,
+            "B-COUNTING-MAJORITY": 27,
+            "I-COUNTING-MAJORITY": 27,
+            "B-SUBJECT": 213,
+            "I-SUBJECT": 3819,
+            "B-VOTER-AGAINST": 9,
+            "I-VOTER-AGAINST": 10,
+            "B-VOTER-ABSTENTION": 40,
+            "I-VOTER-ABSTENTION": 40,
+            "B-COUNTING-UNANIMITY": 205,
+            "I-COUNTING-UNANIMITY": 204,
+            "I-VOTING": 1,
+            "B-VOTER-ABSENT": 3,
+            "I-VOTER-ABSENT": 4
+          }
+        },
+        "validation": {
+          "total_examples": 235,
+          "valid_examples": 235,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      }
+    },
+    "M05": {
+      "train.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M05/train.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M05/train.jsonl",
+        "original_count": 1976,
+        "converted_count": 1976,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 1976,
+          "total_tokens": 687145,
+          "total_entities": 6772,
+          "avg_tokens_per_example": 347.75,
+          "max_tokens": 9644,
+          "min_tokens": 6,
+          "examples_with_entities": 1628,
+          "examples_without_entities": 348,
+          "entity_counts": {
+            "VOTER-FAVOR": 1286,
+            "VOTING": 1818,
+            "COUNTING-UNANIMITY": 940,
+            "SUBJECT": 1495,
+            "VOTER-ABSTENTION": 866,
+            "VOTER-ABSENT": 38,
+            "COUNTING-MAJORITY": 209,
+            "VOTER-AGAINST": 120
+          },
+          "label_distribution": {
+            "O": 646978,
+            "B-VOTER-FAVOR": 1286,
+            "I-VOTER-FAVOR": 1994,
+            "B-VOTING": 1818,
+            "B-COUNTING-UNANIMITY": 940,
+            "I-COUNTING-UNANIMITY": 986,
+            "B-SUBJECT": 1495,
+            "I-SUBJECT": 26255,
+            "B-VOTER-ABSTENTION": 866,
+            "I-VOTER-ABSTENTION": 3354,
+            "B-VOTER-ABSENT": 38,
+            "I-VOTER-ABSENT": 115,
+            "B-COUNTING-MAJORITY": 209,
+            "I-COUNTING-MAJORITY": 366,
+            "B-VOTER-AGAINST": 120,
+            "I-VOTER-AGAINST": 308,
+            "I-VOTING": 17
+          }
+        },
+        "validation": {
+          "total_examples": 1976,
+          "valid_examples": 1976,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "dev.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M05/dev.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M05/dev.jsonl",
+        "original_count": 349,
+        "converted_count": 349,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 349,
+          "total_tokens": 142309,
+          "total_entities": 1243,
+          "avg_tokens_per_example": 407.76,
+          "max_tokens": 6911,
+          "min_tokens": 7,
+          "examples_with_entities": 290,
+          "examples_without_entities": 59,
+          "entity_counts": {
+            "SUBJECT": 270,
+            "VOTER-FAVOR": 239,
+            "VOTING": 329,
+            "VOTER-ABSTENTION": 144,
+            "COUNTING-UNANIMITY": 166,
+            "VOTER-ABSENT": 8,
+            "COUNTING-MAJORITY": 57,
+            "VOTER-AGAINST": 30
+          },
+          "label_distribution": {
+            "O": 135306,
+            "B-SUBJECT": 270,
+            "I-SUBJECT": 4435,
+            "B-VOTER-FAVOR": 239,
+            "I-VOTER-FAVOR": 379,
+            "B-VOTING": 329,
+            "B-VOTER-ABSTENTION": 144,
+            "I-VOTER-ABSTENTION": 539,
+            "B-COUNTING-UNANIMITY": 166,
+            "I-COUNTING-UNANIMITY": 178,
+            "B-VOTER-ABSENT": 8,
+            "I-VOTER-ABSENT": 18,
+            "B-COUNTING-MAJORITY": 57,
+            "I-COUNTING-MAJORITY": 120,
+            "B-VOTER-AGAINST": 30,
+            "I-VOTER-AGAINST": 60,
+            "I-VOTING": 31
+          }
+        },
+        "validation": {
+          "total_examples": 349,
+          "valid_examples": 349,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "test.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M05/test.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M05/test.jsonl",
+        "original_count": 554,
+        "converted_count": 554,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 554,
+          "total_tokens": 215284,
+          "total_entities": 1706,
+          "avg_tokens_per_example": 388.6,
+          "max_tokens": 5487,
+          "min_tokens": 14,
+          "examples_with_entities": 486,
+          "examples_without_entities": 68,
+          "entity_counts": {
+            "SUBJECT": 483,
+            "VOTING": 501,
+            "COUNTING-UNANIMITY": 464,
+            "VOTER-ABSENT": 52,
+            "VOTER-FAVOR": 125,
+            "COUNTING-MAJORITY": 22,
+            "VOTER-AGAINST": 27,
+            "VOTER-ABSTENTION": 32
+          },
+          "label_distribution": {
+            "O": 205316,
+            "B-SUBJECT": 483,
+            "I-SUBJECT": 7420,
+            "B-VOTING": 501,
+            "B-COUNTING-UNANIMITY": 464,
+            "I-COUNTING-UNANIMITY": 457,
+            "B-VOTER-ABSENT": 52,
+            "I-VOTER-ABSENT": 80,
+            "B-VOTER-FAVOR": 125,
+            "I-VOTER-FAVOR": 196,
+            "I-VOTING": 7,
+            "B-COUNTING-MAJORITY": 22,
+            "I-COUNTING-MAJORITY": 16,
+            "B-VOTER-AGAINST": 27,
+            "I-VOTER-AGAINST": 40,
+            "B-VOTER-ABSTENTION": 32,
+            "I-VOTER-ABSTENTION": 46
+          }
+        },
+        "validation": {
+          "total_examples": 554,
+          "valid_examples": 554,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      }
+    },
+    "M06": {
+      "train.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M06/train.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M06/train.jsonl",
+        "original_count": 2045,
+        "converted_count": 2045,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 2045,
+          "total_tokens": 733285,
+          "total_entities": 6865,
+          "avg_tokens_per_example": 358.57,
+          "max_tokens": 9644,
+          "min_tokens": 6,
+          "examples_with_entities": 1677,
+          "examples_without_entities": 368,
+          "entity_counts": {
+            "VOTER-FAVOR": 1370,
+            "VOTING": 1872,
+            "COUNTING-UNANIMITY": 1131,
+            "SUBJECT": 1559,
+            "COUNTING-MAJORITY": 94,
+            "VOTER-ABSTENTION": 691,
+            "VOTER-ABSENT": 78,
+            "VOTER-AGAINST": 70
+          },
+          "label_distribution": {
+            "O": 694028,
+            "B-VOTER-FAVOR": 1370,
+            "I-VOTER-FAVOR": 2045,
+            "B-VOTING": 1872,
+            "B-COUNTING-UNANIMITY": 1131,
+            "I-COUNTING-UNANIMITY": 1176,
+            "B-SUBJECT": 1559,
+            "I-SUBJECT": 25754,
+            "B-COUNTING-MAJORITY": 94,
+            "I-COUNTING-MAJORITY": 92,
+            "B-VOTER-ABSTENTION": 691,
+            "I-VOTER-ABSTENTION": 2911,
+            "B-VOTER-ABSENT": 78,
+            "I-VOTER-ABSENT": 166,
+            "B-VOTER-AGAINST": 70,
+            "I-VOTER-AGAINST": 205,
+            "I-VOTING": 43
+          }
+        },
+        "validation": {
+          "total_examples": 2045,
+          "valid_examples": 2045,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "dev.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M06/dev.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M06/dev.jsonl",
+        "original_count": 362,
+        "converted_count": 362,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 362,
+          "total_tokens": 141330,
+          "total_entities": 1238,
+          "avg_tokens_per_example": 390.41,
+          "max_tokens": 6911,
+          "min_tokens": 9,
+          "examples_with_entities": 291,
+          "examples_without_entities": 71,
+          "entity_counts": {
+            "VOTER-FAVOR": 258,
+            "VOTING": 330,
+            "COUNTING-UNANIMITY": 170,
+            "SUBJECT": 266,
+            "COUNTING-MAJORITY": 21,
+            "VOTER-ABSTENTION": 166,
+            "VOTER-AGAINST": 12,
+            "VOTER-ABSENT": 15
+          },
+          "label_distribution": {
+            "O": 134672,
+            "B-VOTER-FAVOR": 258,
+            "I-VOTER-FAVOR": 367,
+            "B-VOTING": 330,
+            "B-COUNTING-UNANIMITY": 170,
+            "I-COUNTING-UNANIMITY": 176,
+            "B-SUBJECT": 266,
+            "I-SUBJECT": 4110,
+            "B-COUNTING-MAJORITY": 21,
+            "B-VOTER-ABSTENTION": 166,
+            "I-VOTER-ABSTENTION": 677,
+            "I-COUNTING-MAJORITY": 17,
+            "I-VOTING": 10,
+            "B-VOTER-AGAINST": 12,
+            "I-VOTER-AGAINST": 26,
+            "B-VOTER-ABSENT": 15,
+            "I-VOTER-ABSENT": 37
+          }
+        },
+        "validation": {
+          "total_examples": 362,
+          "valid_examples": 362,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      },
+      "test.jsonl": {
+        "input_file": "data/votie_bio_municipality_splits/M06/test.jsonl",
+        "output_file": "data/votie_bio_municipality_splits_converted/M06/test.jsonl",
+        "original_count": 472,
+        "converted_count": 472,
+        "conversion_errors": 0,
+        "statistics": {
+          "total_examples": 472,
+          "total_tokens": 170123,
+          "total_entities": 1618,
+          "avg_tokens_per_example": 360.43,
+          "max_tokens": 4361,
+          "min_tokens": 15,
+          "examples_with_entities": 436,
+          "examples_without_entities": 36,
+          "entity_counts": {
+            "SUBJECT": 423,
+            "VOTING": 446,
+            "COUNTING-UNANIMITY": 269,
+            "VOTER-FAVOR": 22,
+            "COUNTING-MAJORITY": 173,
+            "VOTER-ABSTENTION": 185,
+            "VOTER-AGAINST": 95,
+            "VOTER-ABSENT": 5
+          },
+          "label_distribution": {
+            "O": 158900,
+            "B-SUBJECT": 423,
+            "I-SUBJECT": 8246,
+            "B-VOTING": 446,
+            "B-COUNTING-UNANIMITY": 269,
+            "I-COUNTING-UNANIMITY": 269,
+            "B-VOTER-FAVOR": 22,
+            "I-VOTER-FAVOR": 157,
+            "B-COUNTING-MAJORITY": 173,
+            "I-COUNTING-MAJORITY": 393,
+            "B-VOTER-ABSTENTION": 185,
+            "I-VOTER-ABSTENTION": 351,
+            "I-VOTING": 2,
+            "B-VOTER-AGAINST": 95,
+            "I-VOTER-AGAINST": 177,
+            "B-VOTER-ABSENT": 5,
+            "I-VOTER-ABSENT": 10
+          }
+        },
+        "validation": {
+          "total_examples": 472,
+          "valid_examples": 472,
+          "invalid_examples": 0,
+          "validation_errors": [],
+          "validation_rate": 100.0
+        }
+      }
+    }
+  }
+}

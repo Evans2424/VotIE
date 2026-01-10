@@ -1,0 +1,141 @@
+{
+  "main_dataset": {
+    "train.jsonl": {
+      "entity_counts": {
+        "VOTER-FAVOR": 1039,
+        "VOTING": 1709,
+        "COUNTING-UNANIMITY": 970,
+        "SUBJECT": 1422,
+        "COUNTING-MAJORITY": 175,
+        "VOTER-ABSTENTION": 730,
+        "VOTER-ABSENT": 57,
+        "VOTER-AGAINST": 98
+      },
+      "entity_percentages": {
+        "VOTER-FAVOR": 16.758064516129032,
+        "VOTING": 27.564516129032256,
+        "COUNTING-UNANIMITY": 15.645161290322582,
+        "SUBJECT": 22.93548387096774,
+        "COUNTING-MAJORITY": 2.82258064516129,
+        "VOTER-ABSTENTION": 11.774193548387096,
+        "VOTER-ABSENT": 0.9193548387096774,
+        "VOTER-AGAINST": 1.5806451612903227
+      },
+      "total_entities": 6200,
+      "total_tokens": 665158
+    },
+    "dev.jsonl": {
+      "entity_counts": {
+        "VOTER-FAVOR": 311,
+        "VOTING": 472,
+        "COUNTING-MAJORITY": 51,
+        "VOTER-ABSTENTION": 179,
+        "SUBJECT": 406,
+        "COUNTING-UNANIMITY": 295,
+        "VOTER-ABSENT": 23,
+        "VOTER-AGAINST": 43
+      },
+      "entity_percentages": {
+        "VOTER-FAVOR": 17.471910112359552,
+        "VOTING": 26.516853932584272,
+        "COUNTING-MAJORITY": 2.8651685393258424,
+        "VOTER-ABSTENTION": 10.0561797752809,
+        "SUBJECT": 22.808988764044944,
+        "COUNTING-UNANIMITY": 16.573033707865168,
+        "VOTER-ABSENT": 1.292134831460674,
+        "VOTER-AGAINST": 2.4157303370786516
+      },
+      "total_entities": 1780,
+      "total_tokens": 192048
+    },
+    "test.jsonl": {
+      "entity_counts": {
+        "VOTER-FAVOR": 300,
+        "VOTING": 467,
+        "COUNTING-MAJORITY": 62,
+        "VOTER-ABSTENTION": 133,
+        "SUBJECT": 420,
+        "COUNTING-UNANIMITY": 305,
+        "VOTER-ABSENT": 18,
+        "VOTER-AGAINST": 36
+      },
+      "entity_percentages": {
+        "VOTER-FAVOR": 17.23147616312464,
+        "VOTING": 26.82366456059736,
+        "COUNTING-MAJORITY": 3.5611717403790926,
+        "VOTER-ABSTENTION": 7.639287765651924,
+        "SUBJECT": 24.124066628374496,
+        "COUNTING-UNANIMITY": 17.518667432510053,
+        "VOTER-ABSENT": 1.0338885697874785,
+        "VOTER-AGAINST": 2.067777139574957
+      },
+      "total_entities": 1741,
+      "total_tokens": 187532
+    }
+  },
+  "combined": {
+    "entity_counts": {
+      "VOTER-FAVOR": 1650,
+      "VOTING": 2648,
+      "COUNTING-UNANIMITY": 1570,
+      "SUBJECT": 2248,
+      "COUNTING-MAJORITY": 288,
+      "VOTER-ABSTENTION": 1042,
+      "VOTER-ABSENT": 98,
+      "VOTER-AGAINST": 177
+    },
+    "entity_percentages": {
+      "VOTER-FAVOR": 16.973562390700543,
+      "VOTING": 27.239995885196993,
+      "COUNTING-UNANIMITY": 16.150601789939305,
+      "SUBJECT": 23.125192881390806,
+      "COUNTING-MAJORITY": 2.962658162740459,
+      "VOTER-ABSTENTION": 10.719061824915133,
+      "VOTER-ABSENT": 1.0081267359325172,
+      "VOTER-AGAINST": 1.82080032918424
+    },
+    "total_entities": 9721,
+    "total_tokens": 1044738
+  },
+  "label_distribution": {
+    "label_counts": {
+      "O": 987600,
+      "B-VOTER-FAVOR": 1650,
+      "I-VOTER-FAVOR": 2569,
+      "B-VOTING": 2648,
+      "B-COUNTING-UNANIMITY": 1570,
+      "I-COUNTING-UNANIMITY": 1621,
+      "B-SUBJECT": 2248,
+      "I-SUBJECT": 38110,
+      "B-COUNTING-MAJORITY": 288,
+      "I-COUNTING-MAJORITY": 502,
+      "B-VOTER-ABSTENTION": 1042,
+      "I-VOTER-ABSTENTION": 3939,
+      "B-VOTER-ABSENT": 98,
+      "I-VOTER-ABSENT": 213,
+      "B-VOTER-AGAINST": 177,
+      "I-VOTER-AGAINST": 408,
+      "I-VOTING": 55
+    },
+    "label_percentages": {
+      "O": 94.53087759801979,
+      "B-VOTER-FAVOR": 0.15793433377554947,
+      "I-VOTER-FAVOR": 0.24589897179962822,
+      "B-VOTING": 0.2534606762652455,
+      "B-COUNTING-UNANIMITY": 0.15027691153188646,
+      "I-COUNTING-UNANIMITY": 0.15515851821222162,
+      "B-SUBJECT": 0.21517356504693044,
+      "I-SUBJECT": 3.647804521324964,
+      "B-COUNTING-MAJORITY": 0.027566720077186815,
+      "I-COUNTING-MAJORITY": 0.04805032457898536,
+      "B-VOTER-ABSTENTION": 0.09973792472371062,
+      "I-VOTER-ABSTENTION": 0.3770323277223572,
+      "B-VOTER-ABSENT": 0.00938034224848718,
+      "I-VOTER-ABSENT": 0.02038788672375275,
+      "B-VOTER-AGAINST": 0.0169420467141044,
+      "I-VOTER-AGAINST": 0.03905285344268133,
+      "I-VOTING": 0.005264477792518315
+    },
+    "total_labels": 1044738
+  }
+}

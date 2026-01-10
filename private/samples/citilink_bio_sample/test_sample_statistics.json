@@ -1,0 +1,17 @@
+{
+  "total_examples": 100,
+  "total_entities": 352,
+  "avg_tokens_per_example": 415.76,
+  "entity_type_distribution": {
+    "VOTER-FAVOR": 75,
+    "VOTING": 89,
+    "COUNTING-UNANIMITY": 55,
+    "SUBJECT": 80,
+    "COUNTING-MAJORITY": 14,
+    "VOTER-ABSTENTION": 20,
+    "VOTER-ABSENT": 6,
+    "VOTER-AGAINST": 13
+  },
+  "examples_with_entities": 85,
+  "examples_without_entities": 15
+}

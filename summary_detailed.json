@@ -1,0 +1,65 @@
+{
+  "municipalities": [
+    {
+      "code": "M01",
+      "name": "Alandroal",
+      "num_test": 93,
+      "precision": 58.71539313399777,
+      "recall": 64.593837535014,
+      "f1": 61.18852687273739,
+      "accuracy": 98.32234871180347
+    },
+    {
+      "code": "M02",
+      "name": "Campomaior",
+      "num_test": 74,
+      "precision": 35.84106347853151,
+      "recall": 51.113816738816745,
+      "f1": 42.11064115420366,
+      "accuracy": 97.0331742384067
+    },
+    {
+      "code": "M03",
+      "name": "Covilhã",
+      "num_test": 103,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 92.89930191449201
+    },
+    {
+      "code": "M04",
+      "name": "Fundão",
+      "num_test": 50,
+      "precision": 14.845938375350137,
+      "recall": 14.583333333333332,
+      "f1": 14.583832009574582,
+      "accuracy": 96.54545987283541
+    },
+    {
+      "code": "M05",
+      "name": "Guimarães",
+      "num_test": 102,
+      "precision": 42.63268223008742,
+      "recall": 49.30708180708181,
+      "f1": 45.27923136165466,
+      "accuracy": 99.59624458821813
+    },
+    {
+      "code": "M06",
+      "name": "Porto",
+      "num_test": 107,
+      "precision": 5.164835164835164,
+      "recall": 6.9940476190476195,
+      "f1": 5.941845764854614,
+      "accuracy": 97.26799404966243
+    }
+  ],
+  "macro_average": {
+    "precision": 26.199985397133663,
+    "recall": 31.098686172215583,
+    "f1": 28.18401286050415,
+    "accuracy": 96.94408722923636
+  },
+  "total_test_examples": 529
+}

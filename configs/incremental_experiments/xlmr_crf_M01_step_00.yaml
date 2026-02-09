@@ -1,0 +1,32 @@
+augmentation:
+  max_length: 512
+  padding: max_length
+  truncation: true
+data:
+  data_dir: data/incremental_experiments/M01/step_00
+  dev_file: dev.jsonl
+  test_file: test.jsonl
+  train_file: train.jsonl
+model:
+  architecture: crf
+  dropout: 0.1
+  model_name: FacebookAI/xlm-roberta-base
+  name: xlmr_crf
+  num_labels: null
+optimization:
+  grad_clip: 1.0
+  optimizer: adamw
+  scheduler: linear_with_warmup
+training:
+  apply_bio_validation: true
+  batch_size: 8
+  device: 0
+  epochs: 10
+  learning_rate: 5e-5
+  patience: 3
+  seed: 42
+  warmup_proportion: 0.1
+  weight_decay: 0.01
+windowing:
+  enable_windowing: true
+  overlap_tokens: 50

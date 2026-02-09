@@ -10,10 +10,10 @@ This helps answer: "How many annotated documents from a new municipality
 do I need to significantly improve extraction performance?"
 
 Usage:
-    python scripts/run_incremental_document_experiment.py
-    python scripts/run_incremental_document_experiment.py --municipality M02
-    python scripts/run_incremental_document_experiment.py --steps 0 1 2 3  # Run specific steps only
-    python scripts/run_incremental_document_experiment.py --skip-training   # Reuse existing models
+    python scripts/run_incremental_document_experiment.py --gpus 3 4
+    python scripts/run_incremental_document_experiment.py --gpus 3 4 --municipality M02
+    python scripts/run_incremental_document_experiment.py --gpus 3 4 --steps 0 1 2 3
+    python scripts/run_incremental_document_experiment.py --gpus 3 4 --skip-training
 """
 
 import sys
@@ -26,25 +26,6 @@ from datetime import datetime
 from typing import List, Dict, Any
 from collections import defaultdict
 import argparse
-
-
-def run_command(cmd: List[str], description: str) -> bool:
-    """Run a command and return success status."""
-    print(f"\n{'=' * 80}")
-    print(f"Running: {description}")
-    print(f"Command: {' '.join(cmd)}")
-    print(f"{'=' * 80}\n")
-
-    try:
-        subprocess.run(cmd, check=True)
-        print(f"\n✓ {description} completed successfully")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"\n✗ {description} failed with exit code {e.returncode}")
-        return False
-    except Exception as e:
-        print(f"\n✗ {description} failed with error: {e}")
-        return False
 
 
 def load_jsonl(path: Path) -> List[Dict]:
@@ -75,8 +56,8 @@ def group_by_document(examples: List[Dict]) -> Dict[str, List[Dict]]:
     return dict(groups)
 
 
-def create_config(base_config_path: Path, data_dir: str, output_path: Path):
-    """Create a config YAML pointing to the given data directory."""
+def create_config(base_config_path: Path, data_dir: str, gpu_id: int, output_path: Path):
+    """Create a config YAML pointing to the given data directory and GPU."""
     with open(base_config_path, 'r') as f:
         config = yaml.safe_load(f)
 
@@ -84,6 +65,7 @@ def create_config(base_config_path: Path, data_dir: str, output_path: Path):
     config['data']['train_file'] = 'train.jsonl'
     config['data']['dev_file'] = 'dev.jsonl'
     config['data']['test_file'] = 'test.jsonl'
+    config['training']['device'] = gpu_id
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'w') as f:
@@ -163,6 +145,97 @@ def prepare_data_splits(
     return steps
 
 
+def run_step_pipeline(step_info: Dict, mun: str, base_config_path: Path,
+                      gpu_id: int, skip_training: bool, skip_prediction: bool,
+                      skip_evaluation: bool) -> subprocess.Popen:
+    """
+    Launch the full train → predict → evaluate pipeline for one step as a
+    single background process (chained with &&).
+
+    Returns the Popen handle.
+    """
+    k = step_info['step']
+    step_label = f"{mun}_step_{k:02d}"
+    experiment_name = f"incremental_{step_label}"
+    config_path = Path(f"configs/incremental_experiments/xlmr_crf_{step_label}.yaml")
+    log_path = Path(f"incremental_experiments/logs/{step_label}.log")
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Create config with the assigned GPU
+    create_config(base_config_path, step_info['data_dir'], gpu_id, config_path)
+
+    # Build the chain of commands
+    cmds = []
+
+    if not skip_training:
+        cmds.append(
+            f"{sys.executable} scripts/train.py"
+            f" --config {config_path}"
+            f" --experiment-name {experiment_name}"
+        )
+
+    if not skip_prediction:
+        model_path = f"models/xlmr_crf/{experiment_name}"
+        test_data_path = f"{step_info['data_dir']}/test.jsonl"
+        predictions_path = f"incremental_experiments/predictions/{step_label}_predictions.jsonl"
+        cmds.append(
+            f"{sys.executable} scripts/predict.py"
+            f" {model_path} {test_data_path} {predictions_path} cuda:{gpu_id}"
+        )
+
+    if not skip_evaluation:
+        predictions_path = f"incremental_experiments/predictions/{step_label}_predictions.jsonl"
+        eval_path = f"incremental_experiments/evaluation/{step_label}_results.json"
+        cmds.append(
+            f"{sys.executable} scripts/evaluate.py"
+            f" {predictions_path} {eval_path}"
+        )
+
+    if not cmds:
+        return None
+
+    full_cmd = " && ".join(cmds)
+    log_file = open(log_path, 'w')
+
+    print(f"  [GPU {gpu_id}] Step {k} (+{step_info['num_docs_added']} docs) -> {log_path}")
+
+    proc = subprocess.Popen(
+        full_cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT
+    )
+    proc._log_file = log_file  # keep reference to close later
+    proc._step = k
+    proc._gpu_id = gpu_id
+    proc._log_path = log_path
+    return proc
+
+
+def collect_result(step_info: Dict, mun: str) -> Dict[str, Any]:
+    """Collect evaluation result for a completed step."""
+    k = step_info['step']
+    step_label = f"{mun}_step_{k:02d}"
+    eval_file = Path(f"incremental_experiments/evaluation/{step_label}_results.json")
+
+    step_result = {
+        'step': k,
+        'num_docs_added': step_info['num_docs_added'],
+        'num_train_segments': step_info['num_train_segments'],
+        'num_test_segments': step_info['num_test_segments'],
+    }
+
+    if eval_file.exists():
+        with open(eval_file, 'r') as f:
+            eval_data = json.load(f)
+        entity_metrics = eval_data.get('entity_level_metrics', {})
+        step_result['entity_f1'] = entity_metrics.get('entity_f1', None)
+        step_result['entity_precision'] = entity_metrics.get('entity_precision', None)
+        step_result['entity_recall'] = entity_metrics.get('entity_recall', None)
+        step_result['success'] = True
+    else:
+        step_result['success'] = False
+
+    return step_result
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run incremental document addition experiments"
@@ -171,6 +244,13 @@ def main():
         '--municipality',
         default='M01',
         help='Target municipality to incrementally add documents from (default: M01)'
+    )
+    parser.add_argument(
+        '--gpus',
+        nargs='+',
+        type=int,
+        required=True,
+        help='CUDA GPU IDs to use for parallel execution (e.g., --gpus 3 4)'
     )
     parser.add_argument(
         '--steps',
@@ -206,12 +286,6 @@ def main():
         help='Skip data preparation (reuse existing splits)'
     )
     parser.add_argument(
-        '--device',
-        default='auto',
-        choices=['cuda', 'mps', 'cpu', 'auto'],
-        help='Device for training/inference (default: auto)'
-    )
-    parser.add_argument(
         '--seed',
         type=int,
         default=42,
@@ -220,6 +294,8 @@ def main():
 
     args = parser.parse_args()
     mun = args.municipality
+    gpus = args.gpus
+    num_gpus = len(gpus)
 
     base_config_path = Path(f"configs/municipality_experiments/xlmr_crf_{mun}.yaml")
     if not base_config_path.exists():
@@ -233,6 +309,7 @@ def main():
 
     print("=" * 80)
     print(f"Incremental Document Addition Experiment - {mun}")
+    print(f"GPUs: {gpus} ({num_gpus} parallel jobs)")
     print("=" * 80)
 
     # Step 1: Prepare data splits
@@ -240,7 +317,6 @@ def main():
         print("\n--- Preparing incremental data splits ---")
         all_steps = prepare_data_splits(mun, seed=args.seed)
     else:
-        # Reconstruct step info from existing directories
         step_dirs = sorted(Path(f"data/incremental_experiments/{mun}").glob("step_*"))
         all_steps = []
         for step_dir in step_dirs:
@@ -262,7 +338,7 @@ def main():
     if args.max_steps is not None:
         all_steps = all_steps[:args.max_steps]
 
-    print(f"\nWill run {len(all_steps)} steps:")
+    print(f"\nWill run {len(all_steps)} steps across {num_gpus} GPUs:")
     for s in all_steps:
         print(f"  Step {s['step']:2d}: +{s['num_docs_added']} docs, "
               f"train={s['num_train_segments']} segments, "
@@ -271,84 +347,46 @@ def main():
     # Create output directories
     Path("incremental_experiments/predictions").mkdir(parents=True, exist_ok=True)
     Path("incremental_experiments/evaluation").mkdir(parents=True, exist_ok=True)
+    Path("incremental_experiments/logs").mkdir(parents=True, exist_ok=True)
     Path("configs/incremental_experiments").mkdir(parents=True, exist_ok=True)
 
-    # Step 2: Run experiments
+    # Step 2: Run experiments in batches of num_gpus
     results = []
 
-    for s in all_steps:
-        k = s['step']
+    for batch_start in range(0, len(all_steps), num_gpus):
+        batch = all_steps[batch_start:batch_start + num_gpus]
+
         print(f"\n{'#' * 80}")
-        print(f"# Step {k}: {s['num_docs_added']} documents added "
-              f"(train={s['num_train_segments']}, test={s['num_test_segments']})")
+        print(f"# Batch: steps {[s['step'] for s in batch]} "
+              f"({batch_start + 1}-{batch_start + len(batch)} of {len(all_steps)})")
         print(f"{'#' * 80}")
 
-        step_label = f"{mun}_step_{k:02d}"
-        experiment_name = f"incremental_{step_label}"
-        config_path = Path(f"configs/incremental_experiments/xlmr_crf_{step_label}.yaml")
+        # Launch all steps in this batch in parallel
+        procs = []
+        for i, step_info in enumerate(batch):
+            gpu_id = gpus[i]
+            proc = run_step_pipeline(
+                step_info, mun, base_config_path, gpu_id,
+                args.skip_training, args.skip_prediction, args.skip_evaluation
+            )
+            if proc is not None:
+                procs.append((proc, step_info))
 
-        # Create config
-        create_config(base_config_path, s['data_dir'], config_path)
+        # Wait for all processes in this batch to finish
+        for proc, step_info in procs:
+            proc.wait()
+            proc._log_file.close()
+            status = "OK" if proc.returncode == 0 else f"FAILED (code {proc.returncode})"
+            print(f"  [GPU {proc._gpu_id}] Step {proc._step} finished: {status}")
+            if proc.returncode != 0:
+                print(f"    See log: {proc._log_path}")
 
-        success = True
+        # Collect results for this batch
+        for step_info in batch:
+            results.append(collect_result(step_info, mun))
 
-        # Training
-        if not args.skip_training:
-            cmd = [
-                sys.executable, "scripts/train.py",
-                "--config", str(config_path),
-                "--experiment-name", experiment_name
-            ]
-            if not run_command(cmd, f"Training step {k} (+{s['num_docs_added']} docs)"):
-                print(f"✗ Training failed for step {k}")
-                success = False
-
-        # Prediction
-        if success and not args.skip_prediction:
-            model_path = f"models/xlmr_crf/{experiment_name}"
-            test_data_path = f"{s['data_dir']}/test.jsonl"
-            predictions_path = f"incremental_experiments/predictions/{step_label}_predictions.jsonl"
-
-            cmd = [
-                sys.executable, "scripts/predict.py",
-                model_path, test_data_path, predictions_path, args.device
-            ]
-            if not run_command(cmd, f"Predicting step {k}"):
-                print(f"✗ Prediction failed for step {k}")
-                success = False
-
-        # Evaluation
-        if success and not args.skip_evaluation:
-            predictions_path = f"incremental_experiments/predictions/{step_label}_predictions.jsonl"
-            eval_path = f"incremental_experiments/evaluation/{step_label}_results.json"
-
-            cmd = [
-                sys.executable, "scripts/evaluate.py",
-                predictions_path, eval_path
-            ]
-            if not run_command(cmd, f"Evaluating step {k}"):
-                print(f"✗ Evaluation failed for step {k}")
-                success = False
-
-        # Collect result
-        eval_file = Path(f"incremental_experiments/evaluation/{step_label}_results.json")
-        step_result = {
-            'step': k,
-            'num_docs_added': s['num_docs_added'],
-            'num_train_segments': s['num_train_segments'],
-            'num_test_segments': s['num_test_segments'],
-            'success': success,
-        }
-
-        if eval_file.exists():
-            with open(eval_file, 'r') as f:
-                eval_data = json.load(f)
-            entity_metrics = eval_data.get('entity_level_metrics', {})
-            step_result['entity_f1'] = entity_metrics.get('entity_f1', None)
-            step_result['entity_precision'] = entity_metrics.get('entity_precision', None)
-            step_result['entity_recall'] = entity_metrics.get('entity_recall', None)
-
-        results.append(step_result)
+    # Sort results by step number
+    results.sort(key=lambda r: r['step'])
 
     # Step 3: Save and print summary
     summary = {
@@ -356,6 +394,7 @@ def main():
             'timestamp': datetime.now().isoformat(),
             'municipality': mun,
             'seed': args.seed,
+            'gpus': gpus,
             'num_steps': len(results),
         },
         'results': results,
@@ -372,7 +411,8 @@ def main():
     print("INCREMENTAL DOCUMENT ADDITION - LEARNING CURVE")
     print("=" * 80)
     print(f"Municipality: {mun}")
-    print(f"{'Step':>5} {'Docs Added':>11} {'Train Segs':>11} {'Test Segs':>10} {'F1':>8} {'Precision':>10} {'Recall':>8}")
+    print(f"{'Step':>5} {'Docs Added':>11} {'Train Segs':>11} {'Test Segs':>10} "
+          f"{'F1':>8} {'Precision':>10} {'Recall':>8}")
     print("-" * 80)
 
     for r in results:

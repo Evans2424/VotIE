@@ -16,6 +16,7 @@ Usage:
     python scripts/run_incremental_document_experiment.py --gpus 3 4 --skip-training
 """
 
+import os
 import sys
 import json
 import random
@@ -291,8 +292,32 @@ def main():
         default=42,
         help='Random seed for document shuffling (default: 42)'
     )
+    parser.add_argument(
+        '--background',
+        action='store_true',
+        help='Run in background (survives terminal close). Logs to incremental_experiments/main.log'
+    )
 
     args = parser.parse_args()
+
+    # Re-launch detached from terminal so it survives closing the session
+    if args.background:
+        log_path = Path("incremental_experiments/main.log")
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        new_argv = [a for a in sys.argv if a != '--background']
+        log_file = open(log_path, 'w')
+        proc = subprocess.Popen(
+            [sys.executable] + new_argv,
+            stdout=log_file, stderr=subprocess.STDOUT,
+            start_new_session=True,  # detach from terminal session
+        )
+        pid_path = Path("incremental_experiments/main.pid")
+        pid_path.write_text(str(proc.pid))
+        print(f"Running in background (PID: {proc.pid})")
+        print(f"Log:     tail -f {log_path}")
+        print(f"Stop:    kill $(cat {pid_path})")
+        sys.exit(0)
+
     mun = args.municipality
     gpus = args.gpus
     num_gpus = len(gpus)

@@ -21,6 +21,7 @@ import sys
 import json
 import random
 import subprocess
+import signal
 import yaml
 from pathlib import Path
 from datetime import datetime
@@ -71,6 +72,9 @@ def create_config(base_config_path: Path, data_dir: str, gpu_id: int, output_pat
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'w') as f:
         yaml.dump(config, f, default_flow_style=False)
+
+    # Verify the GPU was set correctly
+    print(f"    Created config {output_path.name} with device={gpu_id}")
 
 
 def prepare_data_splits(
@@ -200,8 +204,10 @@ def run_step_pipeline(step_info: Dict, mun: str, base_config_path: Path,
 
     print(f"  [GPU {gpu_id}] Step {k} (+{step_info['num_docs_added']} docs) -> {log_path}")
 
+    # Use process group to ensure all child processes can be killed together
     proc = subprocess.Popen(
-        full_cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT
+        full_cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT,
+        preexec_fn=os.setsid  # Create new process group
     )
     proc._log_file = log_file  # keep reference to close later
     proc._step = k
@@ -235,6 +241,19 @@ def collect_result(step_info: Dict, mun: str) -> Dict[str, Any]:
         step_result['success'] = False
 
     return step_result
+
+
+def cleanup_processes(procs):
+    """Kill all running processes and their children."""
+    for proc, _ in procs:
+        if proc.poll() is None:  # Still running
+            try:
+                # Kill entire process group
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+        if hasattr(proc, '_log_file'):
+            proc._log_file.close()
 
 
 def main():
@@ -310,12 +329,16 @@ def main():
             [sys.executable] + new_argv,
             stdout=log_file, stderr=subprocess.STDOUT,
             start_new_session=True,  # detach from terminal session
+            preexec_fn=os.setsid  # create new process group
         )
         pid_path = Path("incremental_experiments/main.pid")
+        pgid_path = Path("incremental_experiments/main.pgid")
         pid_path.write_text(str(proc.pid))
-        print(f"Running in background (PID: {proc.pid})")
+        pgid_path.write_text(str(proc.pid))  # pgid = pid for session leader
+        print(f"Running in background (PID: {proc.pid}, PGID: {proc.pid})")
         print(f"Log:     tail -f {log_path}")
-        print(f"Stop:    kill $(cat {pid_path})")
+        print(f"Stop:    kill -TERM -$(cat {pgid_path})  # kills entire process group")
+        print(f"         # or: pkill -P {proc.pid}")
         sys.exit(0)
 
     mun = args.municipality
@@ -377,38 +400,54 @@ def main():
 
     # Step 2: Run experiments in batches of num_gpus
     results = []
+    current_procs = []
 
-    for batch_start in range(0, len(all_steps), num_gpus):
-        batch = all_steps[batch_start:batch_start + num_gpus]
+    def signal_handler(signum, frame):
+        print(f"\n\nReceived signal {signum}. Cleaning up processes...")
+        cleanup_processes(current_procs)
+        sys.exit(1)
 
-        print(f"\n{'#' * 80}")
-        print(f"# Batch: steps {[s['step'] for s in batch]} "
-              f"({batch_start + 1}-{batch_start + len(batch)} of {len(all_steps)})")
-        print(f"{'#' * 80}")
+    # Register signal handlers
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
 
-        # Launch all steps in this batch in parallel
-        procs = []
-        for i, step_info in enumerate(batch):
-            gpu_id = gpus[i]
-            proc = run_step_pipeline(
-                step_info, mun, base_config_path, gpu_id,
-                args.skip_training, args.skip_prediction, args.skip_evaluation
-            )
-            if proc is not None:
-                procs.append((proc, step_info))
+    try:
+        for batch_start in range(0, len(all_steps), num_gpus):
+            batch = all_steps[batch_start:batch_start + num_gpus]
 
-        # Wait for all processes in this batch to finish
-        for proc, step_info in procs:
-            proc.wait()
-            proc._log_file.close()
-            status = "OK" if proc.returncode == 0 else f"FAILED (code {proc.returncode})"
-            print(f"  [GPU {proc._gpu_id}] Step {proc._step} finished: {status}")
-            if proc.returncode != 0:
-                print(f"    See log: {proc._log_path}")
+            print(f"\n{'#' * 80}")
+            print(f"# Batch: steps {[s['step'] for s in batch]} "
+                  f"({batch_start + 1}-{batch_start + len(batch)} of {len(all_steps)})")
+            print(f"{'#' * 80}")
 
-        # Collect results for this batch
-        for step_info in batch:
-            results.append(collect_result(step_info, mun))
+            # Launch all steps in this batch in parallel
+            current_procs = []
+            for i, step_info in enumerate(batch):
+                gpu_id = gpus[i]
+                proc = run_step_pipeline(
+                    step_info, mun, base_config_path, gpu_id,
+                    args.skip_training, args.skip_prediction, args.skip_evaluation
+                )
+                if proc is not None:
+                    current_procs.append((proc, step_info))
+
+            # Wait for all processes in this batch to finish
+            for proc, step_info in current_procs:
+                proc.wait()
+                proc._log_file.close()
+                status = "OK" if proc.returncode == 0 else f"FAILED (code {proc.returncode})"
+                print(f"  [GPU {proc._gpu_id}] Step {proc._step} finished: {status}")
+                if proc.returncode != 0:
+                    print(f"    See log: {proc._log_path}")
+
+            # Collect results for this batch
+            for step_info in batch:
+                results.append(collect_result(step_info, mun))
+
+    except KeyboardInterrupt:
+        print("\n\nInterrupted by user. Cleaning up...")
+        cleanup_processes(current_procs)
+        sys.exit(1)
 
     # Sort results by step number
     results.sort(key=lambda r: r['step'])

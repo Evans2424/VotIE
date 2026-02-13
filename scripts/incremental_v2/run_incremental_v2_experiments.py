@@ -72,7 +72,7 @@ signal.signal(signal.SIGINT, on_signal)
 # ── LOMO Baseline Training ──────────────────────────────────────────────────
 
 
-def train_lomo_baseline(municipality: str, output_dir: Path, gpu_id: int) -> bool:
+def train_lomo_baseline(municipality: str, output_dir: Path, gpu_id: int, model_type: str = 'xlmr_crf') -> bool:
     """
     Train LOMO baseline model for a municipality.
 
@@ -89,7 +89,7 @@ def train_lomo_baseline(municipality: str, output_dir: Path, gpu_id: int) -> boo
     print(f"{'='*80}")
 
     # Use the base municipality config
-    base_config = Path(f"configs/municipality_experiments/deberta_crf_{municipality}.yaml")
+    base_config = Path(f"configs/municipality_experiments/{model_type}_{municipality}.yaml")
 
     if not base_config.exists():
         print(f"  ❌ Base config not found: {base_config}")
@@ -149,7 +149,8 @@ def train_lomo_baseline(municipality: str, output_dir: Path, gpu_id: int) -> boo
 def train_lomo_baselines_parallel(
     checkpoint_dir: Path,
     municipalities: List[str],
-    gpus: List[int]
+    gpus: List[int],
+    model_type: str = 'xlmr_crf'
 ) -> bool:
     """
     Train LOMO baselines for all municipalities in parallel.
@@ -200,7 +201,7 @@ def train_lomo_baselines_parallel(
             output_dir = checkpoint_dir / mun
 
             # Build training command
-            base_config = Path(f"configs/municipality_experiments/deberta_crf_{mun}.yaml")
+            base_config = Path(f"configs/municipality_experiments/{model_type}_{mun}.yaml")
             if not base_config.exists():
                 print(f"⚠️  Base config not found: {base_config}, skipping {mun}")
                 continue
@@ -280,7 +281,8 @@ def train_lomo_baselines_parallel(
 def ensure_lomo_checkpoints(
     checkpoint_dir: Path,
     municipalities: List[str],
-    gpus: List[int]
+    gpus: List[int],
+    model_type: str = 'xlmr_crf'
 ) -> bool:
     """
     Ensure LOMO checkpoints exist for all municipalities.
@@ -311,7 +313,7 @@ def ensure_lomo_checkpoints(
 
     for mun in missing_checkpoints:
         output_dir = checkpoint_dir / mun
-        success = train_lomo_baseline(mun, output_dir, gpu_id)
+        success = train_lomo_baseline(mun, output_dir, gpu_id, model_type)
 
         if not success:
             print(f"\n❌ Failed to train LOMO baseline for {mun}")
@@ -535,8 +537,13 @@ def main():
     )
     parser.add_argument(
         '--base-config',
-        default='configs/municipality_experiments/deberta_crf_M01.yaml',
+        default='configs/municipality_experiments/xlmr_crf_M01.yaml',
         help='Base config template'
+    )
+    parser.add_argument(
+        '--model-type',
+        default='xlmr_crf',
+        help='Model type for configs (e.g., xlmr_crf, deberta_crf)'
     )
     parser.add_argument(
         '--seed', type=int, default=42,
@@ -586,7 +593,8 @@ def main():
         success = train_lomo_baselines_parallel(
             lomo_checkpoint_dir,
             args.municipalities,
-            args.gpus
+            args.gpus,
+            args.model_type
         )
 
         if success:
@@ -628,7 +636,8 @@ def main():
         success = ensure_lomo_checkpoints(
             lomo_checkpoint_dir,
             args.municipalities,
-            args.gpus
+            args.gpus,
+            args.model_type
         )
 
         if not success:
@@ -640,7 +649,7 @@ def main():
     if not base_config.exists():
         # Try to find config for first municipality
         base_config = Path(
-            f"configs/municipality_experiments/deberta_crf_{args.municipalities[0]}.yaml"
+            f"configs/municipality_experiments/{args.model_type}_{args.municipalities[0]}.yaml"
         )
 
     if not base_config.exists():

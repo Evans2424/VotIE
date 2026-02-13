@@ -110,7 +110,7 @@ def test_config_generation():
     print("="*80)
 
     try:
-        base_config = Path("configs/municipality_experiments/deberta_crf_M01.yaml")
+        base_config = Path("configs/municipality_experiments/xlmr_crf_M01.yaml")
 
         if not base_config.exists():
             print(f"⚠️  Base config not found: {base_config}")

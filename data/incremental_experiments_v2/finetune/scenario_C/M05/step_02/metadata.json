@@ -1,0 +1,27 @@
+{
+  "experiment_type": "finetune",
+  "scenario": "C",
+  "municipality": "M05",
+  "step": 2,
+  "documents_added": {
+    "train": [
+      "Guimaraes_cm_020_2021-12-06",
+      "Guimaraes_cm_007_2024-04-08"
+    ],
+    "dev": [
+      "Guimaraes_cm_016_2023-09-28",
+      "Guimaraes_cm_018_2023-10-26"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2051,
+    "dev": 402,
+    "test": 267
+  },
+  "created_at": "2026-02-13T18:00:45.554177",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M05",
+    "incremental_pool_seed": 42
+  }
+}

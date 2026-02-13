@@ -1,0 +1,33 @@
+{
+  "experiment_type": "finetune",
+  "scenario": "C",
+  "municipality": "M04",
+  "step": 5,
+  "documents_added": {
+    "train": [
+      "Fundao_cm_016_2023-27-11",
+      "Fundao_cm_005_2022-22-04",
+      "Fundao_cm_014_2023-30-10",
+      "Fundao_cm_003_2024-16-02",
+      "Fundao_cm_010_2024-21-06"
+    ],
+    "dev": [
+      "Fundao_cm_014_2021-12-11",
+      "Fundao_cm_014_2024-09-30",
+      "Fundao_cm_016_2021-14-12",
+      "Fundao_cm_005_2023-27-03",
+      "Fundao_cm_013_2022-31-10"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2302,
+    "dev": 448,
+    "test": 129
+  },
+  "created_at": "2026-02-13T18:00:42.530367",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M04",
+    "incremental_pool_seed": 42
+  }
+}

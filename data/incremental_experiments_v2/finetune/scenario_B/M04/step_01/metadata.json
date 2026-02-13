@@ -1,0 +1,23 @@
+{
+  "experiment_type": "finetune",
+  "scenario": "B",
+  "municipality": "M04",
+  "step": 1,
+  "documents_added": {
+    "train": [],
+    "dev": [
+      "Fundao_cm_016_2023-27-11"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2247,
+    "dev": 411,
+    "test": 129
+  },
+  "created_at": "2026-02-13T18:00:41.594135",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M04",
+    "incremental_pool_seed": 42
+  }
+}

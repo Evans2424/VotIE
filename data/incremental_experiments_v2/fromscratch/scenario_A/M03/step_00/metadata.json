@@ -1,0 +1,21 @@
+{
+  "experiment_type": "fromscratch",
+  "scenario": "A",
+  "municipality": "M03",
+  "step": 0,
+  "documents_added": {
+    "train": [],
+    "dev": [],
+    "test": []
+  },
+  "num_segments": {
+    "train": 1836,
+    "dev": 324,
+    "test": 367
+  },
+  "created_at": "2026-02-13T18:00:39.363534",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M03",
+    "incremental_pool_seed": 42
+  }
+}

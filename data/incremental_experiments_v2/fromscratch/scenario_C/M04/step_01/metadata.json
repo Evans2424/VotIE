@@ -1,0 +1,25 @@
+{
+  "experiment_type": "fromscratch",
+  "scenario": "C",
+  "municipality": "M04",
+  "step": 1,
+  "documents_added": {
+    "train": [
+      "Fundao_cm_016_2023-27-11"
+    ],
+    "dev": [
+      "Fundao_cm_014_2021-12-11"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2261,
+    "dev": 408,
+    "test": 129
+  },
+  "created_at": "2026-02-13T18:00:43.763015",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M04",
+    "incremental_pool_seed": 42
+  }
+}

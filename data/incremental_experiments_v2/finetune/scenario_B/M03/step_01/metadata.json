@@ -1,0 +1,23 @@
+{
+  "experiment_type": "finetune",
+  "scenario": "B",
+  "municipality": "M03",
+  "step": 1,
+  "documents_added": {
+    "train": [],
+    "dev": [
+      "Covilha_cm_021_2024-12-12"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 1836,
+    "dev": 345,
+    "test": 367
+  },
+  "created_at": "2026-02-13T18:00:38.436015",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M03",
+    "incremental_pool_seed": 42
+  }
+}

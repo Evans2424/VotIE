@@ -1,0 +1,29 @@
+{
+  "experiment_type": "fromscratch",
+  "scenario": "C",
+  "municipality": "M02",
+  "step": 3,
+  "documents_added": {
+    "train": [
+      "Campomaior_cm_025_2022-12-21",
+      "Campomaior_cm_005_2023-03-01",
+      "Campomaior_cm_020_2024-11-06"
+    ],
+    "dev": [
+      "Campomaior_cm_018_2024-10-02",
+      "Campomaior_cm_021_2023-11-02",
+      "Campomaior_cm_024_2022-12-07"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2169,
+    "dev": 431,
+    "test": 209
+  },
+  "created_at": "2026-02-13T18:00:37.479021",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M02",
+    "incremental_pool_seed": 42
+  }
+}

@@ -1,0 +1,23 @@
+\begin{table*}[t]
+\centering
+\caption{Per-entity F1 scores (\%) at Step 0 (LOMO baseline) and last completed step. Entities with support $<$ 5 marked with $\dagger$.}
+\label{tab:per_entity_f1}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l cc cc cc cc cc cc}
+\toprule
+\textbf{Entity Type} & \multicolumn{2}{c}{\textbf{Alandroal}} & \multicolumn{2}{c}{\textbf{Campomaior}} & \multicolumn{2}{c}{\textbf{Porto}} & \multicolumn{2}{c}{\textbf{Fundão}} & \multicolumn{2}{c}{\textbf{Covilhã}} & \multicolumn{2}{c}{\textbf{Guimarães}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11} \cmidrule(lr){12-13} 
+ & \textbf{S0} & \textbf{S5} & \textbf{S0} & \textbf{S5} & \textbf{S0} & \textbf{S5} & \textbf{S0} & \textbf{S5} & \textbf{S0} & \textbf{S5} & \textbf{S0} & \textbf{S5} \\
+\midrule
+VOTING & 99.8 & 100.0 & 88.3 & 87.3 & 80.3 & 96.1 & 80.9 & 99.4 & 80.9 & 99.3 & 58.5 & 96.0 \\
+C-UNANIMITY & 99.5 & 100.0 & 85.7 & 79.9 & 0.0$^\dagger$ & 0.0$^\dagger$ & 74.2 & 99.1 & 89.9 & 98.0 & 94.8 & 95.5 \\
+C-MAJORITY & 64.4 & 100.0 & 80.0 & 48.9 & 0.0$^\dagger$ & 0.0$^\dagger$ & 32.4 & 100.0 & 61.9 & 70.6 & 87.6 & 91.5 \\
+V-FAVOR & 94.4 & 99.3 & 86.2 & 87.3 & 87.1 & 96.2 & 5.9 & 97.4 & 24.8 & 92.6 & 0.0 & 70.3 \\
+V-ABSTENTION & 9.1 & 95.2 & 7.4 & 0.0 & 94.0 & 96.5 & 63.3 & 100.0 & 97.0 & 97.7 & 7.1 & 93.8 \\
+V-AGAINST & 0.0$^\dagger$ & 40.0$^\dagger$ & 30.8 & 12.5$^\dagger$ & 74.4 & 82.2 & 23.5 & 92.3 & 30.6 & 73.7 & 2.6 & 92.6 \\
+V-ABSENT & 0.0 & 40.0 & 0.0 & 40.0$^\dagger$ & 86.4 & 91.7 & 20.0$^\dagger$ & 100.0$^\dagger$ & 59.6 & 92.3 & 0.0 & 0.0$^\dagger$ \\
+SUBJECT & 57.9 & 75.2 & 9.3 & 23.8 & 15.0 & 55.1 & 12.8 & 78.0 & 6.3 & 88.9 & 1.8 & 77.6 \\
+\bottomrule
+\end{tabular}
+\end{table*}

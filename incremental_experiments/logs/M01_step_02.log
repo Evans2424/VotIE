@@ -1,0 +1,6 @@
+2026-02-10 21:40:22 - INFO - Loading NER dataset with dynamic windowing: True
+2026-02-10 21:40:22 - INFO - Max length: 512, Overlap: 50
+2026-02-10 21:40:24 - INFO - Loading training file: train.jsonl
+2026-02-10 21:40:25 - INFO - Loaded 2058 valid examples from data/incremental_experiments/M01/step_02/train.jsonl
+2026-02-10 21:40:25 - INFO -   Converted 2058 examples from span format to BIO format
+Token indices sequence length is longer than the specified maximum sequence length for this model (866 > 512). Running this sequence through the model will result in indexing errors

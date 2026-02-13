@@ -1,0 +1,24 @@
+{
+  "experiment_type": "fromscratch",
+  "scenario": "A",
+  "municipality": "M01",
+  "step": 2,
+  "documents_added": {
+    "train": [
+      "Alandroal_cm_024_2023-11-08",
+      "Alandroal_cm_006_2022-03-16"
+    ],
+    "dev": [],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2058,
+    "dev": 357,
+    "test": 254
+  },
+  "created_at": "2026-02-13T18:18:55.327629",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M01",
+    "incremental_pool_seed": 42
+  }
+}

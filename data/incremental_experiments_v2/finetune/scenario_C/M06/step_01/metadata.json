@@ -1,0 +1,25 @@
+{
+  "experiment_type": "finetune",
+  "scenario": "C",
+  "municipality": "M06",
+  "step": 1,
+  "documents_added": {
+    "train": [
+      "Porto_cm_070_2024-12-02"
+    ],
+    "dev": [
+      "Porto_cm_046_2023-11-06"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2068,
+    "dev": 383,
+    "test": 254
+  },
+  "created_at": "2026-02-13T18:00:48.749668",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M06",
+    "incremental_pool_seed": 42
+  }
+}

@@ -1,0 +1,20 @@
+\begin{table*}[t]
+\centering
+\caption{Precision and Recall comparison: LOMO baseline (Step 0) vs.\ after adding in-domain documents (last completed step).}
+\label{tab:incremental_pr}
+\small
+\begin{tabular}{l c cc cc c}
+\toprule
+ & & \multicolumn{2}{c}{\textbf{Step 0 (LOMO)}} & \multicolumn{2}{c}{\textbf{Last Step}} & \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6}
+\textbf{Municipality} & \textbf{Steps} & \textbf{Prec.} & \textbf{Rec.} & \textbf{Prec.} & \textbf{Rec.} & \textbf{$\Delta$ F1} \\
+\midrule
+Alandroal & 0$\to$5 & 52.4 & 58.1 & 79.7 & 88.9 & +28.1 \\
+Campomaior & 0$\to$5 & 50.0 & 52.1 & 39.7 & 72.6 & -1.0 \\
+Porto & 0$\to$5 & 63.7 & 62.5 & 61.2 & 69.1 & +2.3 \\
+Fundão & 0$\to$5 & 51.9 & 34.2 & 95.7 & 96.3 & +56.6 \\
+Covilhã & 0$\to$5 & 59.2 & 63.9 & 85.3 & 95.5 & +32.8 \\
+Guimarães & 0$\to$5 & 38.4 & 28.7 & 72.9 & 82.1 & +45.6 \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -1,0 +1,33 @@
+{
+  "experiment_type": "finetune",
+  "scenario": "C",
+  "municipality": "M01",
+  "step": 5,
+  "documents_added": {
+    "train": [
+      "Alandroal_cm_024_2023-11-08",
+      "Alandroal_cm_006_2022-03-16",
+      "Alandroal_cm_016_2023-07-19",
+      "Alandroal_cm_004_2022-02-16",
+      "Alandroal_cm_008_2022-04-13"
+    ],
+    "dev": [
+      "Alandroal_cm_015_2024-06-19",
+      "Alandroal_cm_018_2022-08-31",
+      "Alandroal_cm_021_2024-09-11",
+      "Alandroal_cm_006_2023-03-15",
+      "Alandroal_cm_012_2023-05-24"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 2141,
+    "dev": 484,
+    "test": 254
+  },
+  "created_at": "2026-02-13T18:18:55.044478",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M01",
+    "incremental_pool_seed": 42
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-02-13T18:18:56.728879",
+  "municipalities": [
+    "M01"
+  ],
+  "scenarios": [
+    "A",
+    "B",
+    "C"
+  ],
+  "seed": 42,
+  "num_test_docs": 10,
+  "num_add_docs": 5,
+  "results": {
+    "M01": {
+      "finetune_A": [
+        {
+          "step": 0,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_A/M01/step_00"
+        },
+        {
+          "step": 1,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_A/M01/step_01"
+        },
+        {
+          "step": 2,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_A/M01/step_02"
+        },
+        {
+          "step": 3,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_A/M01/step_03"
+        },
+        {
+          "step": 4,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_A/M01/step_04"
+        },
+        {
+          "step": 5,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_A/M01/step_05"
+        }
+      ],
+      "finetune_B": [
+        {
+          "step": 0,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_B/M01/step_00"
+        },
+        {
+          "step": 1,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_B/M01/step_01"
+        },
+        {
+          "step": 2,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_B/M01/step_02"
+        },
+        {
+          "step": 3,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_B/M01/step_03"
+        },
+        {
+          "step": 4,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_B/M01/step_04"
+        },
+        {
+          "step": 5,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_B/M01/step_05"
+        }
+      ],
+      "finetune_C": [
+        {
+          "step": 0,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_C/M01/step_00"
+        },
+        {
+          "step": 1,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_C/M01/step_01"
+        },
+        {
+          "step": 2,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_C/M01/step_02"
+        },
+        {
+          "step": 3,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_C/M01/step_03"
+        },
+        {
+          "step": 4,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_C/M01/step_04"
+        },
+        {
+          "step": 5,
+          "data_dir": "data/incremental_experiments_v2/finetune/scenario_C/M01/step_05"
+        }
+      ],
+      "fromscratch_A": [
+        {
+          "step": 0,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_A/M01/step_00"
+        },
+        {
+          "step": 1,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_A/M01/step_01"
+        },
+        {
+          "step": 2,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_A/M01/step_02"
+        },
+        {
+          "step": 3,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_A/M01/step_03"
+        },
+        {
+          "step": 4,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_A/M01/step_04"
+        },
+        {
+          "step": 5,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_A/M01/step_05"
+        }
+      ],
+      "fromscratch_B": [
+        {
+          "step": 0,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_B/M01/step_00"
+        },
+        {
+          "step": 1,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_B/M01/step_01"
+        },
+        {
+          "step": 2,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_B/M01/step_02"
+        },
+        {
+          "step": 3,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_B/M01/step_03"
+        },
+        {
+          "step": 4,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_B/M01/step_04"
+        },
+        {
+          "step": 5,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_B/M01/step_05"
+        }
+      ],
+      "fromscratch_C": [
+        {
+          "step": 0,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_C/M01/step_00"
+        },
+        {
+          "step": 1,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_C/M01/step_01"
+        },
+        {
+          "step": 2,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_C/M01/step_02"
+        },
+        {
+          "step": 3,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_C/M01/step_03"
+        },
+        {
+          "step": 4,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_C/M01/step_04"
+        },
+        {
+          "step": 5,
+          "data_dir": "data/incremental_experiments_v2/fromscratch/scenario_C/M01/step_05"
+        }
+      ]
+    }
+  }
+}

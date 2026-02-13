@@ -1,0 +1,23 @@
+{
+  "experiment_type": "fromscratch",
+  "scenario": "B",
+  "municipality": "M05",
+  "step": 1,
+  "documents_added": {
+    "train": [],
+    "dev": [
+      "Guimaraes_cm_020_2021-12-06"
+    ],
+    "test": []
+  },
+  "num_segments": {
+    "train": 1976,
+    "dev": 394,
+    "test": 267
+  },
+  "created_at": "2026-02-13T18:00:46.526322",
+  "data_source": {
+    "lomo_base": "data/citilink_bio_municipality_splits/M05",
+    "incremental_pool_seed": 42
+  }
+}

@@ -74,9 +74,19 @@ def create_config(base_config_path: Path, data_dir: str, gpu_id: int, output_pat
 # ── Data preparation ─────────────────────────────────────────────────────────
 
 
-def prepare_data_splits(municipality: str, seed: int = 42) -> List[Dict[str, Any]]:
-    """Read LOMO data, shuffle test documents, write incremental splits."""
-    base_dir = Path(f"data/citilink_spans_municipality_splits/{municipality}")
+def prepare_data_splits(municipality: str, seed: int = 42,
+                        num_test_docs: int = 15,
+                        num_add_docs: int = 5) -> List[Dict[str, Any]]:
+    """Read LOMO data, shuffle test documents, write incremental splits.
+
+    Design: from the target municipality's documents (shuffled with seed),
+    15 are held as a FIXED test set (constant across all steps), and
+    5 are used as the incremental pool added to training one at a time.
+
+    Step 0: baseline (0 in-domain docs in train, 15-doc fixed test)
+    Step k: k in-domain docs added to train, same 15-doc fixed test
+    """
+    base_dir = Path(f"data/citilink_bio_municipality_splits/{municipality}")
 
     train_data = load_jsonl(base_dir / "train.jsonl")
     dev_data = load_jsonl(base_dir / "dev.jsonl")
@@ -94,21 +104,35 @@ def prepare_data_splits(municipality: str, seed: int = 42) -> List[Dict[str, Any
     for doc_id in doc_ids:
         print(f"    {doc_id}: {len(doc_groups[doc_id])} segments")
 
+    assert len(doc_ids) >= num_test_docs + num_add_docs, (
+        f"{municipality} has {len(doc_ids)} docs, need {num_test_docs}+{num_add_docs}="
+        f"{num_test_docs + num_add_docs}"
+    )
+
     rng = random.Random(seed)
     rng.shuffle(doc_ids)
 
+    # First num_add_docs are the incremental pool; last num_test_docs are fixed test
+    add_pool = doc_ids[:num_add_docs]
+    test_docs = doc_ids[num_add_docs:num_add_docs + num_test_docs]
+
+    test_segments = [seg for d in test_docs for seg in doc_groups[d]]
+
     print(f"\nShuffled document order (seed={seed}):")
-    for i, doc_id in enumerate(doc_ids):
-        print(f"  {i}: {doc_id} ({len(doc_groups[doc_id])} segments)")
+    print(f"  Incremental pool ({num_add_docs} docs, added to train):")
+    for i, doc_id in enumerate(add_pool):
+        print(f"    {i}: {doc_id} ({len(doc_groups[doc_id])} segments)")
+    print(f"  Fixed test set ({num_test_docs} docs, {len(test_segments)} segments):")
+    for doc_id in test_docs:
+        print(f"    {doc_id} ({len(doc_groups[doc_id])} segments)")
 
     steps = []
     output_base = Path(f"data/incremental_experiments/{municipality}")
 
-    for k in range(len(doc_ids)):  # 0 to N-1 (last step would have empty test)
+    for k in range(num_add_docs + 1):  # 0 to num_add_docs inclusive
         step_dir = output_base / f"step_{k:02d}"
 
-        added_segments = [seg for d in doc_ids[:k] for seg in doc_groups[d]]
-        test_segments = [seg for d in doc_ids[k:] for seg in doc_groups[d]]
+        added_segments = [seg for d in add_pool[:k] for seg in doc_groups[d]]
 
         save_jsonl(train_data + added_segments, step_dir / "train.jsonl")
         save_jsonl(dev_data, step_dir / "dev.jsonl")
@@ -327,7 +351,7 @@ def main():
         print(f"Error: Base config not found: {base_config_path}")
         sys.exit(1)
 
-    if not Path(f"data/citilink_spans_municipality_splits/{mun}").exists():
+    if not Path(f"data/citilink_bio_municipality_splits/{mun}").exists():
         print(f"Error: Data directory not found for {mun}")
         sys.exit(1)
 

@@ -402,7 +402,7 @@ def launch_experiment(
     eval_path = f"incremental_experiments_v2/evaluation/{experiment_name}.json"
 
     cmds = [
-        f"{sys.executable} scripts/train.py --config {config_path} --experiment-name {experiment_name}",
+        f"{sys.executable} scripts/train.py --config {config_path} --experiment-name {experiment_name} --output-dir {model_dir}",
         f"{sys.executable} scripts/predict.py {model_dir} {data_dir}/test.jsonl {predictions_path} cuda:{gpu_id}",
         f"{sys.executable} scripts/evaluate.py {predictions_path} {eval_path}"
     ]

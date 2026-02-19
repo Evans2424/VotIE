@@ -57,7 +57,7 @@ TRANSFORMER_BASELINES = {
 ALL_BASELINES = {**TRADITIONAL_BASELINES, **TRANSFORMER_BASELINES}
 
 
-def train_crf(baseline_name: str, config_file: str = None, experiment_name: str = None):
+def train_crf(baseline_name: str, config_file: str = None, experiment_name: str = None, output_dir: str = None):
     """Train CRF baseline."""
     from src.models.crf import TraditionalCRFModel
     from src.data.dataset import load_jsonl_file
@@ -80,7 +80,7 @@ def train_crf(baseline_name: str, config_file: str = None, experiment_name: str 
     print(f"   Train: {len(train_data)}, Dev: {len(dev_data)} examples")
 
     # Train CRF
-    output_dir = Path("models") / baseline_name / experiment_name
+    output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model = TraditionalCRFModel(
@@ -116,7 +116,7 @@ def train_crf(baseline_name: str, config_file: str = None, experiment_name: str 
     return output_dir
 
 
-def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: str = None):
+def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: str = None, output_dir: str = None):
     """Train BiLSTM+FastText baseline."""
     from src.bilstm_trainer import BiLSTMTrainer
     import yaml
@@ -129,7 +129,7 @@ def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: s
     data_config = config['data']
     training_config = config['training']
 
-    output_dir = Path("models") / baseline_name / experiment_name
+    output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
 
     # Filter out 'name' field from model_config as it's not a BiLSTMTrainer parameter
     model_params_filtered = {k: v for k, v in model_config.items() if k != 'name'}
@@ -156,7 +156,7 @@ def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: s
     return output_dir
 
 
-def train_transformer(baseline_name: str, config_file: str = None, experiment_name: str = None):
+def train_transformer(baseline_name: str, config_file: str = None, experiment_name: str = None, output_dir: str = None):
     """Train transformer baseline (BERT, DeBERTa, XLM-R)."""
     import torch
     import yaml
@@ -208,7 +208,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     print(f"✓ Model created with {len(label_to_id)} labels")
 
     # Train
-    output_dir = Path("models") / baseline_name / experiment_name
+    output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
     print(f"\n📦 Initializing trainer...")
 
     trainer = VotIETrainer(
@@ -243,7 +243,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     return output_dir
 
 
-def main(config_file: str, experiment_name: str = None):
+def main(config_file: str, experiment_name: str = None, output_dir: str = None):
     """Main training entry point."""
     import yaml
     from pathlib import Path
@@ -290,13 +290,14 @@ def main(config_file: str, experiment_name: str = None):
 
     # Route to appropriate trainer
     try:
-        output_dir = None
+        result_dir = None
         if baseline_name == "crf":
-            output_dir = train_crf(baseline_name, config_file, experiment_name)
+            result_dir = train_crf(baseline_name, config_file, experiment_name, output_dir)
         elif baseline_name == "bilstm_fasttext":
-            output_dir = train_bilstm(baseline_name, config_file, experiment_name)
+            result_dir = train_bilstm(baseline_name, config_file, experiment_name, output_dir)
         else:
-            output_dir = train_transformer(baseline_name, config_file, experiment_name)
+            result_dir = train_transformer(baseline_name, config_file, experiment_name, output_dir)
+        output_dir = result_dir
 
         print(f"\n🎉 Training completed successfully!")
         print(f"📁 Model saved to: {output_dir}")
@@ -320,6 +321,7 @@ if __name__ == "__main__":
         print("\nOptions:")
         print("  --config: Path to config file (required)")
         print("  --experiment-name: Name for this experiment run (optional)")
+        print("  --output-dir: Override output directory (optional)")
         print("\nExamples:")
         print("  python scripts/train.py --config configs/crf.yaml")
         print("  python scripts/train.py --config configs/bert_linear.yaml --experiment-name exp1")
@@ -331,6 +333,7 @@ if __name__ == "__main__":
     # Parse arguments
     config_file = None
     experiment_name = None
+    output_dir = None
 
     i = 1
     while i < len(sys.argv):
@@ -340,12 +343,15 @@ if __name__ == "__main__":
         elif sys.argv[i] == "--experiment-name" and i + 1 < len(sys.argv):
             experiment_name = sys.argv[i + 1]
             i += 2
+        elif sys.argv[i] == "--output-dir" and i + 1 < len(sys.argv):
+            output_dir = sys.argv[i + 1]
+            i += 2
         else:
             i += 1
 
     if not config_file:
         print("❌ Error: --config argument is required")
-        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME]")
+        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME] [--output-dir DIR]")
         sys.exit(1)
 
-    main(config_file, experiment_name)
+    main(config_file, experiment_name, output_dir)

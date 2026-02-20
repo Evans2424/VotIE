@@ -207,6 +207,18 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     model = model_class(model_name=model_name, num_labels=len(label_to_id))
     print(f"✓ Model created with {len(label_to_id)} labels")
 
+    # Load weights from checkpoint for fine-tuning (if specified)
+    resume_checkpoint = training_config.get('resume_from_checkpoint')
+    if resume_checkpoint:
+        from safetensors.torch import load_file as load_safetensors
+        safetensors_path = Path(resume_checkpoint) / 'model.safetensors'
+        if safetensors_path.exists():
+            state_dict = load_safetensors(str(safetensors_path))
+            model.load_state_dict(state_dict)
+            print(f"✓ Loaded weights from {safetensors_path}")
+        else:
+            print(f"⚠️  resume_from_checkpoint set but model not found at {safetensors_path}, training from scratch")
+
     # Train
     output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
     print(f"\n📦 Initializing trainer...")

@@ -132,13 +132,13 @@ def train_lomo_baseline(municipality: str, output_dir: Path, gpu_id: int, model_
         proc.wait()
 
     if proc.returncode == 0:
-        # Verify checkpoint exists
-        checkpoint_path = output_dir / "best_model" / "checkpoint.pt"
+        # Verify model was saved (trainer saves model.safetensors directly in output_dir)
+        checkpoint_path = output_dir / "model.safetensors"
         if checkpoint_path.exists():
             print(f"  ✅ LOMO baseline trained successfully")
             return True
         else:
-            print(f"  ❌ Training completed but checkpoint not found: {checkpoint_path}")
+            print(f"  ❌ Training completed but model not found: {checkpoint_path}")
             return False
     else:
         print(f"  ❌ Training failed (exit code {proc.returncode})")
@@ -173,7 +173,7 @@ def train_lomo_baselines_parallel(
     # Check which need training
     to_train = []
     for mun in municipalities:
-        checkpoint_path = checkpoint_dir / mun / "best_model" / "checkpoint.pt"
+        checkpoint_path = checkpoint_dir / mun / "model.safetensors"
         if not checkpoint_path.exists():
             to_train.append(mun)
         else:
@@ -264,10 +264,10 @@ def train_lomo_baselines_parallel(
                 print(f"    See log: {entry['log_path']}")
                 all_success = False
             else:
-                # Verify checkpoint exists
-                checkpoint_path = entry['output_dir'] / "best_model" / "checkpoint.pt"
+                # Verify model was saved
+                checkpoint_path = entry['output_dir'] / "model.safetensors"
                 if not checkpoint_path.exists():
-                    print(f"    ⚠️  Checkpoint not found: {checkpoint_path}")
+                    print(f"    ⚠️  Model not found: {checkpoint_path}")
                     all_success = False
 
         if not all_success:
@@ -298,7 +298,7 @@ def ensure_lomo_checkpoints(
     missing_checkpoints = []
 
     for mun in municipalities:
-        checkpoint_path = checkpoint_dir / mun / "best_model" / "checkpoint.pt"
+        checkpoint_path = checkpoint_dir / mun / "model.safetensors"
         if not checkpoint_path.exists():
             missing_checkpoints.append(mun)
 
@@ -371,13 +371,10 @@ def launch_experiment(
     # Generate config
     lomo_ckpt = None
     if exp_info['type'] == 'finetune':
-        lomo_ckpt = (
-            lomo_checkpoint_dir / exp_info['municipality'] /
-            "best_model" / "checkpoint.pt"
-        )
+        lomo_ckpt = lomo_checkpoint_dir / exp_info['municipality']
 
-        if not lomo_ckpt.exists():
-            print(f"  ❌ LOMO checkpoint not found: {lomo_ckpt}")
+        if not (lomo_ckpt / "model.safetensors").exists():
+            print(f"  ❌ LOMO checkpoint not found: {lomo_ckpt / 'model.safetensors'}")
             return None
 
     config_path = generate_config(

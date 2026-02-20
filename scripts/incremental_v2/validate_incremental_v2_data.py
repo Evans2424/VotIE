@@ -388,9 +388,29 @@ def check_incremental_growth() -> bool:
                     train_count = len(load_jsonl(data_dir / "train.jsonl"))
                     dev_count = len(load_jsonl(data_dir / "dev.jsonl"))
 
+                    # Read lomo_fallback flag — finetune step 0 uses LOMO data as a
+                    # fallback, so the step 0→1 transition is a deliberate size drop
+                    # (from LOMO fallback back to real M01 docs) and should not be
+                    # treated as a validation failure.
+                    metadata_path = data_dir / "metadata.json"
+                    prev_was_fallback_train = False
+                    prev_was_fallback_dev = False
+                    if step > 0 and metadata_path.exists():
+                        prev_dir = Path(
+                            f"data/incremental_experiments_v2/{exp_type}/"
+                            f"scenario_{scenario}/{mun}/step_{(step-1):02d}"
+                        )
+                        prev_meta_path = prev_dir / "metadata.json"
+                        if prev_meta_path.exists():
+                            with open(prev_meta_path) as f:
+                                prev_meta = json.load(f)
+                            fallback = prev_meta.get('lomo_fallback', {})
+                            prev_was_fallback_train = fallback.get('train', False)
+                            prev_was_fallback_dev = fallback.get('dev', False)
+
                     # Check growth based on scenario
                     if scenario == 'A' and prev_train_count is not None:
-                        if step > 0 and train_count <= prev_train_count:
+                        if step > 0 and not prev_was_fallback_train and train_count <= prev_train_count:
                             print(
                                 f"  ❌ {mun} {exp_type} scenario A step {step}: "
                                 f"Train not growing"
@@ -398,7 +418,7 @@ def check_incremental_growth() -> bool:
                             all_passed = False
 
                     elif scenario == 'B' and prev_dev_count is not None:
-                        if step > 0 and dev_count <= prev_dev_count:
+                        if step > 0 and not prev_was_fallback_dev and dev_count <= prev_dev_count:
                             print(
                                 f"  ❌ {mun} {exp_type} scenario B step {step}: "
                                 f"Dev not growing"
@@ -407,14 +427,14 @@ def check_incremental_growth() -> bool:
 
                     elif scenario == 'C':
                         if prev_train_count is not None and step > 0:
-                            if train_count <= prev_train_count:
+                            if not prev_was_fallback_train and train_count <= prev_train_count:
                                 print(
                                     f"  ❌ {mun} {exp_type} scenario C step {step}: "
                                     f"Train not growing"
                                 )
                                 all_passed = False
                         if prev_dev_count is not None and step > 0:
-                            if dev_count <= prev_dev_count:
+                            if not prev_was_fallback_dev and dev_count <= prev_dev_count:
                                 print(
                                     f"  ❌ {mun} {exp_type} scenario C step {step}: "
                                     f"Dev not growing"

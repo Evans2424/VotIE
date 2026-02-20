@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "predictions_file": "incremental_experiments_v2/predictions/finetune_scenarioA_M01_step02.jsonl",
+    "timestamp": "2026-02-20T03:58:43.843625",
+    "num_examples": 254
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.7032718996862687,
+    "entity_recall": 0.7386515391827145,
+    "entity_f1": 0.7197820178138172,
+    "entity_accuracy": 0.9857002938295788,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.8888888888888888,
+        "recall": 1.0,
+        "f1_score": 0.9411764705882353,
+        "support": 24
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9945652173913043,
+        "recall": 1.0,
+        "f1_score": 0.9972752043596731,
+        "support": 183
+      },
+      "SUBJECT": {
+        "precision": 0.8322981366459627,
+        "recall": 0.8427672955974843,
+        "f1_score": 0.8375,
+        "support": 159
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.125,
+        "recall": 0.125,
+        "f1_score": 0.125,
+        "support": 8
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.8076923076923077,
+        "recall": 0.9545454545454546,
+        "f1_score": 0.875,
+        "support": 22
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 2
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.9826086956521739,
+        "recall": 0.9868995633187773,
+        "f1_score": 0.9847494553376905,
+        "support": 229
+      },
+      "VOTING": {
+        "precision": 0.9951219512195122,
+        "recall": 1.0,
+        "f1_score": 0.9975550122249389,
+        "support": 204
+      }
+    }
+  }
+}

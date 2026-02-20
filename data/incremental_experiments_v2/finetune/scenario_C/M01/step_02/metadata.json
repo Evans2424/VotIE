@@ -15,11 +15,15 @@
     "test": []
   },
   "num_segments": {
-    "train": 2058,
-    "dev": 398,
+    "train": 39,
+    "dev": 41,
     "test": 254
   },
-  "created_at": "2026-02-13T18:18:54.765453",
+  "lomo_fallback": {
+    "train": false,
+    "dev": false
+  },
+  "created_at": "2026-02-20T10:51:51.710615",
   "data_source": {
     "lomo_base": "data/citilink_bio_municipality_splits/M01",
     "incremental_pool_seed": 42

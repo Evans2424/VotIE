@@ -156,12 +156,36 @@ def prepare_incremental_experiments_v2(
                     added_dev_docs = dev_pool[:k]
 
                 # Build train/dev sets
-                train_segs = lomo_train + [
-                    seg for doc_id in added_train_docs for seg in doc_groups[doc_id]
-                ]
-                dev_segs = lomo_dev + [
-                    seg for doc_id in added_dev_docs for seg in doc_groups[doc_id]
-                ]
+                #
+                # fromscratch: full retraining scenario — sees all available data
+                #   (LOMO cross-municipality data + incremental M01 docs)
+                # finetune: cheap adaptation scenario — sees only the new M01 docs
+                #   (the LOMO model already learned from other municipalities)
+                #   Fallback to LOMO data when no M01 docs are available yet
+                #   (step 0, or scenario A where no M01 dev docs are ever added)
+                if exp_type == 'fromscratch':
+                    train_segs = lomo_train + [
+                        seg for doc_id in added_train_docs for seg in doc_groups[doc_id]
+                    ]
+                    dev_segs = lomo_dev + [
+                        seg for doc_id in added_dev_docs for seg in doc_groups[doc_id]
+                    ]
+                    lomo_train_fallback = False
+                    lomo_dev_fallback = False
+                else:  # finetune
+                    train_segs = [
+                        seg for doc_id in added_train_docs for seg in doc_groups[doc_id]
+                    ]
+                    dev_segs = [
+                        seg for doc_id in added_dev_docs for seg in doc_groups[doc_id]
+                    ]
+                    # Fallback to LOMO data when no M01 docs available yet
+                    lomo_train_fallback = len(train_segs) == 0
+                    lomo_dev_fallback = len(dev_segs) == 0
+                    if lomo_train_fallback:
+                        train_segs = lomo_train
+                    if lomo_dev_fallback:
+                        dev_segs = lomo_dev
 
                 # Save files
                 save_jsonl(train_segs, step_dir / "train.jsonl")
@@ -183,6 +207,10 @@ def prepare_incremental_experiments_v2(
                         "train": len(train_segs),
                         "dev": len(dev_segs),
                         "test": len(test_segments)
+                    },
+                    "lomo_fallback": {
+                        "train": lomo_train_fallback,
+                        "dev": lomo_dev_fallback
                     },
                     "created_at": datetime.now().isoformat(),
                     "data_source": {

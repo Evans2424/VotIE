@@ -23,6 +23,7 @@ Usage:
 """
 
 import sys
+import json
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -190,15 +191,34 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     data_dir = Path(data_config['data_dir'])
 
     model_name = model_config['model_name']
+
+    # When fine-tuning from a checkpoint, read its label mapping so the dataset
+    # uses the same label IDs as the pre-trained model.  Small fine-tuning splits
+    # may not contain all entity types, which would produce a mismatched mapping.
+    resume_checkpoint = training_config.get('resume_from_checkpoint')
+    existing_label_to_id = None
+    if resume_checkpoint:
+        ckpt_config_path = Path(resume_checkpoint) / 'config.json'
+        if ckpt_config_path.exists():
+            with open(ckpt_config_path) as f:
+                ckpt_config = json.load(f)
+            label2id = ckpt_config.get('label2id')
+            if label2id:
+                existing_label_to_id = {k: int(v) for k, v in label2id.items()}
+                print(f"✓ Loaded label mapping ({len(existing_label_to_id)} labels) from checkpoint config")
+        else:
+            print(f"⚠️  Checkpoint config not found at {ckpt_config_path}, label mapping will be derived from data")
+
     train_dataset, dev_dataset, _, label_to_id, id_to_label, tokenizer = load_ner_dataset_with_dynamic_windowing(
         data_dir=data_dir,
         train_file=data_config.get('train_file', 'train.jsonl'),
         dev_file=data_config.get('dev_file', 'dev.jsonl'),
-        test_file=data_config.get('test_file', 'test.jsonl'),  # Still needed for label mapping
+        test_file=data_config.get('test_file', 'test.jsonl'),
         tokenizer_name=model_name,
         max_length=augmentation_config.get('max_length', 512),
         overlap_tokens=windowing_config.get('overlap_tokens', 50),
-        enable_windowing=windowing_config.get('enable_windowing', True)
+        enable_windowing=windowing_config.get('enable_windowing', True),
+        existing_label_to_id=existing_label_to_id
     )
 
     # Create model
@@ -208,7 +228,6 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     print(f"✓ Model created with {len(label_to_id)} labels")
 
     # Load weights from checkpoint for fine-tuning (if specified)
-    resume_checkpoint = training_config.get('resume_from_checkpoint')
     if resume_checkpoint:
         from safetensors.torch import load_file as load_safetensors
         safetensors_path = Path(resume_checkpoint) / 'model.safetensors'

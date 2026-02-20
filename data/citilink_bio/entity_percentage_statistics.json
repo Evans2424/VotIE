@@ -139,3 +139,9 @@
     "total_labels": 1044738
   }
 }
+
+
+  python scripts/incremental_v2/run_incremental_v2_experiments.py   --gpus 1 2  --municipalities M01 --experiment-type finetune --scenario A --skip-data-prep --steps 1 2                                                                  
+       \                                                                   
+       \                                                                                 
+                                                                                     

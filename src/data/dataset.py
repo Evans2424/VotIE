@@ -742,7 +742,8 @@ def load_ner_dataset_with_dynamic_windowing(
     tokenizer_name: str,
     max_length: int = 512,
     overlap_tokens: int = 50,
-    enable_windowing: bool = True
+    enable_windowing: bool = True,
+    existing_label_to_id: Dict[str, int] = None
 ) -> Tuple[VotIEDataset, VotIEDataset, VotIEDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
     """
     Load NER dataset with dynamic windowing at training time.
@@ -803,9 +804,16 @@ def load_ner_dataset_with_dynamic_windowing(
     )
     logger.info(f"  Loaded {len(test_examples)} examples from {test_file}")
     
-    # Create label mapping from all examples  
-    all_examples = train_examples + dev_examples + test_examples
-    label_to_id, id_to_label = create_label_mapping(all_examples)
+    # Create label mapping — use provided mapping (e.g. from a checkpoint) when
+    # available so that fine-tuning data with fewer observed labels does not
+    # produce a mapping that is incompatible with the pre-trained model.
+    if existing_label_to_id is not None:
+        label_to_id = existing_label_to_id
+        id_to_label = {v: k for k, v in label_to_id.items()}
+        logger.info(f"Using existing label mapping with {len(label_to_id)} labels (from checkpoint)")
+    else:
+        all_examples = train_examples + dev_examples + test_examples
+        label_to_id, id_to_label = create_label_mapping(all_examples)
     
     # Convert to features
     logger.info("Converting examples to features...")

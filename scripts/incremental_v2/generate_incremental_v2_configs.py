@@ -68,12 +68,21 @@ def generate_config(
         )
     }
 
-    # For fine-tuning: add checkpoint resumption parameters
+    # For fine-tuning: add checkpoint resumption parameters and override
+    # hyperparameters to suit small target-domain datasets.
+    #
+    # The base config is calibrated for full LOMO training (2000+ segments).
+    # Fine-tuning datasets are tiny (5–50 segments), so we need:
+    #   - Lower LR  : prevents catastrophic forgetting of LOMO representations
+    #   - Smaller batch: more gradient updates per epoch
+    #   - More epochs : each epoch is cheap, but the model needs more iterations
+    #   - Higher patience: dev signal is noisier on tiny data
     if experiment_type == 'finetune' and lomo_checkpoint_path:
         config['training']['resume_from_checkpoint'] = str(lomo_checkpoint_path)
-        config['training']['reset_optimizer'] = True    # Fresh optimizer for new data
-        config['training']['reset_scheduler'] = True    # Fresh scheduler
-        config['training']['reset_epochs'] = True       # Start from epoch 0
+        config['training']['learning_rate'] = 2e-5   # was 5e-5
+        config['training']['batch_size'] = 4          # was 16; more updates/epoch
+        config['training']['epochs'] = 30             # was 10; each epoch is cheap
+        config['training']['patience'] = 7            # was 3; noisier dev signal
 
     # Save config
     output_path = Path(

@@ -25,14 +25,11 @@ optimization:
   scheduler: linear_with_warmup
 training:
   apply_bio_validation: true
-  batch_size: 16
+  batch_size: 4
   device: 0
-  epochs: 10
-  learning_rate: 5e-5
-  patience: 3
-  reset_epochs: true
-  reset_optimizer: true
-  reset_scheduler: true
+  epochs: 30
+  learning_rate: 2.0e-05
+  patience: 7
   resume_from_checkpoint: data/incremental_experiments_v2/lomo_checkpoints/M01
   seed: 42
   warmup_proportion: 0.1
